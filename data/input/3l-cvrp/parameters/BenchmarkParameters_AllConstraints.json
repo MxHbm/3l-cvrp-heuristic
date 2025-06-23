@@ -12,6 +12,7 @@
         "IntraRouteFullEnumThreshold": 6,
         "MinVehicleLiftingThreshold": 0.5,
         "SetPartHeurThreshold": 20,
+        "TrackIncrementalFeasibilityProperty": true,
         "StartSolution": "ModifiedSavings",
         "TimeLimit": [
             [

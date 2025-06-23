@@ -3,17 +3,15 @@
     "cmake.sourceDirectory": "${workspaceFolder}/cpp/3L-VehicleRouting",
     "cmake.configureArgs": [
         "-DORTOOLS_ROOT_WIN:STRING=C:/Program Files/or-tools_9.8Bin/",
-        "-DORTOOLS_ROOT_UNIX:STRING=/opt/or-tools_x86_64_Ubuntu-24.04_cpp_v9.8.3296/",
-        "-DGUROBI_ROOT_WIN:STRING=C:/gurobi1003/win64/",
-        "-DGUROBI_ROOT_UNIX:STRING=/opt/gurobi1003/linux64/",
+        "-DGUROBI_ROOT_WIN:STRING=C:/gurobi1000/win64/",
         "-DBOOST_ROOT_WIN:STRING=C:/boost/boost_1_78_0/"
     ],
     "cmake.debugConfig": {
         "args": [
             "-i",
-            "${workspaceFolder}/data/input/3l-cvrp/",
+            "${workspaceFolder}/data/input/3l-cvrp/gendreau/",
             "-f",
-            "E023-03g.json",
+            "3l_cvrp01.json",
             "-o",
             "${workspaceFolder}/data/output/3l-cvrp/test/",
             "-p",
