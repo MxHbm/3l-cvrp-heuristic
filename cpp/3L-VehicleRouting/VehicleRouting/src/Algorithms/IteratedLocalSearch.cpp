@@ -1,4 +1,4 @@
-#include "Algorithms/BranchAndCutSolver.h"
+#include "Algorithms/IteratedLocalSearch.h"
 
 #include "Algorithms/Evaluation.h"
 #include "CommonBasics/Helper/ModelServices.h"
@@ -33,7 +33,7 @@ using namespace ContainerLoading::Algorithms;
 using namespace Heuristics::Improvement;
 using namespace Helper;
 
-void BranchAndCutSolver::Initialize()
+void IteratedLocalSearch::Initialize()
 {
     mLogFile << "ProblemVariant: " << (int)mInputParameters.ContainerLoading.LoadingProblem.Variant << "\n";
 
@@ -104,60 +104,8 @@ void BranchAndCutSolver::Initialize()
     mRNG.seed(1008);
 }
 
-void BranchAndCutSolver::TestProcedure()
-{
-    LoadingFlag mask = LoadingFlag::NoOverlap | LoadingFlag::Fragility | LoadingFlag::Lifo | LoadingFlag::Support;
 
-    if (!IsSet(mask, LoadingFlag::Sequence))
-    {
-        mLogFile << "No Sequence";
-    }
-
-    /*
-    std::vector<int> sequence = {12, 11, 13, 8, 5, 4, 21};
-    std::vector<Group> nodes;
-    for (int id = 0; id < VRPInstance->Nodes.size(); ++id)
-    {
-        nodes.emplace_back(VRPInstance->Nodes[id]);
-    }
-
-    for (int i = 0; i < 1000; ++i)
-    {
-        auto items = mLoadingChecker->SelectItems(sequence, nodes, false);
-
-        auto status = mLoadingChecker->ConstraintProgrammingSolver(
-            PackingType::NoSupportNoSequenceNoFragility,
-            VRPInstance->Vehicles.front().Containers.front(),
-            sequence,
-            items,
-            CPPackingParams::Type::TwoPath);
-        mLogFile << (int)status << "\n";
-    }
-
-    std::vector<int> sequence = {6, 11, 19, 10, 12, 16};
-
-    std::vector<Group> nodes;
-    for (int id = 0; id < VRPInstance->Nodes.size(); ++id)
-    {
-        nodes.emplace_back(VRPInstance->Nodes[id]);
-    }
-
-    auto items = mLoadingChecker->SelectItems(sequence, nodes, false);
-
-    for (int i = 0; i < 0; ++i)
-    {
-        auto status = mLoadingChecker->ConstraintProgrammingSolver(
-            PackingType::NoSupportNoSequenceNoFragility,
-            VRPInstance->Vehicles.front().Containers.front(),
-            sequence.size(),
-            items,
-            CPPackingParams::Type::TwoPath);
-        mLogFile << "Status" << (int)status << "\n";
-    }
-    */
-}
-
-void BranchAndCutSolver::Preprocessing()
+void IteratedLocalSearch::AdaptWeightsVolumesToLoadingProblem()
 {
     mLogFile << "### START PREPROCESSING ###"
              << "\n";
@@ -208,17 +156,9 @@ void BranchAndCutSolver::Preprocessing()
         default:
             break;
     };
-
-    InfeasibleArcProcedure();
-
-    mInstance->LowerBoundVehicles = DetermineLowerBoundVehicles();
-
-    StartSolutionProcedure();
-
-    mLogFile << "### END PREPROCESSING ###\n";
 }
 
-void BranchAndCutSolver::StartSolutionProcedure()
+void IteratedLocalSearch::StartSolutionProcedure()
 {
     mLogFile << "## Start start solution procedure ##\n";
 
@@ -285,9 +225,11 @@ void BranchAndCutSolver::StartSolutionProcedure()
 
     std::string solutionString = "StartSolution-" + mInstance->Name;
     Serializer::WriteToJson(mStartSolution, mOutputPath, solutionString);
+
+    mLogFile << "### END PREPROCESSING ###\n";
 }
 
-std::vector<Route> BranchAndCutSolver::GenerateStartSolution()
+std::vector<Route> IteratedLocalSearch::GenerateStartSolution()
 {
     auto startSolution =
         Heuristics::Constructive::ModifiedSavings(mInstance, &mInputParameters, mLoadingChecker.get(), &mRNG).Run();
@@ -315,7 +257,7 @@ std::vector<Route> BranchAndCutSolver::GenerateStartSolution()
 
     return solution;
 }
-std::vector<Route> BranchAndCutSolver::SetGivenStartSolution()
+std::vector<Route> IteratedLocalSearch::SetGivenStartSolution()
 {
     FunctionTimer<std::chrono::milliseconds> clock;
 
@@ -442,7 +384,7 @@ std::vector<Route> BranchAndCutSolver::SetGivenStartSolution()
 
     return startSolution;
 }
-std::vector<Route> BranchAndCutSolver::SetHardCodedStartSolution()
+std::vector<Route> IteratedLocalSearch::SetHardCodedStartSolution()
 {
     FunctionTimer<std::chrono::milliseconds> clock;
 
@@ -566,7 +508,7 @@ std::vector<Route> BranchAndCutSolver::SetHardCodedStartSolution()
     return startSolution;
 };
 
-void BranchAndCutSolver::InfeasibleArcProcedure()
+void IteratedLocalSearch::InfeasibleArcProcedure()
 {
     std::chrono::time_point<std::chrono::system_clock> start;
     start = std::chrono::system_clock::now();
@@ -590,7 +532,7 @@ void BranchAndCutSolver::InfeasibleArcProcedure()
     // "\n";
 }
 
-void BranchAndCutSolver::DetermineInfeasiblePaths()
+void IteratedLocalSearch::DetermineInfeasiblePaths()
 {
     mLogFile << "## Start infeasible path procedure ## "
              << "\n";
@@ -636,7 +578,7 @@ void BranchAndCutSolver::DetermineInfeasiblePaths()
     }
 }
 
-bool BranchAndCutSolver::CheckPath(const Collections::IdVector& path, Container& container, std::vector<Cuboid>& items)
+bool IteratedLocalSearch::CheckPath(const Collections::IdVector& path, Container& container, std::vector<Cuboid>& items)
 {
     if (mInputParameters.BranchAndCut.ActivateHeuristic)
     {
@@ -680,7 +622,7 @@ bool BranchAndCutSolver::CheckPath(const Collections::IdVector& path, Container&
     return true;
 }
 
-void BranchAndCutSolver::DetermineExtendedInfeasiblePath()
+void IteratedLocalSearch::DetermineExtendedInfeasiblePath()
 {
     if (!mInputParameters.ContainerLoading.LoadingProblem.EnableThreeDimensionalLoading)
     {
@@ -763,7 +705,7 @@ void BranchAndCutSolver::DetermineExtendedInfeasiblePath()
     }
 }
 
-void BranchAndCutSolver::DetermineInfeasibleCustomerCombinations()
+void IteratedLocalSearch::DetermineInfeasibleCustomerCombinations()
 {
     std::chrono::time_point<std::chrono::system_clock> start;
     start = std::chrono::system_clock::now();
@@ -827,7 +769,7 @@ void BranchAndCutSolver::DetermineInfeasibleCustomerCombinations()
     }
 }
 
-size_t BranchAndCutSolver::DetermineLowerBoundVehicles()
+size_t IteratedLocalSearch::DetermineLowerBoundVehicles()
 {
     std::chrono::time_point<std::chrono::system_clock> start;
     start = std::chrono::system_clock::now();
@@ -866,18 +808,26 @@ size_t BranchAndCutSolver::DetermineLowerBoundVehicles()
     return lowerBound1D;
 }
 
-void BranchAndCutSolver::Solve()
+void IteratedLocalSearch::Solve()
 {
     mLogFile << "### START EXACT APPROACH ###\n";
 
+    //Write input parameters to json file
     std::string parameterString = "Parameters-" + mInstance->Name;
     Serializer::WriteToJson(mInputParameters, mOutputPath, parameterString);
 
+    //Test if one of the one customer routes is infeasible
     Initialize();
 
-    ////TestProcedure();
+    //Sets weights or volumes to 0 depending on the loading problem variant
+    AdaptWeightsVolumesToLoadingProblem();
 
-    Preprocessing();
+    //Determine infeasible arcs and tail paths
+    InfeasibleArcProcedure();
+
+    mInstance->LowerBoundVehicles = DetermineLowerBoundVehicles();
+
+    StartSolutionProcedure();
 
     std::chrono::time_point<std::chrono::system_clock> start;
     start = std::chrono::system_clock::now();
@@ -935,7 +885,7 @@ void BranchAndCutSolver::Solve()
     WriteSolutionSolutionValidator();
 }
 
-void BranchAndCutSolver::DeterminePackingSolution()
+void IteratedLocalSearch::DeterminePackingSolution()
 {
     mFinalSolution.NumberOfRoutes = mFinalSolution.Tours.size();
     for (size_t tourId = 0; tourId < mFinalSolution.Tours.size(); tourId++)
@@ -1023,7 +973,7 @@ void BranchAndCutSolver::DeterminePackingSolution()
     }
 }
 
-void BranchAndCutSolver::PrintSolution()
+void IteratedLocalSearch::PrintSolution()
 {
     for (size_t tourId = 0; tourId < mFinalSolution.Tours.size(); tourId++)
     {
@@ -1040,7 +990,7 @@ void BranchAndCutSolver::PrintSolution()
     }
 }
 
-void BranchAndCutSolver::WriteSolutionSolutionValidator()
+void IteratedLocalSearch::WriteSolutionSolutionValidator()
 {
     ResultWriter::SolutionValidator::WriteInput(mOutputPath,
                                                 mInstance->Name,

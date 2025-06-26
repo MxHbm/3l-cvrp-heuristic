@@ -4,7 +4,7 @@
     "cmake.configureArgs": [
         "-DORTOOLS_ROOT_WIN:STRING=C:/Program Files/or-tools_9.8Bin/",
         "-DGUROBI_ROOT_WIN:STRING=C:/gurobi1000/win64/",
-        "-DBOOST_ROOT_WIN:STRING=C:/boost/boost_1_78_0/"
+        "-DBOOST_ROOT_WIN:STRING=C:/boost/boost_1_74_0/"
     ],
     "cmake.debugConfig": {
         "args": [

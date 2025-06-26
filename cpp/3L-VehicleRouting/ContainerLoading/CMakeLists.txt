@@ -22,7 +22,7 @@ set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
 
-find_package(Boost REQUIRED) # COMPONENTS graph dynamic_bitset property_map) # REQUIRED COMPONENTS graph dynamic_bitset property_map
+find_package(Boost REQUIRED) # REQUIRED COMPONENTS graph dynamic_bitset property_map
 
 if(${BOOST_FOUND})
 	message(STATUS "Boost_FOUND: ${Boost_FOUND}")

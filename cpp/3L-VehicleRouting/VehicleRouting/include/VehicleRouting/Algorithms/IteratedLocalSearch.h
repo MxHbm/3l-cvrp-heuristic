@@ -20,10 +20,10 @@ namespace Algorithms
 using namespace ContainerLoading;
 using namespace ContainerLoading::Model;
 
-class BranchAndCutSolver
+class IteratedLocalSearch
 {
   public:
-    BranchAndCutSolver(Instance* instance,
+  IteratedLocalSearch(Instance* instance,
                        GRBEnv* env,
                        const VehicleRouting::InputParameters& inputParameters,
                        const std::string& startSolutionFolderPath,
@@ -71,7 +71,7 @@ class BranchAndCutSolver
 
     void Initialize();
     void TestProcedure();
-    void Preprocessing();
+    void AdaptWeightsVolumesToLoadingProblem();
     void DeterminePackingSolution();
     void PrintSolution();
 
