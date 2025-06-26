@@ -23,7 +23,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(IteratedLocalSearchParams::CallType,
     {IteratedLocalSearchParams::CallType::ExactLimit, "ExactLimit"},
     {IteratedLocalSearchParams::CallType::ILS, "ILS"},
     {IteratedLocalSearchParams::CallType::Constructive, "Constructive"}});
-    
+
 }
 }
 
@@ -172,7 +172,7 @@ void to_json(json& j, const Helper::Timer& timer)
         {"InfeasibleArcs", timer.InfeasibleArcs.count()},
         {"LowerBoundVehicles", timer.LowerBoundVehicles.count()},
         {"StartSolution", timer.StartSolution.count()},
-        {"Branch&Cut", timer.BranchAndCut.count()},
+        {"MetaHeuristic", timer.MetaHeuristic.count()},
     };
 }
 }

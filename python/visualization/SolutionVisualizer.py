@@ -109,17 +109,13 @@ def show_analysis():
 
         solver_summary = solver_statistics_data["Summary"]
 
-        st.sidebar.write(f'Run time infeasible arc procedure: {solver_summary["Infeasible arc procedure"]:.2f}s')
-        st.sidebar.write(f'Run time lower bound procedure: {solver_summary["Lower bound vehicle procedure"]:.2f}s')
-        st.sidebar.write(f'Run time start solution procedure: {solver_summary["Start solution procedure"]:.2f}s')
-        st.sidebar.write(f'Run time B&C: {solver_summary["B&C"]:.2f}s')
+        st.sidebar.write(f'Prepocessing Time: {solver_summary["Preprocessing"]:.2f}s')
         st.sidebar.write(f'Total run time: {solver_summary["Total run time"]:.2f}s')
         st.sidebar.write(f'Optimality gap: {solver_summary["Gap"]:.2f}%')
         st.sidebar.write(f'B&B nodes: {solver_summary["B&B-Nodes"]}')
+        st.sidebar.write(f'Deleted arcs: {solver_summary["Deleted arcs"]}')
         st.sidebar.write(f'Simplex iterations: {solver_summary["Simplex iterations"]}')
-        st.sidebar.write(
-            f'Integer solutions #calls / time: {solver_summary["Integer solutions callback"][0]} / {solver_summary["Integer solutions callback"][1]:.2f}s'
-        )
+        st.sidebar.write(f'InfTailPath: {solver_summary["InfTailPath"]}')
 
         st.header("Analyze solver statistics")
         analyze_solver_statistics(solver_statistics_data)
@@ -143,37 +139,31 @@ def create_filter_mask(tours):
 @st.cache_data
 def get_solver_data_from_json(file):
     solver_statistics = json.loads(file)
-    solver_statistics_data = get_solver_statistics_data(solver_statistics)
+    solver_statistics_data = {}
+    #solver_statistics_data = get_solver_statistics_data(solver_statistics)
+
+    time_distribution = {"Infeasible arc procedure": solver_statistics["Timer"]["InfeasibleArcs"],
+                         "Lower bound vehicle procedure": solver_statistics["Timer"]["LowerBoundVehicles"],
+                         "Start solution procedure": solver_statistics["Timer"]["StartSolution"],
+                         "Main Heuristic": solver_statistics["Timer"]["MetaHeuristic"]}
 
     solver_summary = {
-        "Infeasible arc procedure": solver_statistics["Timer"]["InfeasibleArcs"],
-        "Lower bound vehicle procedure": solver_statistics["Timer"]["LowerBoundVehicles"],
-        "Start solution procedure": solver_statistics["Timer"]["StartSolution"],
-        "B&C": solver_statistics["Timer"]["Branch&Cut"],
         "Gap": solver_statistics["Gap"] * 100,
+        "InfTailPath": solver_statistics["InfTailPath"],
+        "Deleted arcs": solver_statistics["DeletedArcs"],
         "B&B-Nodes": solver_statistics["NodeCount"],
-        "Simplex iterations": solver_statistics["SimplexIterations"],
-        "Integer solutions callback": [
-            solver_statistics_data["ElementData"].at["IntegerSolutions", "Count"],
-            solver_statistics_data["ElementData"].at["IntegerSolutions", "Time"] / 1e6,
-        ],
+        "Simplex iterations": solver_statistics["SimplexIterations"]
     }
 
     solver_summary["Preprocessing"] = (
-        solver_summary["Infeasible arc procedure"]
-        + solver_summary["Lower bound vehicle procedure"]
-        + solver_summary["Start solution procedure"]
+        time_distribution["Infeasible arc procedure"]
+        + time_distribution["Lower bound vehicle procedure"]
+        + time_distribution["Start solution procedure"]
     )
 
-    solver_summary["Total run time"] = solver_summary["Preprocessing"] + solver_summary["B&C"]
-
-    if "AddFracSolCuts" in solver_statistics_data["ElementData"].index:
-        solver_summary["Fractional solutions [calls, time]"] = [
-            solver_statistics_data["ElementData"].at["AddFracSolCuts", "Count"],
-            solver_statistics_data["ElementData"].at["AddFracSolCuts", "Time"] / 1e6,
-        ]
-
+    solver_summary["Total run time"] = solver_summary["Preprocessing"] + time_distribution["Main Heuristic"]
     solver_statistics_data["Summary"] = solver_summary
+    solver_statistics_data["Timer"] = pd.DataFrame.from_dict(time_distribution, orient="index", columns=["Time"])
 
     return solver_statistics_data
 
@@ -182,7 +172,7 @@ def get_solver_data_from_json(file):
 def get_solution_data_from_json(file):
     solution = json.loads(file)
 
-    loading_variant = solution["ProblemVariant"]
+    loading_variant = solution["InputParameters"]["LoadingProblemParams"]["ProblemVariant"]
     costs = solution["Solution"]["Costs"]
     number_vehicles = solution["Solution"]["NumberRoutes"]
 

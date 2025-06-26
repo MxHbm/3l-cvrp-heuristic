@@ -231,26 +231,41 @@ def plot_cuts_bar(cut_data):
 
     st.plotly_chart(fig)
 
+def plot_timer_pie_chart(timer_data):
+    
+    df_timer = timer_data.reset_index()
+    df_timer.columns = ["Component", "Time"]
+
+    total_time = df_timer["Time"].sum()
+
+    # Plot with plotly
+    fig = px.pie(df_timer, values="Time", names="Component", title="Solver Timer Breakdown", hole=0.2)
+
+    # Streamlit output
+    st.plotly_chart(fig)
+
+    # Show total time
+    st.markdown(f"**Total Time:** {total_time:.2f} seconds")
+
 
 def analyze_solver_statistics(solver_statistics_data):
     st.subheader("Solver progress")
 
+    '''
     time_preprocessing = solver_statistics_data["Summary"]["Preprocessing"]
     plot_solver_progress(
         solver_statistics_data["LBProgress"], solver_statistics_data["UBProgress"], time_offset=time_preprocessing
     )
+    '''
+    #st.subheader("Solver components")
 
-    st.subheader("Solver components")
-
-    st.subheader("Integer solutions")
+    #st.subheader("Integer solutions")
     col1, col2 = st.columns(2)
     with col1:
-        plot_element_bar(solver_statistics_data["ElementData"])
+        st.write("This is a test")
+        #plot_element_bar(solver_statistics_data["ElementData"])
     with col2:
-        plot_lazy_constraints_bar(solver_statistics_data["LazyConstraintsCount"])
+        plot_timer_pie_chart(solver_statistics_data["Timer"])
+        #plot_lazy_constraints_bar(solver_statistics_data["LazyConstraintsCount"])
 
-    plot_element_count_sankey(solver_statistics_data["ElementData"], "Count")
-
-    if "CutData" in solver_statistics_data:
-        st.subheader("Fractional solutions")
-        plot_cuts_bar(solver_statistics_data["CutData"])
+    #plot_element_count_sankey(solver_statistics_data["ElementData"], "Count")

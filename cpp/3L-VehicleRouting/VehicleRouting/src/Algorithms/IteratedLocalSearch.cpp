@@ -585,6 +585,9 @@ void IteratedLocalSearch::Solve()
     std::string solutionStatisticsString = "SolutionStatistics-" + mInstance->Name;
     Serializer::WriteToJson(statistics, mOutputPath, solutionStatisticsString);
 
+    //TODO - Delete when LS OR ILS is implemented
+    mFinalSolution = mStartSolution;
+
     //Determine placement of items in the containers
     DeterminePackingSolution();
 

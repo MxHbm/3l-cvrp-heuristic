@@ -15,7 +15,7 @@ class Timer
     std::chrono::duration<double> InfeasibleArcs;
     std::chrono::duration<double> LowerBoundVehicles;
     std::chrono::duration<double> StartSolution;
-    std::chrono::duration<double> BranchAndCut;
+    std::chrono::duration<double> MetaHeuristic;
 
     Timer() = default;
 
@@ -24,7 +24,7 @@ class Timer
         std::cout << "Infeasible Arcs: " << InfeasibleArcs.count() << "\n";
         std::cout << "Lower bound: " << LowerBoundVehicles.count() << "\n";
         std::cout << "Start solution: " << StartSolution.count() << "\n";
-        std::cout << "Branch-and-cut: " << BranchAndCut.count() << "\n";
+        std::cout << "Branch-and-cut: " << MetaHeuristic.count() << "\n";
     }
 };
 
