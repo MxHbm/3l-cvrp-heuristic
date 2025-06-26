@@ -111,7 +111,7 @@ std::optional<Move> TwoOpt::GetBestMove(const Instance* const instance,
 
         const auto& container = instance->Vehicles.front().Containers.front();
 
-        double maxRuntime = inputParameters.DetermineMaxRuntime(BranchAndCutParams::CallType::Heuristic);
+        double maxRuntime = inputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
         auto status = loadingChecker->HeuristicCompleteCheck(container, set, newRoute, selectedItems, maxRuntime);
 
         if (status == LoadingStatus::FeasOpt)

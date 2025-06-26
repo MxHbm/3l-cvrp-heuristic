@@ -126,7 +126,7 @@ bool Savings::ConcatRoutes(Collections::IdVector& frontSequence,
 
     auto selectedItems = InterfaceConversions::SelectItems(frontSequence, mInstance->Nodes, false);
 
-    double maxRuntime = mInputParameters->DetermineMaxRuntime(BranchAndCutParams::CallType::Heuristic);
+    double maxRuntime = mInputParameters->DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
     auto status =
         mLoadingChecker->HeuristicCompleteCheck(container,
                                                 mLoadingChecker->MakeBitset(mInstance->Nodes.size(), frontSequence),
@@ -352,7 +352,7 @@ bool ModifiedSavings::InsertionFeasible(Route& route, size_t nodeToInsert, size_
 
     auto selectedItems = InterfaceConversions::SelectItems(tmpSequence, mInstance->Nodes, false);
 
-    double maxRuntime = mInputParameters->DetermineMaxRuntime(BranchAndCutParams::CallType::Heuristic);
+    double maxRuntime = mInputParameters->DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
     auto status =
         mLoadingChecker->HeuristicCompleteCheck(container,
                                                 mLoadingChecker->MakeBitset(mInstance->Nodes.size(), tmpSequence),

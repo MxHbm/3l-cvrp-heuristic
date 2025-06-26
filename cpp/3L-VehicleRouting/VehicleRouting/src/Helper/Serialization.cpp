@@ -12,84 +12,18 @@ namespace VehicleRouting
 namespace Algorithms
 {
 
-NLOHMANN_JSON_SERIALIZE_ENUM(CallbackElement,
-                             {{CallbackElement::None, "None"},
-                              {CallbackElement::IntegerSolutions, "IntegerSolutions"},
-                              {CallbackElement::DetermineRoutes, "DetermineRoutes"},
-                              {CallbackElement::IntegerRoutes, "IntegerRoutes"},
-                              {CallbackElement::CheckRoutes, "CheckRoutes"},
-                              {CallbackElement::Disconnected, "DisconnectedRoutes"},
-                              {CallbackElement::Connected, "ConnectedRoutes"},
-                              {CallbackElement::SingleCustomer, "SingleCustRoutes"},
-                              {CallbackElement::MinNumVehicles, "MinNumVeh"},
-                              {CallbackElement::SingleVehicle, "SingleVehicle"},
-                              {CallbackElement::MinVehApproxInf, "MinVehApproxInf"},
-                              {CallbackElement::RoutePrechecked, "RoutePrechecked"},
-                              {CallbackElement::RoutePrecheckedNot, "RoutePrecheckedNot"},
-                              {CallbackElement::CustCombiInf, "CustCombiInfeasible"},
-                              {CallbackElement::CustCombiInfNot, "CustCombiInfNot"},
-                              {CallbackElement::HeuristicFeas, "HeuristicFeas"},
-                              {CallbackElement::HeuristicInf, "HeuristicInf"},
-                              {CallbackElement::CPCheck, "CPCheck"},
-                              {CallbackElement::TwoPathInequality, "TwoPath"},
-                              {CallbackElement::TwoPathInequalityNot, "TwoPathNot"},
-                              {CallbackElement::RegularPathInequality, "RegPath"},
-                              {CallbackElement::RegularPathInequalityNot, "RegPathNot"},
-                              {CallbackElement::TailPathInequality, "TailPath"},
-                              {CallbackElement::ExactLimitFeas, "ExactLimitFeas"},
-                              {CallbackElement::ExactLimitInf, "ExactLimitInf"},
-                              {CallbackElement::ExactLimitUnk, "ExactLimitUnk"},
-                              {CallbackElement::ExactFeas, "ExactFeas"},
-                              {CallbackElement::ExactInf, "ExactInf"},
-                              {CallbackElement::ExactInvalid, "ExactInvalid"},
-                              {CallbackElement::ReverseSequence, "RevSeq"},
-                              {CallbackElement::RevHeurFeas, "RevHeurFeas"},
-                              {CallbackElement::RevExactFeas, "RevExactFeas"},
-                              {CallbackElement::RevExactInf, "RevInf"},
-                              {CallbackElement::FractionalSolutions, "CheckFracSols"},
-                              {CallbackElement::AddFracSolCuts, "AddFracSolCuts"},
-                              {CallbackElement::BuildGraph, "BuildGraph"},
-                              {CallbackElement::InfeasibleTailPathInequality, "InfTailPath"},
-                              {CallbackElement::SPHeuristic, "SPHeur"}});
+NLOHMANN_JSON_SERIALIZE_ENUM(IteratedLocalSearchParams::StartSolutionType,
+                             {{IteratedLocalSearchParams::StartSolutionType::None, "None"},
+                              {IteratedLocalSearchParams::StartSolutionType::ModifiedSavings, "ModifiedSavings"},
+                            });
 
-NLOHMANN_JSON_SERIALIZE_ENUM(CutType,
-                             {{CutType::None, "None"},
-                              {CutType::RCC, "RCC"},
-                              {CutType::MST, "MSTAR"},
-                              {CutType::FC, "FCI"},
-                              {CutType::SC, "SCI"},
-                              {CutType::GLM, "GLM"},
-                              {CutType::CAT, "CAT"},
-                              {CutType::DKplus, "DKplus"},
-                              {CutType::DKminus, "DKminus"},
-                              {CutType::SEC, "SEC"},
-                              {CutType::TwoPath, "TwoPath"},
-                              {CutType::TwoPathMIS, "TwoPathMIS"},
-                              {CutType::TwoPathTail, "TwoPathTail"},
-                              {CutType::RegularPath, "RegularPath"},
-                              {CutType::RegularPathFront, "RegularPathFront"},
-                              {CutType::RegularPathBack, "RegularPathBack"},
-                              {CutType::TailTournament, "TailTournament"},
-                              {CutType::UndirectedPath, "UndirectedPath"},
-                              {CutType::UndirectedTailPath, "UndirectedTailPath"},
-                              {CutType::InfeasibleTailPath, "InfeasibleTailPath"}});
-
-NLOHMANN_JSON_SERIALIZE_ENUM(BranchAndCutParams::CallType,
-                             {{BranchAndCutParams::CallType::None, "None"},
-                              {BranchAndCutParams::CallType::Exact, "Exact"},
-                              {BranchAndCutParams::CallType::ExactLimit, "ExactLimit"},
-                              {BranchAndCutParams::CallType::Heuristic, "Heuristic"},
-                              {BranchAndCutParams::CallType::TwoPath, "TwoPath"},
-                              {BranchAndCutParams::CallType::MinInfSet, "MinInfSet"},
-                              {BranchAndCutParams::CallType::RegularPath, "RegularPath"},
-                              {BranchAndCutParams::CallType::MinInfPath, "MinInfPath"},
-                              {BranchAndCutParams::CallType::ReversePath, "ReversePath"}});
-
-NLOHMANN_JSON_SERIALIZE_ENUM(BranchAndCutParams::StartSolutionType,
-                             {{BranchAndCutParams::StartSolutionType::None, "None"},
-                              {BranchAndCutParams::StartSolutionType::ModifiedSavings, "ModifiedSavings"},
-                              {BranchAndCutParams::StartSolutionType::Given, "Given"},
-                              {BranchAndCutParams::StartSolutionType::HardCoded, "HardCoded"}});
+NLOHMANN_JSON_SERIALIZE_ENUM(IteratedLocalSearchParams::CallType,
+    {{IteratedLocalSearchParams::CallType::None, "None"},
+    {IteratedLocalSearchParams::CallType::Exact, "Exact"},
+    {IteratedLocalSearchParams::CallType::ExactLimit, "ExactLimit"},
+    {IteratedLocalSearchParams::CallType::ILS, "ILS"},
+    {IteratedLocalSearchParams::CallType::Constructive, "Constructive"}});
+    
 }
 }
 
@@ -175,13 +109,10 @@ void to_json(json& j, const MIPSolverParams& params)
              {"SolutionLimit", params.MaxSolutions}};
 }
 
-void from_json(const json& j, BranchAndCutParams& params)
+void from_json(const json& j, IteratedLocalSearchParams& params)
 {
-    j.at("CutSeparationStartNodes").get_to(params.CutSeparationStartNodes);
-    j.at("CutSeparationMaxNodes").get_to(params.CutSeparationMaxNodes);
-    j.at("CutSeparationThreshold").get_to(params.CutSeparationThreshold);
-    j.at("EnableMinVehicleLifting").get_to(params.EnableMinVehicleLifting);
-    j.at("MinVehicleLiftingThreshold").get_to(params.MinVehicleLiftingThreshold);
+    j.at("Run_ILS").get_to(params.RunILS);
+    j.at("Run_LS").get_to(params.RunLS);
     j.at("SetPartHeurThreshold").get_to(params.SetPartitioningHeuristicThreshold);
     j.at("StartSolution").get_to(params.StartSolution);
     j.at("ActivateSetPartHeur").get_to(params.ActivateSetPartitioningHeuristic);
@@ -190,17 +121,13 @@ void from_json(const json& j, BranchAndCutParams& params)
     j.at("TimeLimit").get_to(params.TimeLimits);
     j.at("ActivateHeuristic").get_to(params.ActivateHeuristic);
     j.at("ActivateMemoryManagement").get_to(params.ActivateMemoryManagement);
-    j.at("SimpleVersion").get_to(params.SimpleVersion);
     j.at("TrackIncrementalFeasibilityProperty").get_to(params.TrackIncrementalFeasibilityProperty);
 }
 
-void to_json(json& j, const BranchAndCutParams& params)
+void to_json(json& j, const IteratedLocalSearchParams& params)
 {
-    j = json{{"CutSeparationStartNodes", params.CutSeparationStartNodes},
-             {"CutSeparationMaxNodes", params.CutSeparationMaxNodes},
-             {"CutSeparationThreshold", params.CutSeparationThreshold},
-             {"EnableMinVehicleLifting", params.EnableMinVehicleLifting},
-             {"MinVehicleLiftingThreshold", params.MinVehicleLiftingThreshold},
+    j = json{{"Run_ILS", params.RunILS},
+             {"Run_LS", params.RunLS},
              {"SetPartHeurThreshold", params.SetPartitioningHeuristicThreshold},
              {"StartSolution", params.StartSolution},
              {"ActivateSetPartHeur", params.ActivateSetPartitioningHeuristic},
@@ -209,34 +136,16 @@ void to_json(json& j, const BranchAndCutParams& params)
              {"TimeLimit", params.TimeLimits},
              {"ActivateHeuristic", params.ActivateHeuristic},
              {"ActivateMemoryManagement", params.ActivateMemoryManagement},
-             {"SimpleVersion", params.SimpleVersion},
              {"TrackIncrementalFeasibilityProperty", params.TrackIncrementalFeasibilityProperty}};
 }
 
-void from_json(const json& j, UserCutParams& params)
-{
-    j.at("MaxViolationCutLazy").get_to(params.MaxViolationCutLazy);
-    j.at("EpsForIntegrality").get_to(params.EpsForIntegrality);
-    j.at("MaxCutsSeparate").get_to(params.MaxCutsSeparate);
-    j.at("MaxCutsAdd").get_to(params.MaxCutsAdd);
-    j.at("ViolationThreshold").get_to(params.ViolationThreshold);
-}
 
-void to_json(json& j, const UserCutParams& params)
-{
-    j = json{{"MaxViolationCutLazy", params.MaxViolationCutLazy},
-             {"EpsForIntegrality", params.EpsForIntegrality},
-             {"MaxCutsSeparate", params.MaxCutsSeparate},
-             {"MaxCutsAdd", params.MaxCutsAdd},
-             {"ViolationThreshold", params.ViolationThreshold}};
-}
 
 void from_json(const json& j, InputParameters& inputParameters)
 {
     j.at("LoadingProblemParams").get_to(inputParameters.ContainerLoading.LoadingProblem);
     j.at("MIPSolverParams").get_to(inputParameters.MIPSolver);
-    j.at("BranchAndCutParams").get_to(inputParameters.BranchAndCut);
-    j.at("UserCutParams").get_to(inputParameters.UserCut);
+    j.at("IteratedLocalSearchParams").get_to(inputParameters.IteratedLocalSearch);
     j.at("CPSolverParams").get_to(inputParameters.ContainerLoading.CPSolver);
 }
 
@@ -244,8 +153,7 @@ void to_json(json& j, const InputParameters& inputParameters)
 {
     j = json{{"LoadingProblemParams", inputParameters.ContainerLoading.LoadingProblem},
              {"MIPSolverParams", inputParameters.MIPSolver},
-             {"BranchAndCutParams", inputParameters.BranchAndCut},
-             {"UserCutParams", inputParameters.UserCut},
+             {"IteratedLocalSearchParams", inputParameters.IteratedLocalSearch},
              {"CPSolverParams", inputParameters.ContainerLoading.CPSolver}};
 }
 
@@ -351,7 +259,6 @@ void to_json(json& j, const SolverStatistics& statistics)
         {"NodeCount", statistics.NodeCount},
         {"DeletedArcs", statistics.DeletedArcs},
         {"InfTailPath", statistics.InfeasibleTailPathStart},
-        {"SubtourTracker", statistics.SubtourTracker},
         {"Timer", statistics.Timer},
     };
 }
@@ -372,17 +279,6 @@ void to_json(json& j, const SolutionFile& solution)
     };
 }
 
-void from_json(const json& j, CallbackTracker& tracker) {}
 
-void to_json(json& j, const CallbackTracker& tracker)
-{
-    j = json{{"ElementCallCounter", tracker.Counter},
-             {"ElementCallTime", tracker.Timer},
-             {"CutCounter", tracker.CutCounter},
-             {"CutTimer", tracker.CutTimer},
-             {"LazyConstraintCounter", tracker.LazyConstraintCounter},
-             {"UpperBoundProgress", tracker.UpperBounds},
-             {"LowerBoundProgress", tracker.LowerBounds}};
-}
 }
 }

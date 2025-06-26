@@ -28,7 +28,7 @@ class LocalSearch
                                     const InputParameters* inputParameters,
                                     const Collections::IdVector& sequence)
     {
-        if (!inputParameters->BranchAndCut.ActivateIntraRouteImprovement)
+        if (!inputParameters->IteratedLocalSearch.ActivateIntraRouteImprovement)
         {
             return;
         }
@@ -38,7 +38,7 @@ class LocalSearch
             return;
         }
 
-        if (sequence.size() < inputParameters->BranchAndCut.IntraRouteFullEnumThreshold)
+        if (sequence.size() < inputParameters->IteratedLocalSearch.IntraRouteFullEnumThreshold)
         {
             FullEnumerationSearch::Run(instance, *inputParameters, loadingChecker, sequence);
         }

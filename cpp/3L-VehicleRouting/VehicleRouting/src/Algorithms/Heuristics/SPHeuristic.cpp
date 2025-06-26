@@ -93,7 +93,7 @@ void SPHeuristic::AddNewRoutes(auto& routes)
 
         auto items = InterfaceConversions::SelectItems(route, mInstance->Nodes, false);
 
-        double maxRuntime = mInputParameters->DetermineMaxRuntime(BranchAndCutParams::CallType::Heuristic);
+        double maxRuntime = mInputParameters->DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
         const auto status = mLoadingChecker->HeuristicCompleteCheck(
             container, mLoadingChecker->MakeBitset(mInstance->Nodes.size(), route), route, items, maxRuntime);
 

@@ -79,8 +79,6 @@ class IteratedLocalSearch
 
     void StartSolutionProcedure();
     std::vector<Route> GenerateStartSolution();
-    std::vector<Route> SetGivenStartSolution();
-    std::vector<Route> SetHardCodedStartSolution();
 };
 
 }

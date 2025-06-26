@@ -15,8 +15,6 @@
 #include "Model/Solution.h"
 
 #include "Algorithms/LoadingInterfaceServices.h"
-#include "Algorithms/SubtourCallback.h"
-#include "Algorithms/VehicleRoutingModels.h"
 
 #include <cstdint>
 #include <memory>
@@ -80,7 +78,7 @@ void IteratedLocalSearch::Initialize()
                                                          mLoadingChecker->MakeBitset(mInstance->Nodes.size(), route),
                                                          route,
                                                          items,
-                                                         mInputParameters.IsExact(BranchAndCutParams::CallType::Exact));
+                                                         mInputParameters.IsExact(IteratedLocalSearchParams::CallType::Exact));
 
         if (exactStatus != LoadingStatus::FeasOpt)
         {
@@ -92,7 +90,7 @@ void IteratedLocalSearch::Initialize()
                 mLoadingChecker->MakeBitset(mInstance->Nodes.size(), route),
                 route,
                 items,
-                mInputParameters.IsExact(BranchAndCutParams::CallType::Exact));
+                mInputParameters.IsExact(IteratedLocalSearchParams::CallType::Exact));
 
             if (relStatus != LoadingStatus::FeasOpt)
             {
@@ -162,25 +160,19 @@ void IteratedLocalSearch::StartSolutionProcedure()
 {
     mLogFile << "## Start start solution procedure ##\n";
 
-    using enum BranchAndCutParams::StartSolutionType;
+    using enum IteratedLocalSearchParams::StartSolutionType;
 
     std::chrono::time_point<std::chrono::system_clock> start;
     start = std::chrono::system_clock::now();
 
     std::vector<Route> startRoutes;
 
-    switch (mInputParameters.BranchAndCut.StartSolution)
+    switch (mInputParameters.IteratedLocalSearch.StartSolution)
     {
         case None:
             return;
         case ModifiedSavings:
             startRoutes = GenerateStartSolution();
-            break;
-        case Given:
-            startRoutes = SetGivenStartSolution();
-            break;
-        case HardCoded:
-            startRoutes = SetHardCodedStartSolution();
             break;
         default:
             throw std::runtime_error("Start solution type not implemented.");
@@ -257,256 +249,6 @@ std::vector<Route> IteratedLocalSearch::GenerateStartSolution()
 
     return solution;
 }
-std::vector<Route> IteratedLocalSearch::SetGivenStartSolution()
-{
-    FunctionTimer<std::chrono::milliseconds> clock;
-
-    std::ofstream logFile;
-    logFile.open(mOutputPath + "/Log_StartSolution.log");
-
-    std::string problemVariantString = mInputParameters.ContainerLoading.LoadingProblem.GetVariantString();
-    std::string startSolutionFilePath =
-        mStartSolutionFolderPath + problemVariantString + "/" + mInstance->Name + ".json";
-
-    bool isRegularFile = std::filesystem::is_regular_file(startSolutionFilePath);
-    if (!isRegularFile)
-    {
-        std::string exceptionMessage = startSolutionFilePath + " is not a regular file.";
-        throw std::runtime_error(exceptionMessage.c_str());
-    }
-
-    auto solutionFile = std::ifstream(startSolutionFilePath);
-    auto startSolution = HelperIO::ParseSolutionJson(solutionFile);
-
-    auto& container = mInstance->Vehicles.front().Containers.front();
-
-    uint64_t totalTimeHeur = 0;
-    uint64_t totalTimeExact = 0;
-
-    int nFeasibleHeur = 0;
-    int nFeasibleExact = 0;
-
-    for (size_t id = 0; id < startSolution.size(); id++)
-    {
-        auto& route = startSolution[id];
-        const auto& sequence = route.Sequence;
-        std::vector<Node> nodesInRoute;
-        std::vector<Cuboid> selectedItems;
-        auto totalWeight = 0.0;
-        auto totalVolume = 0.0;
-        for (size_t i = 0; i < sequence.size(); ++i)
-        {
-            const auto& nodeId = sequence[i];
-            nodesInRoute.emplace_back(mInstance->Nodes[nodeId]);
-
-            auto& items = mInstance->Nodes[nodeId].Items;
-            totalWeight += mInstance->Nodes[nodeId].TotalWeight;
-            totalVolume += mInstance->Nodes[nodeId].TotalVolume;
-            for (auto& item: items)
-            {
-                item.GroupId = sequence.size() - 1 - i;
-                selectedItems.emplace_back(item);
-            }
-        }
-
-        auto tour = Tour(mInstance->Nodes[0], mInstance->Vehicles[id], nodesInRoute);
-
-        if (totalWeight > container.WeightLimit)
-        {
-            throw std::runtime_error("Route " + std::to_string(id) + tour.Print() + " with total weight "
-                                     + std::to_string(totalWeight) + " exceeds weight limit "
-                                     + std::to_string(container.WeightLimit));
-        }
-
-        if (totalVolume > container.Volume)
-        {
-            throw std::runtime_error("Route " + std::to_string(id) + tour.Print() + " with total volume "
-                                     + std::to_string(totalVolume) + " exceeds volume limit "
-                                     + std::to_string(container.Volume));
-        }
-
-        logFile << "Route " << std::to_string(id) + tour.Print() << ": nItems " << std::to_string(selectedItems.size())
-                << " | weight util " + std::to_string(totalWeight / container.WeightLimit)
-                << " | volume util " + std::to_string(totalVolume / container.Volume) << " | ";
-
-        if (!mInputParameters.ContainerLoading.LoadingProblem.EnableThreeDimensionalLoading)
-        {
-            logFile << "\n";
-            continue;
-        }
-
-        clock.start();
-        auto heuristicStatus =
-            mLoadingChecker->PackingHeuristic(PackingType::Complete, container, sequence, selectedItems);
-        clock.end();
-
-        if (heuristicStatus == LoadingStatus::FeasOpt)
-        {
-            nFeasibleHeur++;
-        }
-
-        std::string feasStatusHeur = heuristicStatus == LoadingStatus::FeasOpt ? "feasible" : "infeasible";
-        logFile << feasStatusHeur << " with packing heuristic : " << std::to_string(clock.elapsed()) << " | ";
-        totalTimeHeur += clock.elapsed();
-
-        clock.start();
-        auto exactStatus =
-            mLoadingChecker->ConstraintProgrammingSolver(PackingType::Complete,
-                                                         container,
-                                                         mLoadingChecker->MakeBitset(mInstance->Nodes.size(), sequence),
-                                                         sequence,
-                                                         selectedItems,
-                                                         mInputParameters.IsExact(BranchAndCutParams::CallType::Exact));
-        clock.end();
-
-        if (exactStatus == LoadingStatus::FeasOpt)
-        {
-            nFeasibleExact++;
-        }
-
-        std::string feasStatusCP = exactStatus == LoadingStatus::FeasOpt ? "feasible" : "infeasible";
-        logFile << feasStatusCP << " with CP model : " << std::to_string(clock.elapsed()) << "\n";
-        totalTimeExact += clock.elapsed();
-
-        if (exactStatus == LoadingStatus::Infeasible)
-        {
-            throw std::runtime_error("Loading infeasible according to CP model.");
-        }
-    }
-
-    logFile << "Total heuristic time: " << std::to_string(totalTimeHeur)
-            << " | Feasible: " << std::to_string(nFeasibleHeur) << "\n";
-    mLogFile << "Total heuristic time: " << std::to_string(totalTimeHeur)
-             << " | Feasible: " << std::to_string(nFeasibleHeur) << "\n";
-    logFile << "Total exact time: " << std::to_string(totalTimeExact)
-            << " | Feasible: " << std::to_string(nFeasibleExact) << "\n";
-    logFile.close();
-
-    return startSolution;
-}
-std::vector<Route> IteratedLocalSearch::SetHardCodedStartSolution()
-{
-    FunctionTimer<std::chrono::milliseconds> clock;
-
-    std::vector<Collections::IdVector> startSequences = {Collections::IdVector{4, 13, 14},
-                                                         Collections::IdVector{5, 10, 15, 12},
-                                                         Collections::IdVector{11, 9, 2, 1},
-                                                         Collections::IdVector{3, 8, 7, 6}};
-
-    std::vector<Route> startSolution;
-    startSolution.reserve(startSequences.size());
-    for (size_t id = 0; id < startSequences.size(); ++id)
-    {
-        startSolution.emplace_back(id, startSequences[id]);
-    }
-
-    auto& container = mInstance->Vehicles.front().Containers.front();
-
-    uint64_t totalTimeHeur = 0;
-    uint64_t totalTimeExact = 0;
-
-    int nFeasibleHeur = 0;
-    int nFeasibleExact = 0;
-
-    for (size_t id = 0; id < startSolution.size(); id++)
-    {
-        auto& route = startSolution[id];
-        const auto& sequence = route.Sequence;
-        std::vector<Node> nodesInRoute;
-        nodesInRoute.reserve(sequence.size());
-        std::vector<Cuboid> selectedItems;
-        auto totalWeight = 0.0;
-        auto totalVolume = 0.0;
-        for (size_t i = 0; i < sequence.size(); ++i)
-        {
-            const auto& nodeId = static_cast<size_t>(sequence[i]);
-            nodesInRoute.emplace_back(mInstance->Nodes[nodeId]);
-
-            auto& items = mInstance->Nodes[nodeId].Items;
-            totalWeight += mInstance->Nodes[nodeId].TotalWeight;
-            totalVolume += mInstance->Nodes[nodeId].TotalVolume;
-            for (auto& item: items)
-            {
-                item.GroupId = sequence.size() - 1 - i;
-                selectedItems.emplace_back(item);
-            }
-        }
-
-        auto tour = Tour(mInstance->Nodes[0], mInstance->Vehicles[id], nodesInRoute);
-
-        if (totalWeight > container.WeightLimit)
-        {
-            throw std::runtime_error("Route " + std::to_string(id) + tour.Print() + " with total weight "
-                                     + std::to_string(totalWeight) + " exceeds weight limit "
-                                     + std::to_string(container.WeightLimit));
-        }
-
-        if (totalVolume > container.Volume)
-        {
-            throw std::runtime_error("Route " + std::to_string(id) + tour.Print() + " with total volume "
-                                     + std::to_string(totalVolume) + " exceeds volume limit "
-                                     + std::to_string(container.Volume));
-        }
-
-        mLogFile << "Route " << std::to_string(id) + tour.Print() << ": nItems " << std::to_string(selectedItems.size())
-                 << " | weight util " + std::to_string(totalWeight / container.WeightLimit)
-                 << " | volume util " + std::to_string(totalVolume / container.Volume) << " | ";
-
-        if (!mInputParameters.ContainerLoading.LoadingProblem.EnableThreeDimensionalLoading)
-        {
-            mLogFile << "\n";
-            continue;
-        }
-
-        clock.start();
-        auto heuristicStatus =
-            mLoadingChecker->PackingHeuristic(PackingType::Complete, container, sequence, selectedItems);
-        clock.end();
-
-        if (heuristicStatus == LoadingStatus::FeasOpt)
-        {
-            nFeasibleHeur++;
-        }
-
-        std::string feasStatusHeur = heuristicStatus == LoadingStatus::FeasOpt ? "feasible" : "infeasible";
-        mLogFile << feasStatusHeur << " with packing heuristic : " << std::to_string(clock.elapsed()) << " | ";
-        totalTimeHeur += clock.elapsed();
-
-        clock.start();
-        auto exactStatus =
-            mLoadingChecker->ConstraintProgrammingSolver(PackingType::Complete,
-                                                         container,
-                                                         mLoadingChecker->MakeBitset(mInstance->Nodes.size(), sequence),
-                                                         sequence,
-                                                         selectedItems,
-                                                         mInputParameters.IsExact(BranchAndCutParams::CallType::Exact));
-        clock.end();
-
-        if (exactStatus == LoadingStatus::FeasOpt)
-        {
-            nFeasibleExact++;
-        }
-
-        std::string feasStatusCP = exactStatus == LoadingStatus::FeasOpt ? "feasible" : "infeasible";
-        mLogFile << feasStatusCP << " with CP model : " << std::to_string(clock.elapsed()) << "\n";
-        totalTimeExact += clock.elapsed();
-
-        if (exactStatus == LoadingStatus::Infeasible)
-        {
-            throw std::runtime_error("Loading infeasible according to CP model.");
-        }
-    }
-
-    mLogFile << "Total heuristic time: " << std::to_string(totalTimeHeur)
-             << " | Feasible: " << std::to_string(nFeasibleHeur) << "\n";
-    mLogFile << "Total heuristic time: " << std::to_string(totalTimeHeur)
-             << " | Feasible: " << std::to_string(nFeasibleHeur) << "\n";
-    mLogFile << "Total exact time: " << std::to_string(totalTimeExact)
-             << " | Feasible: " << std::to_string(nFeasibleExact) << "\n";
-    mLogFile.close();
-
-    return startSolution;
-};
 
 void IteratedLocalSearch::InfeasibleArcProcedure()
 {
@@ -580,7 +322,7 @@ void IteratedLocalSearch::DetermineInfeasiblePaths()
 
 bool IteratedLocalSearch::CheckPath(const Collections::IdVector& path, Container& container, std::vector<Cuboid>& items)
 {
-    if (mInputParameters.BranchAndCut.ActivateHeuristic)
+    if (mInputParameters.IteratedLocalSearch.ActivateHeuristic)
     {
         auto heuristicStatus = mLoadingChecker->PackingHeuristic(PackingType::Complete, container, path, items);
         if (heuristicStatus == LoadingStatus::FeasOpt)
@@ -595,7 +337,7 @@ bool IteratedLocalSearch::CheckPath(const Collections::IdVector& path, Container
                                                      mLoadingChecker->MakeBitset(mInstance->Nodes.size(), path),
                                                      path,
                                                      items,
-                                                     mInputParameters.IsExact(BranchAndCutParams::CallType::Exact));
+                                                     mInputParameters.IsExact(IteratedLocalSearchParams::CallType::Exact));
 
     if (statusSupportRelaxation == LoadingStatus::Infeasible)
     {
@@ -609,7 +351,7 @@ bool IteratedLocalSearch::CheckPath(const Collections::IdVector& path, Container
                                                      mLoadingChecker->MakeBitset(mInstance->Nodes.size(), path),
                                                      path,
                                                      items,
-                                                     mInputParameters.IsExact(BranchAndCutParams::CallType::Exact));
+                                                     mInputParameters.IsExact(IteratedLocalSearchParams::CallType::Exact));
 
     if (statusComplete == LoadingStatus::Infeasible)
     {
@@ -663,7 +405,7 @@ void IteratedLocalSearch::DetermineExtendedInfeasiblePath()
 
             auto heuristicStatus = LoadingStatus::Infeasible;
 
-            if (mInputParameters.BranchAndCut.ActivateHeuristic)
+            if (mInputParameters.IteratedLocalSearch.ActivateHeuristic)
             {
                 heuristicStatus =
                     mLoadingChecker->PackingHeuristic(PackingType::Complete, container, path, selectedItems);
@@ -677,7 +419,7 @@ void IteratedLocalSearch::DetermineExtendedInfeasiblePath()
                     mLoadingChecker->MakeBitset(mInstance->Nodes.size(), path),
                     path,
                     selectedItems,
-                    mInputParameters.IsExact(BranchAndCutParams::CallType::Exact));
+                    mInputParameters.IsExact(IteratedLocalSearchParams::CallType::Exact));
 
                 if (statusSupportRelaxation == LoadingStatus::Infeasible)
                 {
@@ -748,14 +490,14 @@ void IteratedLocalSearch::DetermineInfeasibleCustomerCombinations()
                     nodesInSet.set(jNode);
                     nodesInSet.set(kNode);
 
-                    double maxRuntime = mInputParameters.DetermineMaxRuntime(BranchAndCutParams::CallType::Exact);
+                    double maxRuntime = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::Exact);
                     auto status = mLoadingChecker->ConstraintProgrammingSolver(
                         PackingType::NoSupportNoSequence,
                         container,
                         nodesInSet,
                         path,
                         selectedItems,
-                        mInputParameters.IsExact(BranchAndCutParams::CallType::Exact),
+                        mInputParameters.IsExact(IteratedLocalSearchParams::CallType::Exact),
                         maxRuntime);
 
                     if (status == LoadingStatus::Infeasible)
@@ -831,31 +573,11 @@ void IteratedLocalSearch::Solve()
 
     std::chrono::time_point<std::chrono::system_clock> start;
     start = std::chrono::system_clock::now();
-    TwoIndexVehicleFlow branchAndCut(mInstance, mEnv);
 
-    branchAndCut.BuildModel(mStartSolutionArcs, mInfeasibleArcs, mInfeasibleTailPaths);
-    auto callback = CallbackFactory::CreateCallback(mInputParameters.ContainerLoading.LoadingProblem.Variant,
-                                                    mEnv,
-                                                    *branchAndCut.GetXVariables(),
-                                                    mInstance,
-                                                    mLoadingChecker.get(),
-                                                    &mInputParameters,
-                                                    mOutputPath);
-    branchAndCut.SetCallback(callback.get());
-    branchAndCut.Solve(mInputParameters.MIPSolver);
-
-    mTimer.BranchAndCut = std::chrono::system_clock::now() - start;
-
-    if (mInputParameters.BranchAndCut.TrackIncrementalFeasibilityProperty)
-    {
-        callback->SaveFeasibleAndPotentiallyExcludedRoutes();
-    }
-
-    auto statistics = SolverStatistics(branchAndCut.GetRuntime(),
-                                       branchAndCut.GetMIPGap(),
-                                       branchAndCut.GetNodeCount(),
-                                       branchAndCut.GetSimIterCount(),
-                                       callback->CallbackTracker,
+    auto statistics = SolverStatistics(100,
+                                       25,
+                                       300,
+                                       200,
                                        mTimer,
                                        mInfeasibleArcs.size(),
                                        mInfeasibleTailPaths.size());
@@ -863,15 +585,7 @@ void IteratedLocalSearch::Solve()
     std::string solutionStatisticsString = "SolutionStatistics-" + mInstance->Name;
     Serializer::WriteToJson(statistics, mOutputPath, solutionStatisticsString);
 
-    if (const auto optionalSolution = branchAndCut.GetSolution(); optionalSolution.has_value())
-    {
-        mFinalSolution = optionalSolution.value();
-    }
-    else
-    {
-        return;
-    }
-
+    //Determine placement of items in the containers
     DeterminePackingSolution();
 
     mFinalSolution.LowerBoundVehicles = mInstance->LowerBoundVehicles;
@@ -937,7 +651,7 @@ void IteratedLocalSearch::DeterminePackingSolution()
         }
 
         auto heuristicStatus = LoadingStatus::Infeasible;
-        if (mInputParameters.BranchAndCut.ActivateHeuristic)
+        if (mInputParameters.IteratedLocalSearch.ActivateHeuristic)
         {
             heuristicStatus =
                 mLoadingChecker->PackingHeuristic(PackingType::Complete, container, stopIds, selectedItems);
@@ -946,7 +660,7 @@ void IteratedLocalSearch::DeterminePackingSolution()
         std::string feasStatusHeur = heuristicStatus == LoadingStatus::FeasOpt ? "feasible" : "infeasible";
         mLogFile << feasStatusHeur << " with packing heuristic | ";
 
-        double maxRuntime = mInputParameters.DetermineMaxRuntime(BranchAndCutParams::CallType::Exact);
+        double maxRuntime = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::Exact);
         auto exactStatus = mLoadingChecker->ConstraintProgrammingSolverGetPacking(
             PackingType::Complete, container, stopIds, selectedItems, maxRuntime);
 
