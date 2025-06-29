@@ -15,7 +15,8 @@ namespace Algorithms
 NLOHMANN_JSON_SERIALIZE_ENUM(IteratedLocalSearchParams::StartSolutionType,
                              {{IteratedLocalSearchParams::StartSolutionType::None, "None"},
                               {IteratedLocalSearchParams::StartSolutionType::ModifiedSavings, "ModifiedSavings"},
-                            });
+                              {IteratedLocalSearchParams::StartSolutionType::SPHeuristic, "SPHeuristic"}});
+
 
 NLOHMANN_JSON_SERIALIZE_ENUM(IteratedLocalSearchParams::CallType,
     {{IteratedLocalSearchParams::CallType::None, "None"},
@@ -236,9 +237,9 @@ void to_json(json& j, const Tour& tour)
     };
 }
 
-void from_json(const json& j, Solution& solution) { j.at("Tours").get_to<std::vector<Tour>>(solution.Tours); }
+void from_json(const json& j, OutputSolution& solution) { j.at("Tours").get_to<std::vector<Tour>>(solution.Tours); }
 
-void to_json(json& j, const Solution& solution)
+void to_json(json& j, const OutputSolution& solution)
 {
     j = json{
         {"Tours", solution.Tours},
@@ -267,7 +268,7 @@ void from_json(const json& j, SolutionFile& solution)
 {
     j.at("InputParameters").get_to<InputParameters>(solution.InputParameters);
     ////j.at("SolverStatistics").get_to<SolverStatistics>(solution.SolverStatistics);
-    j.at("Solution").get_to<Solution>(solution.Solution);
+    j.at("Solution").get_to<OutputSolution>(solution.OutputSolution);
 }
 
 void to_json(json& j, const SolutionFile& solution)
@@ -275,7 +276,7 @@ void to_json(json& j, const SolutionFile& solution)
     j = json{
         {"InputParameters", solution.InputParameters},
         ////{"SolverStatistics", solution.SolverStatistics},
-        {"Solution", solution.Solution},
+        {"Solution", solution.OutputSolution},
     };
 }
 

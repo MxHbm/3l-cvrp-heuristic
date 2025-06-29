@@ -50,10 +50,10 @@ class IteratedLocalSearch
     std::vector<Arc> mInfeasibleArcs;
     std::vector<Arc> mInfeasibleTailPaths;
     Collections::SequenceSet mInfeasibleCombinations;
-    std::vector<Arc> mStartSolutionArcs;
+    //std::vector<Arc> mCurrentSolutionArcs;
 
-    Solution mStartSolution;
-    Solution mFinalSolution;
+    Solution mCurrentSolution;
+    Solution mBestSolution;
 
     std::mt19937 mRNG;
 
@@ -72,13 +72,14 @@ class IteratedLocalSearch
     void Initialize();
     void TestProcedure();
     void AdaptWeightsVolumesToLoadingProblem();
-    void DeterminePackingSolution();
-    void PrintSolution();
+    void DeterminePackingSolution(OutputSolution& outputSolution);
+    void PrintSolution(const OutputSolution& outputSolution);
 
-    void WriteSolutionSolutionValidator();
+    void WriteSolutionSolutionValidator(const OutputSolution& outputSolution);
 
     void StartSolutionProcedure();
-    std::vector<Route> GenerateStartSolution();
+    void GenerateStartSolutionSavings();
+    void GenerateStartSolutionSPHeuristic();
 };
 
 }

@@ -35,7 +35,8 @@ struct IteratedLocalSearchParams
     enum class StartSolutionType
     {
         None = 0,
-        ModifiedSavings
+        ModifiedSavings,
+        SPHeuristic
     };
 
     enum class CallType

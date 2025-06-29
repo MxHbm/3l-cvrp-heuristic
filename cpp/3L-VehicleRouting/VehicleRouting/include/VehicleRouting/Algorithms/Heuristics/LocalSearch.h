@@ -4,11 +4,14 @@
 #include "ContainerLoading/LoadingChecker.h"
 
 #include "Model/Instance.h"
+#include "Model/Solution.h"
 
 #include "Algorithms/BCRoutingParams.h"
 
 #include "Algorithms/Heuristics/FullEnumerationSearch.h"
 #include "Algorithms/Heuristics/TwoOpt.h"
+#include "Algorithms/Heuristics/InterSwap.h"
+#include "Algorithms/Heuristics/IntraSwap.h"
 
 namespace VehicleRouting
 {
@@ -46,6 +49,14 @@ class LocalSearch
         {
             TwoOpt::Run(instance, *inputParameters, loadingChecker, sequence);
         }
+    };
+
+    static double RunInterImprovement(const Instance* const instance,
+        LoadingChecker* loadingChecker,
+        const InputParameters* inputParameters,
+        std::vector<Route>& routes)
+    {
+        return InterSwap::Run(instance, *inputParameters, loadingChecker, routes);
     };
 };
 

@@ -104,7 +104,43 @@ class SolverStatistics
     }
 };
 
+
 class Solution
+{
+  public: 
+    double Costs = 0.0; 
+    size_t NumberOfRoutes = 0;
+
+    std::vector<Route> Routes; 
+
+    Solution() = default;
+
+    void DetermineCosts(Instance* instance)
+    {
+        Costs = 0;
+        for (const auto& route: Routes)
+        {
+            Costs += Evaluator::CalculateRouteCosts(instance, route.Sequence);
+        }
+    };
+
+    void DeterminWeightsVolumes(Instance* instance)
+    {
+        for (auto& route: Routes)
+        {   
+            route.TotalVolume = 0;
+            route.TotalWeight = 0;
+
+            for (const auto& node_Id: route.Sequence){
+                
+                route.TotalVolume += instance->Nodes[node_Id].TotalVolume;
+                route.TotalWeight += instance->Nodes[node_Id].TotalWeight;
+            }
+        }
+    };
+};
+
+class OutputSolution
 {
   public:
     double Costs = 0.0;
@@ -114,7 +150,33 @@ class Solution
 
     std::vector<Tour> Tours;
 
-    Solution() = default;
+    OutputSolution() = default;
+    OutputSolution(const std::vector<Tour>& tours, double costs, size_t numberOfRoutes, size_t lowerBoundVehicles)
+    : Tours(tours), Costs(costs), NumberOfRoutes(numberOfRoutes), LowerBoundVehicles(lowerBoundVehicles)
+    {
+    }
+
+    OutputSolution(const Solution& solution,Instance* instance)
+    : Costs(solution.Costs), NumberOfRoutes(solution.Routes.size()), LowerBoundVehicles(instance->LowerBoundVehicles)
+    {
+
+      Tours.reserve(NumberOfRoutes);
+      int vehicleId = 0;
+      for (const auto& route: solution.Routes)
+      { 
+          std::vector<Node> sequence;
+          sequence.reserve(route.Sequence.size());
+          for (const auto id: route.Sequence)
+          {
+              sequence.emplace_back(instance->Nodes[id]);
+
+          }
+
+          Vehicle& vehicle = instance->Vehicles[vehicleId];
+          Tours.emplace_back(instance->Nodes[instance->DepotIndex], vehicle, std::move(sequence));
+          vehicleId++;
+      }
+  };
 
     void DetermineCosts(Instance* instance)
     {
@@ -126,17 +188,34 @@ class Solution
     };
 };
 
+//TODO if mCurrentSolutionArcs is needed, then add values to output solution format! 
+/*
+    for (const auto& route: mCurrentSolution.Routes)
+    {
+        mCurrentSolutionArcs.emplace_back(1.0, mInstance->GetDepotId(), route.Sequence.front());
+
+        for (size_t iNode = 0; iNode < route.Sequence.size() - 1; ++iNode)
+        {
+            auto nodeA = route.Sequence[iNode];
+            auto nodeB = route.Sequence[iNode + 1];
+            mCurrentSolutionArcs.emplace_back(1.0, nodeA, nodeB);
+        }
+
+        mCurrentSolutionArcs.emplace_back(1.0, route.Sequence.back(), mInstance->GetDepotId());
+    }
+*/
+
 class SolutionFile
 {
   public:
     VehicleRouting::InputParameters InputParameters;
     Model::SolverStatistics SolverStatistics;
-    Model::Solution Solution;
+    Model::OutputSolution OutputSolution;
 
     SolutionFile(VehicleRouting::InputParameters& inputParameters,
                  Model::SolverStatistics& statistics,
-                 Model::Solution& solution)
-    : InputParameters(inputParameters), SolverStatistics(statistics), Solution(solution)
+                 Model::OutputSolution& outputSolution)
+    : InputParameters(inputParameters), SolverStatistics(statistics), OutputSolution(outputSolution)
     {
     }
 };

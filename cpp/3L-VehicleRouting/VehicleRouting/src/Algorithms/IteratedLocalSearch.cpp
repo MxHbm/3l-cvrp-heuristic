@@ -162,70 +162,62 @@ void IteratedLocalSearch::StartSolutionProcedure()
 
     using enum IteratedLocalSearchParams::StartSolutionType;
 
-    std::chrono::time_point<std::chrono::system_clock> start;
-    start = std::chrono::system_clock::now();
-
-    std::vector<Route> startRoutes;
+    std::chrono::time_point<std::chrono::system_clock> start{std::chrono::system_clock::now()};
 
     switch (mInputParameters.IteratedLocalSearch.StartSolution)
     {
         case None:
             return;
         case ModifiedSavings:
-            startRoutes = GenerateStartSolution();
+            GenerateStartSolutionSavings();
+            break;
+        case SPHeuristic:
+            GenerateStartSolutionSPHeuristic();
             break;
         default:
             throw std::runtime_error("Start solution type not implemented.");
     }
 
-    for (const auto& route: startRoutes)
-    {
-        mStartSolutionArcs.emplace_back(1.0, mInstance->GetDepotId(), route.Sequence.front());
-
-        for (size_t iNode = 0; iNode < route.Sequence.size() - 1; ++iNode)
-        {
-            auto nodeA = route.Sequence[iNode];
-            auto nodeB = route.Sequence[iNode + 1];
-            mStartSolutionArcs.emplace_back(1.0, nodeA, nodeB);
-        }
-
-        mStartSolutionArcs.emplace_back(1.0, route.Sequence.back(), mInstance->GetDepotId());
-    }
-
-    for (size_t k = 0; k < startRoutes.size(); ++k)
-    {
-        const auto& route = startRoutes[k];
-
-        mStartSolution.Costs += Evaluator::CalculateRouteCosts(mInstance, route.Sequence);
-
-        std::vector<Node> sequence;
-        for (const auto id: route.Sequence)
-        {
-            sequence.emplace_back(mInstance->Nodes[id]);
-        }
-
-        Vehicle& vehicle = mInstance->Vehicles[k];
-        mStartSolution.Tours.emplace_back(mInstance->Nodes[mInstance->DepotIndex], vehicle, std::move(sequence));
-    }
-
-    mStartSolution.NumberOfRoutes = mStartSolution.Tours.size();
-
     mTimer.StartSolution = std::chrono::system_clock::now() - start;
+    mCurrentSolution.NumberOfRoutes = mCurrentSolution.Routes.size();
+    mCurrentSolution.DetermineCosts(mInstance);
+    //TODO Change in Repar Modified Saavings, that Totalvoluem and Totalweight is updated! 
+    mCurrentSolution.DeterminWeightsVolumes(mInstance);
 
-    mLogFile << "Start solution with " << mStartSolution.NumberOfRoutes << " Vehicles and total costs "
-             << mStartSolution.Costs << " in " << mTimer.StartSolution.count() << " s.\n";
+    for(const auto& route : mCurrentSolution.Routes){
+         std::cout << "Route " << route.Id << "has start Volume: " << route.TotalVolume << " and weight of " << route.TotalWeight << std::endl;
+    }
+
+    OutputSolution outputSolution(mCurrentSolution, mInstance);
+
+    // Save values of start solution
+    mLogFile << "Start solution with " << outputSolution.NumberOfRoutes << " Vehicles and total costs "
+             << outputSolution.Costs << " in " << mTimer.StartSolution.count() << " s.\n";
 
     std::string solutionString = "StartSolution-" + mInstance->Name;
-    Serializer::WriteToJson(mStartSolution, mOutputPath, solutionString);
+    Serializer::WriteToJson(outputSolution, mOutputPath, solutionString);
 
     mLogFile << "### END PREPROCESSING ###\n";
 }
 
-std::vector<Route> IteratedLocalSearch::GenerateStartSolution()
+void IteratedLocalSearch::GenerateStartSolutionSavings()
 {
-    auto startSolution =
+    mCurrentSolution.Routes =
         Heuristics::Constructive::ModifiedSavings(mInstance, &mInputParameters, mLoadingChecker.get(), &mRNG).Run();
 
+    //TODO what should i do with these values? 
+    int id = 0;
+    for (auto& route : mCurrentSolution.Routes)
+    {
+        if (route.Sequence.size() < 2)
+        {
+            continue;
+        }
+        route.Id = id;
+        ++id;
+        LocalSearch::RunIntraImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, route.Sequence);
+    }
+    /*
     for (const auto& route: mLoadingChecker->GetFeasibleRoutes())
     {
         if (route.size() < 2)
@@ -235,11 +227,17 @@ std::vector<Route> IteratedLocalSearch::GenerateStartSolution()
 
         LocalSearch::RunIntraImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, route);
     }
+    */
+}
 
+
+void IteratedLocalSearch::GenerateStartSolutionSPHeuristic()
+{
     auto spHeuristic = Heuristics::SetBased::SPHeuristic(mInstance, mLoadingChecker.get(), &mInputParameters, mEnv);
 
     auto sequences = spHeuristic.Run(std::numeric_limits<double>::max());
 
+    //Transform Collections::SequenceVector to std::vector<Route>
     std::vector<Route> solution;
     int id = 0;
     for (auto& sequence: *sequences)
@@ -247,7 +245,7 @@ std::vector<Route> IteratedLocalSearch::GenerateStartSolution()
         solution.emplace_back(id++, sequence);
     }
 
-    return solution;
+    mCurrentSolution.Routes = std::move(solution);
 }
 
 void IteratedLocalSearch::InfeasibleArcProcedure()
@@ -562,17 +560,35 @@ void IteratedLocalSearch::Solve()
     Initialize();
 
     //Sets weights or volumes to 0 depending on the loading problem variant
-    AdaptWeightsVolumesToLoadingProblem();
+    //AdaptWeightsVolumesToLoadingProblem();
 
     //Determine infeasible arcs and tail paths
-    InfeasibleArcProcedure();
+    //InfeasibleArcProcedure();
 
     mInstance->LowerBoundVehicles = DetermineLowerBoundVehicles();
 
     StartSolutionProcedure();
 
-    std::chrono::time_point<std::chrono::system_clock> start;
-    start = std::chrono::system_clock::now();
+    std::chrono::time_point<std::chrono::system_clock> start {std::chrono::system_clock::now()};
+
+
+    if(mInputParameters.IteratedLocalSearch.RunLS){
+        double maxRuntime_LS = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::Constructive);
+        auto elapsed = std::chrono::duration<double>(std::chrono::system_clock::now() - start).count();
+        auto savings = 0.0;
+        do{
+            savings = LocalSearch::RunInterImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution.Routes);
+        
+            for(auto& route: mCurrentSolution.Routes){
+                LocalSearch::RunIntraImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, route.Sequence);
+            }
+            elapsed += std::chrono::duration<double>(std::chrono::system_clock::now() - start).count();
+        
+        }while(savings < 0 && elapsed < maxRuntime_LS);
+    }
+
+    mTimer.MetaHeuristic = std::chrono::system_clock::now() - start;
+    
 
     auto statistics = SolverStatistics(100,
                                        25,
@@ -586,28 +602,28 @@ void IteratedLocalSearch::Solve()
     Serializer::WriteToJson(statistics, mOutputPath, solutionStatisticsString);
 
     //TODO - Delete when LS OR ILS is implemented
-    mFinalSolution = mStartSolution;
+    mBestSolution = mCurrentSolution;
 
     //Determine placement of items in the containers
-    DeterminePackingSolution();
+    mBestSolution.DetermineCosts(mInstance);
 
-    mFinalSolution.LowerBoundVehicles = mInstance->LowerBoundVehicles;
-    mFinalSolution.DetermineCosts(mInstance);
+    OutputSolution final_outputSolution(mBestSolution, mInstance);
+    DeterminePackingSolution(final_outputSolution);
 
-    auto solFile = SolutionFile(mInputParameters, statistics, mFinalSolution);
+    auto solFile = SolutionFile(mInputParameters, statistics, final_outputSolution);
 
     std::string solutionString = "Solution-" + mInstance->Name;
     Serializer::WriteToJson(solFile, mOutputPath, solutionString);
 
-    WriteSolutionSolutionValidator();
+    WriteSolutionSolutionValidator(final_outputSolution);
 }
 
-void IteratedLocalSearch::DeterminePackingSolution()
+void IteratedLocalSearch::DeterminePackingSolution(OutputSolution& outputSolution)
 {
-    mFinalSolution.NumberOfRoutes = mFinalSolution.Tours.size();
-    for (size_t tourId = 0; tourId < mFinalSolution.Tours.size(); tourId++)
+    //outputSolution.NumberOfRoutes = outputSolution.Tours.size();
+    for (size_t tourId = 0; tourId < outputSolution.Tours.size(); tourId++)
     {
-        auto& tour = mFinalSolution.Tours[tourId];
+        auto& tour = outputSolution.Tours[tourId];
         auto& route = tour.Route;
         auto& container = tour.Vehicle.Containers.front();
         Collections::IdVector stopIds;
@@ -690,12 +706,12 @@ void IteratedLocalSearch::DeterminePackingSolution()
     }
 }
 
-void IteratedLocalSearch::PrintSolution()
+void IteratedLocalSearch::PrintSolution(const OutputSolution& outputSolution)
 {
-    for (size_t tourId = 0; tourId < mFinalSolution.Tours.size(); tourId++)
+    for (size_t tourId = 0; tourId < outputSolution.Tours.size(); tourId++)
     {
-        Tour& tour = mFinalSolution.Tours[tourId];
-        std::vector<Node>& route = tour.Route;
+        const Tour& tour = outputSolution.Tours[tourId];
+        const std::vector<Node>& route = tour.Route;
 
         mLogFile << "0 -> ";
         for (const auto& node: route)
@@ -707,7 +723,7 @@ void IteratedLocalSearch::PrintSolution()
     }
 }
 
-void IteratedLocalSearch::WriteSolutionSolutionValidator()
+void IteratedLocalSearch::WriteSolutionSolutionValidator(const OutputSolution& outputSolution)
 {
     ResultWriter::SolutionValidator::WriteInput(mOutputPath,
                                                 mInstance->Name,
@@ -716,13 +732,13 @@ void IteratedLocalSearch::WriteSolutionSolutionValidator()
                                                 mInstance->Vehicles.size());
 
     std::vector<std::vector<Group>> routes;
-    routes.reserve(mFinalSolution.Tours.size());
-    for (const auto& tour: mFinalSolution.Tours)
+    routes.reserve(outputSolution.Tours.size());
+    for (const auto& tour: outputSolution.Tours)
     {
         routes.emplace_back(InterfaceConversions::NodesToGroup(tour.Route));
     }
 
-    ResultWriter::SolutionValidator::WriteOutput(mOutputPath, mInstance->Name, routes, mFinalSolution.Costs);
+    ResultWriter::SolutionValidator::WriteOutput(mOutputPath, mInstance->Name, routes, outputSolution.Costs);
 }
 
 }

@@ -63,6 +63,7 @@ class SolverStatistics;
 class Solution;
 class SolutionFile;
 class Tour;
+class OutputSolution;
 
 void from_json(const json& j, Node& node);
 void to_json(json& j, const Node& node);
@@ -76,8 +77,8 @@ void to_json(json& j, const Tour& tour);
 void from_json(const json& j, SolverStatistics& statistics);
 void to_json(json& j, const SolverStatistics& statistics);
 
-void from_json(const json& j, Solution& solution);
-void to_json(json& j, const Solution& solution);
+void from_json(const json& j, OutputSolution& solution);
+void to_json(json& j, const OutputSolution& solution);
 
 void from_json(const json& j, SolutionFile& solutionFile);
 void to_json(json& j, const SolutionFile& solutionFile);

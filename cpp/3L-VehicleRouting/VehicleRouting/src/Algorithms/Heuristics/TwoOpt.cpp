@@ -116,6 +116,7 @@ std::optional<Move> TwoOpt::GetBestMove(const Instance* const instance,
 
         if (status == LoadingStatus::FeasOpt)
         {
+            std::cout << "TwoOpt: Found feasible move with savings: " << std::get<0>(move) << std::endl;
             return move;
         }
     }
