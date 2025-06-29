@@ -82,7 +82,7 @@ void SPHeuristic::AddNewRoutes(auto& routes)
 {
     const Container& container = mInstance->Vehicles.front().Containers.front();
 
-    for (const auto& route: routes)
+    for (auto& route: routes)
     {
         if (mInputParameters->ContainerLoading.LoadingProblem.LoadingFlags == LoadingFlag::NoneSet)
         {

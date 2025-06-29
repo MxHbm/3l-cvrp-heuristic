@@ -18,57 +18,47 @@ using namespace ContainerLoading;
 void TwoOpt::Run(const Instance* const instance,
                  const InputParameters& inputParameters,
                  LoadingChecker* loadingChecker,
-                 const Collections::IdVector& newRoute)
+                 Collections::IdVector& route)
 {
-    if (newRoute.size() < 3)
+    if (route.size() < 3)
     {
         return;
     }
 
-    if (loadingChecker->SequenceIsCheckedTwoOpt(newRoute))
+    if (loadingChecker->SequenceIsCheckedTwoOpt(route))
     {
         return;
     }
 
-    Collections::IdVector tmpRoute = newRoute;
     while (true)
     {
-        auto moves = DetermineMoves(instance, tmpRoute);
-        auto bestMove = GetBestMove(instance, inputParameters, loadingChecker, tmpRoute, moves);
-        if (bestMove.has_value())
-        {
-            tmpRoute = MakeBestMove(tmpRoute, bestMove.value());
-            continue;
-        }
-
-        if (tmpRoute.empty())
-        {
+        auto moves = DetermineMoves(instance, route);
+        auto savings = GetBestMove(instance, inputParameters, loadingChecker, route, moves);
+        if (savings >= 0.0){
             break;
+        }else{
+            loadingChecker->AddSequenceCheckedTwoOpt(route);
         }
-
-        loadingChecker->AddSequenceCheckedTwoOpt(tmpRoute);
-        break;
     }
+    return;
 }
 
-std::vector<Move> TwoOpt::DetermineMoves(const Instance* const instance,
-                                         const Collections::IdVector& route)
+std::vector<TwoOptMove> TwoOpt::DetermineMoves(const Instance* const instance,
+                                               const Collections::IdVector& route)
 {
-    auto routeCosts = Evaluator::CalculateRouteCosts(instance, route);
-
-    std::vector<Move> moves = std::vector<Move>();
+    std::vector<TwoOptMove> moves = std::vector<TwoOptMove>();
+    auto savings = 0.0; 
 
     for (size_t i = 0; i < route.size() - 1; ++i)
     {
         for (size_t k = i + 1; k < route.size(); ++k)
         {
-            auto newRoute = CreateNewRoute(route, i, k);
-            auto newCosts = Evaluator::CalculateRouteCosts(instance, newRoute);
 
-            const double epsilon = 1e-05;
-            if (newCosts < routeCosts - epsilon)
+            savings = Evaluator::CalculateTwoOptDelta(instance, route, i, k);
+
+            if (savings < 0.0)
             {
-                moves.emplace_back(newCosts, i, k);
+                moves.emplace_back(savings, i, k);
             }
         }
     }
@@ -76,80 +66,66 @@ std::vector<Move> TwoOpt::DetermineMoves(const Instance* const instance,
     return moves;
 }
 
-std::optional<Move> TwoOpt::GetBestMove(const Instance* const instance,
-                                        const InputParameters& inputParameters,
-                                        LoadingChecker* loadingChecker,
-                                        const Collections::IdVector& route,
-                                        std::vector<Move>& moves)
-{
+double TwoOpt::GetBestMove(const Instance* const instance,
+                                            const InputParameters& inputParameters,
+                                            LoadingChecker* loadingChecker,
+                                            Collections::IdVector& route,
+                                            std::vector<TwoOptMove>& moves)
+    {
+
+    auto default_return = 0.0; 
+
     if (moves.size() == 0)
     {
-        return std::nullopt;
+        return default_return;
     }
 
-    std::ranges::sort(moves);
+    std::ranges::sort(moves, [](const auto& a, const auto& b) {
+        return std::get<0>(a) < std::get<0>(b);  // sort by savings ascending
+    });
 
     auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route);
 
-    for (auto& move: moves)
+    const auto& container = instance->Vehicles.front().Containers.front();
+    double maxRuntime = inputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
+
+    for (const auto& move: moves)
     {
+
+        ChangeRoutes(route, std::get<1>(move), std::get<2>(move));
+
         if (loadingChecker->Parameters.LoadingProblem.LoadingFlags == LoadingFlag::NoneSet)
         {
-            return move;
+            return std::get<0>(move);
         }
-
-        auto newRoute = CreateNewRoute(route, std::get<1>(move), std::get<2>(move));
 
         // If lifo is disabled, feasibility of route is independent from actual sequence
         // -> move is always feasible if route is feasible
         if (!loadingChecker->Parameters.LoadingProblem.EnableLifo && loadingChecker->RouteIsInFeasSequences(route))
         {
-            return move;
+            return std::get<0>(move);
         }
 
-        auto selectedItems = InterfaceConversions::SelectItems(newRoute, instance->Nodes, false);
-
-        const auto& container = instance->Vehicles.front().Containers.front();
-
-        double maxRuntime = inputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
-        auto status = loadingChecker->HeuristicCompleteCheck(container, set, newRoute, selectedItems, maxRuntime);
+        auto selectedItems = InterfaceConversions::SelectItems(route, instance->Nodes, false);
+        auto status = loadingChecker->HeuristicCompleteCheck(container, set, route, selectedItems, maxRuntime);
 
         if (status == LoadingStatus::FeasOpt)
         {
-            std::cout << "TwoOpt: Found feasible move with savings: " << std::get<0>(move) << std::endl;
-            return move;
+            return std::get<0>(move);
         }
+        
+        //Change routes back if it was not feasible! 
+        ChangeRoutes(route, std::get<1>(move), std::get<2>(move));
     }
 
-    return std::nullopt;
+    return default_return;
 }
 
-Collections::IdVector TwoOpt::MakeBestMove(const Collections::IdVector& route, const Move& bestMove)
+
+void TwoOpt::ChangeRoutes(Collections::IdVector& route, size_t i, size_t k)
 {
-    return CreateNewRoute(route, std::get<1>(bestMove), std::get<2>(bestMove));
-}
-
-Collections::IdVector TwoOpt::CreateNewRoute(const Collections::IdVector& route, size_t i, size_t k)
-{
-    Collections::IdVector newRoute;
-    newRoute.reserve(route.size());
-
-    for (size_t c = 0; c < i; ++c)
-    {
-        newRoute.push_back(route[c]);
-    }
-
-    for (size_t c = k + 1; c-- > i;)
-    {
-        newRoute.push_back(route[c]);
-    }
-
-    for (size_t c = k + 1; c < route.size(); ++c)
-    {
-        newRoute.push_back(route[c]);
-    }
-
-    return newRoute;
+    std::reverse(route.begin() + i, route.begin() + k + 1);
+    
 }
 
 }

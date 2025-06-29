@@ -24,7 +24,7 @@ class FullEnumerationSearch
     static void Run(const Instance* instance,
                     const InputParameters& inputParameters,
                     LoadingChecker* loadingChecker,
-                    const Collections::IdVector& newRoute);
+                    Collections::IdVector& route);
 };
 
 }

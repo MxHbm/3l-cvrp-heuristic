@@ -104,7 +104,6 @@ std::vector<Route> Savings::Run()
         }
         route.Id = id;
         startSolution.emplace_back(route);
-        std::cout << "Route " << route.Id << "has start Volume: " << route.TotalVolume << " and weight of " << route.TotalWeight << std::endl;
         ++ id;
     }
 

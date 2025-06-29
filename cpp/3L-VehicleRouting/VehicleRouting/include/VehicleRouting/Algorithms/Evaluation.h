@@ -83,6 +83,25 @@ class Evaluator
 
         return savings;
     }  
+
+        static double CalculateTwoOptDelta(const Instance* const instance,
+                                          const Collections::IdVector& route,
+                                          const size_t startIndex,
+                                          const size_t endIndex)
+    {
+        auto interID_startNode = route[startIndex];
+        auto interID_endNode = route[endIndex];
+        auto internID_precStartNode = (startIndex == 0) ? instance->GetDepotId() : route[startIndex - 1];
+        auto internID_succEndNode = (endIndex == route.size() - 1) ? instance->GetDepotId() : route[endIndex + 1];
+
+
+        double savings = instance->Distance(interID_startNode, internID_succEndNode)
+                         + instance->Distance(interID_endNode, internID_precStartNode)
+                         - instance->Distance(interID_startNode, internID_precStartNode)
+                         - instance->Distance(interID_endNode,internID_succEndNode);
+
+        return savings;
+    }  
 };
 
 }

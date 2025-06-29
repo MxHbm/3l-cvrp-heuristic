@@ -162,19 +162,21 @@ class OutputSolution
 
       Tours.reserve(NumberOfRoutes);
       int vehicleId = 0;
+      // TODO delete after debugging
+
       for (const auto& route: solution.Routes)
       { 
+
           std::vector<Node> sequence;
           sequence.reserve(route.Sequence.size());
-          for (const auto id: route.Sequence)
+          for (const auto intern_id: route.Sequence)
           {
-              sequence.emplace_back(instance->Nodes[id]);
-
+              sequence.emplace_back(instance->Nodes[intern_id]);
           }
 
           Vehicle& vehicle = instance->Vehicles[vehicleId];
           Tours.emplace_back(instance->Nodes[instance->DepotIndex], vehicle, std::move(sequence));
-          vehicleId++;
+          ++vehicleId;
       }
   };
 

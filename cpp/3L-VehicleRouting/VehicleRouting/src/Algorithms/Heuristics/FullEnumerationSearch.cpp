@@ -16,13 +16,13 @@ namespace Improvement
 void FullEnumerationSearch::Run(const Instance* const instance,
                                 const InputParameters& inputParameters,
                                 LoadingChecker* loadingChecker,
-                                const Collections::IdVector& newRoute)
+                                Collections::IdVector& route)
 {
-    auto set = loadingChecker->MakeBitset(instance->Nodes.size(), newRoute);
+    auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route);
 
-    auto routeCosts = Evaluator::CalculateRouteCosts(instance, newRoute);
+    auto routeCosts = Evaluator::CalculateRouteCosts(instance, route);
 
-    auto tmpRoute = newRoute;
+    auto tmpRoute = route;
     std::ranges::sort(tmpRoute);
 
     using move = std::pair<double, Collections::IdVector>;
@@ -43,35 +43,38 @@ void FullEnumerationSearch::Run(const Instance* const instance,
 
     std::ranges::sort(moves);
 
+    const auto& container = instance->Vehicles.front().Containers.front();
+    double maxRuntime = inputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
+
     for (auto& move: moves)
     {
-        const auto& sequence = move.second;
+        auto& sequence = move.second;
 
         if (loadingChecker->RouteIsInFeasSequences(sequence))
         {
+            route = std::move(sequence);
             break;
         }
 
-        if (!loadingChecker->Parameters.LoadingProblem.EnableLifo && loadingChecker->RouteIsInFeasSequences(newRoute))
+        if (!loadingChecker->Parameters.LoadingProblem.EnableLifo && loadingChecker->RouteIsInFeasSequences(route))
         {
             loadingChecker->AddFeasibleSequenceFromOutside(sequence);
+            route = std::move(sequence);
             break;
         }
 
         auto selectedItems = InterfaceConversions::SelectItems(sequence, instance->Nodes, false);
-
-        const auto& container = instance->Vehicles.front().Containers.front();
-
-        double maxRuntime = inputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
         auto status = loadingChecker->HeuristicCompleteCheck(container, set, sequence, selectedItems, maxRuntime);
 
         if (status == LoadingStatus::FeasOpt)
         {
+            route = std::move(sequence);
             break;
         }
 
         if (!loadingChecker->Parameters.LoadingProblem.EnableLifo)
         {
+            route = std::move(sequence);
             break;
         }
     }

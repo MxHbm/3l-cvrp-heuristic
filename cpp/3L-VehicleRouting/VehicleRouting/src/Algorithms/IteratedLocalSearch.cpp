@@ -184,10 +184,6 @@ void IteratedLocalSearch::StartSolutionProcedure()
     //TODO Change in Repar Modified Saavings, that Totalvoluem and Totalweight is updated! 
     mCurrentSolution.DeterminWeightsVolumes(mInstance);
 
-    for(const auto& route : mCurrentSolution.Routes){
-         std::cout << "Route " << route.Id << "has start Volume: " << route.TotalVolume << " and weight of " << route.TotalWeight << std::endl;
-    }
-
     OutputSolution outputSolution(mCurrentSolution, mInstance);
 
     // Save values of start solution
@@ -206,6 +202,7 @@ void IteratedLocalSearch::GenerateStartSolutionSavings()
         Heuristics::Constructive::ModifiedSavings(mInstance, &mInputParameters, mLoadingChecker.get(), &mRNG).Run();
 
     //TODO what should i do with these values? 
+    
     int id = 0;
     for (auto& route : mCurrentSolution.Routes)
     {
@@ -217,6 +214,7 @@ void IteratedLocalSearch::GenerateStartSolutionSavings()
         ++id;
         LocalSearch::RunIntraImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, route.Sequence);
     }
+        
     /*
     for (const auto& route: mLoadingChecker->GetFeasibleRoutes())
     {
@@ -574,17 +572,12 @@ void IteratedLocalSearch::Solve()
 
     if(mInputParameters.IteratedLocalSearch.RunLS){
         double maxRuntime_LS = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::Constructive);
-        auto elapsed = std::chrono::duration<double>(std::chrono::system_clock::now() - start).count();
-        auto savings = 0.0;
-        do{
-            savings = LocalSearch::RunInterImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution.Routes);
         
-            for(auto& route: mCurrentSolution.Routes){
-                LocalSearch::RunIntraImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, route.Sequence);
-            }
-            elapsed += std::chrono::duration<double>(std::chrono::system_clock::now() - start).count();
+        LocalSearch::RunInterImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution.Routes);
         
-        }while(savings < 0 && elapsed < maxRuntime_LS);
+        for(auto& route: mCurrentSolution.Routes){
+            LocalSearch::RunIntraImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, route.Sequence);
+        }
     }
 
     mTimer.MetaHeuristic = std::chrono::system_clock::now() - start;
@@ -604,7 +597,7 @@ void IteratedLocalSearch::Solve()
     //TODO - Delete when LS OR ILS is implemented
     mBestSolution = mCurrentSolution;
 
-    //Determine placement of items in the containers
+    //Determine Costs of the tour
     mBestSolution.DetermineCosts(mInstance);
 
     OutputSolution final_outputSolution(mBestSolution, mInstance);

@@ -15,20 +15,28 @@ namespace Improvement
 {
 using namespace ContainerLoading;
 
-double InterSwap::Run(const Instance* const instance,
+void InterSwap::Run(const Instance* const instance,
                     const InputParameters& inputParameters,
                     LoadingChecker* loadingChecker,
                     std::vector<Route>& routes)
 {
+    int run = 0;
     if (routes.size() < 2)
     {
-        return 0.0;
+        return;
     }
 
-    auto moves = DetermineMoves(instance, routes);
+    while(true){
 
-    return GetBestMove(instance, inputParameters, loadingChecker, routes, moves);
+        auto moves = DetermineMoves(instance, routes);
+        auto savings = GetBestMove(instance, inputParameters, loadingChecker, routes, moves);
 
+        if(savings >= 0.0){
+            break;
+        }
+    }
+
+    return;
        
 }
 
@@ -37,8 +45,8 @@ std::vector<InterSwapMove> InterSwap::DetermineMoves(const Instance* const insta
 {
 
     std::vector<InterSwapMove> moves{};
-    auto container_weight_limit = instance->Vehicles.front().Containers.front().WeightLimit;
-    auto container_volume_limit = instance->Vehicles.front().Containers.front().Volume;
+    const auto container_weight_limit = instance->Vehicles.front().Containers.front().WeightLimit;
+    const auto container_volume_limit = instance->Vehicles.front().Containers.front().Volume;
 
     for (size_t route_it_i = 0; route_it_i < routes.size() - 1; ++route_it_i)
     {
@@ -55,13 +63,16 @@ std::vector<InterSwapMove> InterSwap::DetermineMoves(const Instance* const insta
 
             for ( size_t node_i = 0; node_i < route_i.Sequence.size(); ++node_i)
             {
+                const auto internId_node_i = route_i.Sequence[node_i];
+
                 for (size_t node_k = 0; node_k < route_k.Sequence.size(); ++node_k)
                 {
-                    const auto weight_item_delta = instance->Nodes[node_i].TotalWeight - instance->Nodes[node_k].TotalWeight;
-                    const auto volume_item_delta = instance->Nodes[node_i].TotalVolume - instance->Nodes[node_k].TotalVolume;
+                    const auto internId_node_k = route_i.Sequence[node_k];
+                    const auto weight_item_delta = instance->Nodes[internId_node_i ].TotalWeight - instance->Nodes[internId_node_k].TotalWeight;
+                    const auto volume_item_delta = instance->Nodes[internId_node_i ].TotalVolume - instance->Nodes[internId_node_k].TotalVolume;
 
                     if(res_weight_route_i + weight_item_delta >= 0 && res_weight_route_k - weight_item_delta >= 0)
-                        if(res_volume_route_k + volume_item_delta >= 0 && res_volume_route_k - volume_item_delta >= 0){
+                        if(res_volume_route_i + volume_item_delta >= 0 && res_volume_route_k - volume_item_delta >= 0){
 
                             auto savings = Evaluator::CalculateInterSwapDelta(instance,
                                                                             route_i.Sequence,
@@ -118,6 +129,7 @@ double InterSwap::GetBestMove(const Instance* const instance,
 
         if (loadingChecker->Parameters.LoadingProblem.LoadingFlags == LoadingFlag::NoneSet)
         {
+            UpdateRouteVolumeWeight(routes, move);
             return std::get<0>(move);
         }
 
@@ -133,6 +145,7 @@ double InterSwap::GetBestMove(const Instance* const instance,
             // -> move is always feasible if route is feasible
             if (!loadingChecker->Parameters.LoadingProblem.EnableLifo && loadingChecker->RouteIsInFeasSequences(route.Sequence))
             {
+                UpdateRouteVolumeWeight(routes, move);
                 return std::get<0>(move);
             }
 
@@ -154,7 +167,6 @@ double InterSwap::GetBestMove(const Instance* const instance,
         }
 
         UpdateRouteVolumeWeight(routes, move);
-
         return std::get<0>(move);
     }
 
@@ -169,10 +181,10 @@ void InterSwap::UpdateRouteVolumeWeight(std::vector<Route>& routes, const InterS
     auto& route_i = routes[std::get<1>(move)];
     auto& route_k = routes[std::get<2>(move)];
 
-    route_i.TotalVolume -= item_delta;
-    route_k.TotalVolume += item_delta;
-    route_i.TotalWeight -= volume_delta;
-    route_k.TotalWeight += volume_delta;
+    route_i.TotalWeight -= item_delta;
+    route_k.TotalWeight += item_delta;
+    route_i.TotalVolume -= volume_delta;
+    route_k.TotalVolume += volume_delta;
 }
 
 
@@ -184,9 +196,6 @@ void InterSwap::ChangeRoutes(std::vector<Route>& routes, const InterSwapMove& mo
 
     auto& route_i = routes[std::get<1>(move)];
     auto& route_k = routes[std::get<2>(move)];
-
-    std::cout << "InterSwap: Savings: " << std::get<0>(move) << " Swapping nodes " << route_i.Sequence[node_i] << " and " << route_k.Sequence[node_k]
-              << " in routes " << route_i.Id << " and " << route_k.Id << std::endl;
 
     std::swap(route_i.Sequence[node_i], route_k.Sequence[node_k]);
     

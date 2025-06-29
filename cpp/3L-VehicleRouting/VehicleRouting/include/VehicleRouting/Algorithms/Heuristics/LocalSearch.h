@@ -29,7 +29,7 @@ class LocalSearch
     static void RunIntraImprovement(const Instance* const instance,
                                     LoadingChecker* loadingChecker,
                                     const InputParameters* inputParameters,
-                                    const Collections::IdVector& sequence)
+                                    Collections::IdVector& sequence)
     {
         if (!inputParameters->IteratedLocalSearch.ActivateIntraRouteImprovement)
         {
@@ -51,12 +51,12 @@ class LocalSearch
         }
     };
 
-    static double RunInterImprovement(const Instance* const instance,
-        LoadingChecker* loadingChecker,
-        const InputParameters* inputParameters,
-        std::vector<Route>& routes)
+    static void RunInterImprovement(const Instance* const instance,
+                                    LoadingChecker* loadingChecker,
+                                    const InputParameters* inputParameters,
+                                    std::vector<Route>& routes)
     {
-        return InterSwap::Run(instance, *inputParameters, loadingChecker, routes);
+        InterSwap::Run(instance, *inputParameters, loadingChecker, routes);
     };
 };
 

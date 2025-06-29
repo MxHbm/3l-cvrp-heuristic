@@ -25,7 +25,7 @@ using InterSwapMove = std::tuple<double, size_t, size_t, size_t, size_t, int, in
 class InterSwap
 {
   public:
-    static double Run(const Instance* instance,
+    static void Run(const Instance* instance,
                     const InputParameters& inputParameters,
                     LoadingChecker* loadingChecker,
                     std::vector<Route>& routes);
