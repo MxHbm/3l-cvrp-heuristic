@@ -75,6 +75,33 @@ class Tour
     };
 };
 
+class SolutionTracker
+{
+  public:
+    std::map<double, double> CurrentSolution;
+    std::map<double, double> BestSolution;
+
+
+    //Default constructor
+    SolutionTracker(){};
+
+    void UpdateCurrSolution(const double runtime, const double bound)
+    {
+        CurrentSolution.insert({runtime, bound});
+    }
+
+    void UpdateBestSolution(const double runtime, const double bound)
+    {
+        BestSolution.insert({runtime, bound});
+    }
+
+    void UpdateBothSolutions(const double runtime, const double bound){
+
+        BestSolution.insert({runtime, bound});
+        CurrentSolution.insert({runtime, bound});
+    }
+};
+
 class SolverStatistics
 {
   public:
@@ -85,12 +112,14 @@ class SolverStatistics
     size_t DeletedArcs = 0;
     size_t InfeasibleTailPathStart = 0;
     Helper::Timer Timer;
+    SolutionTracker solutionTracker;
 
     SolverStatistics(double runtime,
                      double gap,
                      double nodeCount,
                      double iterCount,
                      Helper::Timer& timer,
+                     SolutionTracker& solTracker,
                      size_t deletedArcs,
                      size_t infTailPathStart)
     : Runtime(runtime),
@@ -99,7 +128,8 @@ class SolverStatistics
       SimplexIterationCount(iterCount),
       DeletedArcs(deletedArcs),
       InfeasibleTailPathStart(infTailPathStart),
-      Timer(timer)
+      Timer(timer),
+      solutionTracker(solTracker)
     {
     }
 };

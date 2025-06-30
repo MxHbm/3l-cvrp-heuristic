@@ -265,6 +265,7 @@ void to_json(json& j, const SolverStatistics& statistics)
         {"DeletedArcs", statistics.DeletedArcs},
         {"InfTailPath", statistics.InfeasibleTailPathStart},
         {"Timer", statistics.Timer},
+        {"SolutionProgress", statistics.solutionTracker}
     };
 }
 
@@ -282,6 +283,14 @@ void to_json(json& j, const SolutionFile& solution)
         ////{"SolverStatistics", solution.SolverStatistics},
         {"Solution", solution.OutputSolution},
     };
+}
+
+void from_json(const json& j, SolutionTracker& tracker) {}
+
+void to_json(json& j, const SolutionTracker& tracker)
+{
+    j = json{{"CurrSolProgress", tracker.CurrentSolution},
+             {"BestSolProgress", tracker.BestSolution}};
 }
 
 

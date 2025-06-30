@@ -247,6 +247,14 @@ def plot_timer_pie_chart(timer_data):
     # Show total time
     st.markdown(f"**Total Time:** {total_time:.2f} seconds")
 
+def plotBoundGraph(combined_data : pd.DataFrame): 
+
+    
+    fig = px.line(combined_data, x="Time", y="Value", color='Type')
+    # Streamlit output
+    st.plotly_chart(fig, use_container_width=True)
+
+
 
 def analyze_solver_statistics(solver_statistics_data):
     st.subheader("Solver progress")
@@ -263,7 +271,7 @@ def analyze_solver_statistics(solver_statistics_data):
     col1, col2 = st.columns(2)
     with col1:
         st.write("This is a test")
-        #plot_element_bar(solver_statistics_data["ElementData"])
+        plotBoundGraph(solver_statistics_data["CombinedProgress"])
     with col2:
         plot_timer_pie_chart(solver_statistics_data["Timer"])
         #plot_lazy_constraints_bar(solver_statistics_data["LazyConstraintsCount"])

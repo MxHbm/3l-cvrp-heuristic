@@ -583,6 +583,7 @@ void IteratedLocalSearch::Solve()
     auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start);
     double maxRuntime = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ILS);
     mBestSolution = mCurrentSolution;
+    mSolutionTracker.UpdateBothSolutions(elapsed.count(),mCurrentSolution.Costs);
 
     int iteration = 0;
     if(mInputParameters.IteratedLocalSearch.RunILS){
@@ -603,13 +604,16 @@ void IteratedLocalSearch::Solve()
             mCurrentSolution.DetermineCosts(mInstance);
 
             if(mCurrentSolution.Costs < mBestSolution.Costs){
+                mSolutionTracker.UpdateBothSolutions(elapsed.count(),mCurrentSolution.Costs);
                 mBestSolution = mCurrentSolution;
                 NoImpr = 0;
             }else{
                 ++NoImpr;
+                mSolutionTracker.UpdateCurrSolution(elapsed.count(),mCurrentSolution.Costs);
             }
             if(NoImpr >= mInputParameters.IteratedLocalSearch.NoImprLimit){
                 mCurrentSolution = mBestSolution;
+                mSolutionTracker.UpdateCurrSolution(elapsed.count(),mCurrentSolution.Costs);
                 NoImpr = 0;
             }
 
@@ -629,6 +633,7 @@ void IteratedLocalSearch::Solve()
                                        300,
                                        200,
                                        mTimer,
+                                       mSolutionTracker,
                                        mInfeasibleArcs.size(),
                                        mInfeasibleTailPaths.size());
 

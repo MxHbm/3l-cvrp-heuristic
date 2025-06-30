@@ -64,6 +64,7 @@ class Solution;
 class SolutionFile;
 class Tour;
 class OutputSolution;
+class SolutionTracker;
 
 void from_json(const json& j, Node& node);
 void to_json(json& j, const Node& node);
@@ -82,6 +83,9 @@ void to_json(json& j, const OutputSolution& solution);
 
 void from_json(const json& j, SolutionFile& solutionFile);
 void to_json(json& j, const SolutionFile& solutionFile);
+
+void from_json(const json& j, SolutionTracker& tracker);
+void to_json(json& j, const SolutionTracker& tracker);
 }
 }
 

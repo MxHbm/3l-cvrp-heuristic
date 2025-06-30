@@ -55,6 +55,8 @@ class IteratedLocalSearch
     Solution mCurrentSolution;
     Solution mBestSolution;
 
+    SolutionTracker mSolutionTracker;
+
     std::mt19937 mRNG;
 
     std::unique_ptr<LoadingChecker> mLoadingChecker;

@@ -140,7 +140,7 @@ def create_filter_mask(tours):
 def get_solver_data_from_json(file):
     solver_statistics = json.loads(file)
     solver_statistics_data = {}
-    #solver_statistics_data = get_solver_statistics_data(solver_statistics)
+    solver_statistics_data = get_solver_statistics_data(solver_statistics)
 
     time_distribution = {"Infeasible arc procedure": solver_statistics["Timer"]["InfeasibleArcs"],
                          "Lower bound vehicle procedure": solver_statistics["Timer"]["LowerBoundVehicles"],
@@ -286,59 +286,38 @@ def get_tours_as_data_frame(solution):
 
 def get_solver_statistics_data(solver_statistics):
     solver_statistics_data = {}
-    callback_tracker = solver_statistics["SubtourTracker"]
-    lower_bound_progress = callback_tracker["LowerBoundProgress"]
-    solver_statistics_data["LBProgress"] = pd.DataFrame(lower_bound_progress, columns=["Time", "NodeLb"])
-    solver_statistics_data["LBProgress"][["Node", "LB"]] = pd.DataFrame(
-        solver_statistics_data["LBProgress"].NodeLb.tolist(),
-        index=solver_statistics_data["LBProgress"].index,
-    )
-    solver_statistics_data["LBProgress"].drop("NodeLb", axis=1, inplace=True)
+    callback_tracker = solver_statistics["SolutionProgress"]
+    curr_sol_progress = callback_tracker["CurrSolProgress"]
+    solver_statistics_data["CurrSolProgress"] = pd.DataFrame(curr_sol_progress, columns=["Time", "Value"])
+    solver_statistics_data["CurrSolProgress"]["Type"] = "Current"
 
-    upper_bound_progress = callback_tracker["UpperBoundProgress"]
-    solver_statistics_data["UBProgress"] = pd.DataFrame(upper_bound_progress, columns=["Time", "HeuObj"])
-    solver_statistics_data["UBProgress"][["ObjVal", "SPHeur"]] = pd.DataFrame(
-        solver_statistics_data["UBProgress"].HeuObj.tolist(),
-        index=solver_statistics_data["UBProgress"].index,
-    )
-    solver_statistics_data["UBProgress"].drop("HeuObj", axis=1, inplace=True)
+    best_sol_progress = callback_tracker["BestSolProgress"]
+    solver_statistics_data["BestSolProgress"] = pd.DataFrame(best_sol_progress, columns=["Time", "Value"])
+    solver_statistics_data["BestSolProgress"]["Type"] = "Best"
 
-    last_time = solver_statistics_data["LBProgress"].iloc[-1]["Time"]
-    best_objective_value = solver_statistics_data["UBProgress"].iloc[-1]["ObjVal"]
-    solver_statistics_data["UBProgress"] = pd.concat(
+    last_time = solver_statistics_data["CurrSolProgress"].iloc[-1]["Time"]
+    best_objective_value = solver_statistics_data["BestSolProgress"].iloc[-1]["Value"]
+    solver_statistics_data["BestSolProgress"] = pd.concat(
         [
-            solver_statistics_data["UBProgress"],
-            pd.DataFrame({"Time": last_time, "ObjVal": best_objective_value, "SPHeur": False}, index=[0]),
+            solver_statistics_data["BestSolProgress"],
+            pd.DataFrame({"Time": last_time, "Value": best_objective_value, "Type": "Best"}, index=[0]),
         ],
         axis=0,
         join="outer",
         ignore_index=True,
     )
 
-    call_counter = callback_tracker["ElementCallCounter"]
-    types, counts = map(list, zip(*call_counter))
-    call_total_time = callback_tracker["ElementCallTime"]
-    types, times = map(list, zip(*call_total_time))
-    solver_statistics_data["ElementData"] = pd.DataFrame(
-        list(zip(counts, times)), index=types, columns=["Count", "Time"]
+       # Combine both for plotting
+    solver_statistics_data["CombinedProgress"] = pd.concat(
+        [
+            solver_statistics_data["CurrSolProgress"],
+            solver_statistics_data["BestSolProgress"]
+        ],
+        ignore_index=True
     )
 
-    lazy_constraint_counter = callback_tracker["LazyConstraintCounter"]
-    constraint_types, constraint_counters = map(list, zip(*lazy_constraint_counter))
-    solver_statistics_data["LazyConstraintsCount"] = pd.DataFrame(
-        constraint_counters, index=constraint_types, columns=["Count"]
-    )
+    
 
-    cut_counter = callback_tracker["CutCounter"]
-    if cut_counter:
-        cut_types, cut_counts = map(list, zip(*cut_counter))
-    cut_timer = callback_tracker["CutTimer"]
-    if cut_timer:
-        cut_types, cut_times = map(list, zip(*cut_timer))
-    if cut_counter and cut_timer:
-        solver_statistics_data["CutData"] = pd.DataFrame(
-            list(zip(cut_counts, cut_times)), index=cut_types, columns=["Count", "Time"]
-        )
 
     return solver_statistics_data
 
