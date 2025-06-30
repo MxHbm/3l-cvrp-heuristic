@@ -585,7 +585,7 @@ void IteratedLocalSearch::Solve()
     mBestSolution = mCurrentSolution;
 
     int iteration = 0;
-    if(mInputParameters.IteratedLocalSearch.RunLS){
+    if(mInputParameters.IteratedLocalSearch.RunILS){
         while(elapsed.count() < maxRuntime){
 
             std::cout << "Start ILS - Iteration: " << iteration << std::endl;
@@ -597,7 +597,7 @@ void IteratedLocalSearch::Solve()
                 LocalSearch::RunIntraImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, route.Sequence);
             }
 
-            //LocalSearch::RunInterImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution.Routes);
+            LocalSearch::RunInterImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution.Routes);
         
 
             mCurrentSolution.DetermineCosts(mInstance);
@@ -641,7 +641,7 @@ void IteratedLocalSearch::Solve()
     mBestSolution.DetermineCosts(mInstance);
 
     //TODO Change back to best later! 
-    OutputSolution final_outputSolution(mCurrentSolution, mInstance);
+    OutputSolution final_outputSolution(mBestSolution, mInstance);
     DeterminePackingSolution(final_outputSolution);
 
     auto solFile = SolutionFile(mInputParameters, statistics, final_outputSolution);

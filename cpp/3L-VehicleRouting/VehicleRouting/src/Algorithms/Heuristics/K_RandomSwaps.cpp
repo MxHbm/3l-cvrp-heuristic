@@ -47,8 +47,9 @@ void K_RandomSwaps::Run(const Instance* const instance,
             break;
         }
 
-         bool controlFlag = true;
+        bool controlFlag = true;
         
+        ChangeRoutes(routes, *move);
 
         if (loadingChecker->Parameters.LoadingProblem.LoadingFlags == LoadingFlag::NoneSet)
         {
@@ -57,10 +58,7 @@ void K_RandomSwaps::Run(const Instance* const instance,
             continue;
         }
 
-        ChangeRoutes(routes, *move);
-
-
-        for(auto& route_index : {std::get<0>(*move), std::get<1>(*move)})
+        for(const auto& route_index : {std::get<0>(*move), std::get<1>(*move)})
         {
             auto& route = routes[route_index];
             auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
@@ -103,6 +101,8 @@ std::optional<K_InterSwapMove> K_RandomSwaps::DetermineMoves(const Instance* con
     std::uniform_int_distribution<size_t> route_dist(0, routes.size() - 1);
     int limit_route_draws = 10;
     int route_draws = 0;
+    const auto container_weight_limit = instance->Vehicles.front().Containers.front().WeightLimit;
+    const auto container_volume_limit = instance->Vehicles.front().Containers.front().Volume;
 
     while(route_draws < limit_route_draws){
         size_t route_it_i = route_dist(RNG);
@@ -112,10 +112,14 @@ std::optional<K_InterSwapMove> K_RandomSwaps::DetermineMoves(const Instance* con
             route_it_i = route_dist(RNG);
             route_it_k = route_dist(RNG); 
         }
+
         const auto& route_i = routes[route_it_i];
         const auto& route_k = routes[route_it_k];
-        const auto weight_route_delta = route_k.TotalWeight - route_i.TotalWeight;
-        const auto volume_route_delta = route_k.TotalVolume - route_i.TotalVolume;
+        const auto res_weight_route_i = container_weight_limit - route_i.TotalWeight;
+        const auto res_volume_route_i = container_volume_limit - route_i.TotalVolume;
+        const auto res_weight_route_k = container_weight_limit - route_k.TotalWeight;
+        const auto res_volume_route_k = container_volume_limit - route_k.TotalVolume;
+
         std::uniform_int_distribution<size_t> route_i_dist(0, route_i.Sequence.size() - 1);
         std::uniform_int_distribution<size_t> route_k_dist(0, route_k.Sequence.size() - 1);
 
@@ -126,16 +130,14 @@ std::optional<K_InterSwapMove> K_RandomSwaps::DetermineMoves(const Instance* con
 
             const auto node_i = route_i_dist(RNG);
             const auto node_k = route_k_dist(RNG);
-            const auto internId_node_i = route_i.Sequence[node_i];
-            const auto internId_node_k = route_k.Sequence[node_k];
-            const auto weight_item_delta = instance->Nodes[internId_node_i].TotalWeight - instance->Nodes[internId_node_k].TotalWeight;
-            const auto volume_item_delta = instance->Nodes[internId_node_i].TotalVolume - instance->Nodes[internId_node_k].TotalVolume;
+            const auto weight_item_delta = instance->Nodes[route_i.Sequence[node_i]].TotalWeight - instance->Nodes[route_k.Sequence[node_k]].TotalWeight;
+            const auto volume_item_delta = instance->Nodes[route_i.Sequence[node_i]].TotalVolume - instance->Nodes[route_k.Sequence[node_k]].TotalVolume;
 
-            if(weight_item_delta - weight_route_delta <= 0)
-                if(volume_item_delta - volume_route_delta <= 0){
-
-                    return std::make_tuple(route_it_i, route_it_k, node_i, node_k, weight_item_delta, volume_item_delta);
-                }
+        
+        if(res_weight_route_i + weight_item_delta >= 0 && res_weight_route_k - weight_item_delta >= 0)
+            if(res_volume_route_i + volume_item_delta >= 0 && res_volume_route_k - volume_item_delta >= 0){
+                return std::make_tuple(route_it_i, route_it_k, node_i, node_k, weight_item_delta, volume_item_delta);
+        }
             
             ++attempts;
         }
