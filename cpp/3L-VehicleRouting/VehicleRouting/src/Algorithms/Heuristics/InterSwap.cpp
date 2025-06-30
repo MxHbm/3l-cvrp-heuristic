@@ -18,8 +18,11 @@ using namespace ContainerLoading;
 void InterSwap::Run(const Instance* const instance,
                     const InputParameters& inputParameters,
                     LoadingChecker* loadingChecker,
-                    std::vector<Route>& routes)
+                    Solution& currentSolution)
 {
+
+    std::vector<Route>& routes = currentSolution.Routes;
+
     int run = 0;
     if (routes.size() < 2)
     {
@@ -34,6 +37,8 @@ void InterSwap::Run(const Instance* const instance,
         if(savings >= 0.0){
             break;
         }
+        
+        currentSolution.Costs += savings;
     }
 
     return;

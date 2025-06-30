@@ -16,66 +16,74 @@ namespace Improvement
 void FullEnumerationSearch::Run(const Instance* const instance,
                                 const InputParameters& inputParameters,
                                 LoadingChecker* loadingChecker,
-                                Collections::IdVector& route)
+                                Solution& currentSolution)
 {
-    auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route);
+    for(auto& route : currentSolution.Routes){
 
-    auto routeCosts = Evaluator::CalculateRouteCosts(instance, route);
+        auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
 
-    auto tmpRoute = route;
-    std::ranges::sort(tmpRoute);
+        auto routeCosts = Evaluator::CalculateRouteCosts(instance, route.Sequence);
 
-    using move = std::pair<double, Collections::IdVector>;
+        auto tmpRoute = route.Sequence;
+        std::ranges::sort(tmpRoute);
 
-    std::vector<move> moves;
-    do
-    {
-        auto costs = Evaluator::CalculateRouteCosts(instance, tmpRoute);
+        using move = std::pair<double, Collections::IdVector>;
 
-        if (costs >= routeCosts)
+        std::vector<move> moves;
+        do
         {
-            continue;
-        }
+            auto costs = Evaluator::CalculateRouteCosts(instance, tmpRoute);
+            auto delta_routeCosts = costs - routeCosts;
 
-        moves.emplace_back(costs, tmpRoute);
+            if (delta_routeCosts > 0)
+            {
+                continue;
+            }
 
-    } while (std::next_permutation(std::begin(tmpRoute), std::end(tmpRoute)));
+            moves.emplace_back(delta_routeCosts, tmpRoute);
 
-    std::ranges::sort(moves);
+        } while (std::next_permutation(std::begin(tmpRoute), std::end(tmpRoute)));
 
-    const auto& container = instance->Vehicles.front().Containers.front();
-    double maxRuntime = inputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
+        std::ranges::sort(moves);
 
-    for (auto& move: moves)
-    {
-        auto& sequence = move.second;
+        const auto& container = instance->Vehicles.front().Containers.front();
+        double maxRuntime = inputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
 
-        if (loadingChecker->RouteIsInFeasSequences(sequence))
+        for (auto& move: moves)
         {
-            route = std::move(sequence);
-            break;
-        }
+            auto& sequence = move.second;
 
-        if (!loadingChecker->Parameters.LoadingProblem.EnableLifo && loadingChecker->RouteIsInFeasSequences(route))
-        {
-            loadingChecker->AddFeasibleSequenceFromOutside(sequence);
-            route = std::move(sequence);
-            break;
-        }
+            if (loadingChecker->RouteIsInFeasSequences(sequence))
+            {
+                route.Sequence = std::move(sequence);
+                currentSolution.Costs += move.first;
+                break;
+            }
 
-        auto selectedItems = InterfaceConversions::SelectItems(sequence, instance->Nodes, false);
-        auto status = loadingChecker->HeuristicCompleteCheck(container, set, sequence, selectedItems, maxRuntime);
+            if (!loadingChecker->Parameters.LoadingProblem.EnableLifo && loadingChecker->RouteIsInFeasSequences(route.Sequence))
+            {
+                loadingChecker->AddFeasibleSequenceFromOutside(sequence);
+                route.Sequence = std::move(sequence);
+                currentSolution.Costs += move.first;
+                break;
+            }
 
-        if (status == LoadingStatus::FeasOpt)
-        {
-            route = std::move(sequence);
-            break;
-        }
+            auto selectedItems = InterfaceConversions::SelectItems(sequence, instance->Nodes, false);
+            auto status = loadingChecker->HeuristicCompleteCheck(container, set, sequence, selectedItems, maxRuntime);
 
-        if (!loadingChecker->Parameters.LoadingProblem.EnableLifo)
-        {
-            route = std::move(sequence);
-            break;
+            if (status == LoadingStatus::FeasOpt)
+            {
+                route.Sequence = std::move(sequence);
+                currentSolution.Costs += move.first;
+                break;
+            }
+
+            if (!loadingChecker->Parameters.LoadingProblem.EnableLifo)
+            {
+                route.Sequence = std::move(sequence);
+                currentSolution.Costs += move.first;
+                break;
+            }
         }
     }
 }

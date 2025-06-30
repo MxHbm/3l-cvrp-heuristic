@@ -21,7 +21,7 @@ using namespace ContainerLoading;
 
 using Move = std::tuple<double, size_t, size_t>;
 
-class IntrSwap
+class IntraSwap
 {
   public:
     static void Run(const Instance* instance,

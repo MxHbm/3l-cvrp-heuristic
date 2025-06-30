@@ -19,10 +19,13 @@ using namespace ContainerLoading;
 void K_RandomSwaps::Run(const Instance* const instance,
                     const InputParameters& inputParameters,
                     LoadingChecker* loadingChecker,
-                    std::vector<Route>& routes,
+                    Solution& currentSolution,
                     std::mt19937& RNG)
 {
     int succesful_swaps = 0;
+
+    std::vector<Route>& routes = currentSolution.Routes;
+
     if (routes.size() < 2)
     {
         return;
@@ -58,7 +61,7 @@ void K_RandomSwaps::Run(const Instance* const instance,
             continue;
         }
 
-        for(const auto& route_index : {std::get<0>(*move), std::get<1>(*move)})
+        for(const auto& route_index : {std::get<1>(*move), std::get<2>(*move)})
         {
             auto& route = routes[route_index];
             auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
@@ -88,11 +91,12 @@ void K_RandomSwaps::Run(const Instance* const instance,
         }
 
         UpdateRouteVolumeWeight(routes, *move);
+        currentSolution.Costs += std::get<0>(*move);
         ++succesful_swaps;
     }  
 }
 
-std::optional<K_InterSwapMove> K_RandomSwaps::DetermineMoves(const Instance* const instance,
+std::optional<InterSwapMove> K_RandomSwaps::DetermineMoves(const Instance* const instance,
                                               const std::vector<Route>& routes,
                                               std::mt19937& RNG)
 {
@@ -136,7 +140,13 @@ std::optional<K_InterSwapMove> K_RandomSwaps::DetermineMoves(const Instance* con
         
         if(res_weight_route_i + weight_item_delta >= 0 && res_weight_route_k - weight_item_delta >= 0)
             if(res_volume_route_i + volume_item_delta >= 0 && res_volume_route_k - volume_item_delta >= 0){
-                return std::make_tuple(route_it_i, route_it_k, node_i, node_k, weight_item_delta, volume_item_delta);
+
+                auto savings = Evaluator::CalculateInterSwapDelta(instance,
+                                                                    route_i.Sequence,
+                                                                    route_k.Sequence,
+                                                                    node_i,
+                                                                    node_k); 
+                return std::make_tuple(savings, route_it_i, route_it_k, node_i, node_k, weight_item_delta, volume_item_delta);
         }
             
             ++attempts;
@@ -147,13 +157,13 @@ std::optional<K_InterSwapMove> K_RandomSwaps::DetermineMoves(const Instance* con
 }
 
 
-void K_RandomSwaps::UpdateRouteVolumeWeight(std::vector<Route>& routes, const K_InterSwapMove& move){
+void K_RandomSwaps::UpdateRouteVolumeWeight(std::vector<Route>& routes, const InterSwapMove& move){
 
-    const auto item_delta = std::get<4>(move);
-    const auto volume_delta = std::get<5>(move);
+    const auto item_delta = std::get<5>(move);
+    const auto volume_delta = std::get<6>(move);
 
-    auto& route_i = routes[std::get<0>(move)];
-    auto& route_k = routes[std::get<1>(move)];
+    auto& route_i = routes[std::get<1>(move)];
+    auto& route_k = routes[std::get<2>(move)];
 
     route_i.TotalWeight -= item_delta;
     route_k.TotalWeight += item_delta;
@@ -161,14 +171,14 @@ void K_RandomSwaps::UpdateRouteVolumeWeight(std::vector<Route>& routes, const K_
     route_k.TotalVolume += volume_delta;
 }
 
-void K_RandomSwaps::ChangeRoutes(std::vector<Route>& routes, const K_InterSwapMove& move)
+void K_RandomSwaps::ChangeRoutes(std::vector<Route>& routes, const InterSwapMove& move)
 {
 
-    auto node_i = std::get<2>(move);
-    auto node_k = std::get<3>(move);
+    auto node_i = std::get<3>(move);
+    auto node_k = std::get<4>(move);
 
-    auto& route_i = routes[std::get<0>(move)];
-    auto& route_k = routes[std::get<1>(move)];
+    auto& route_i = routes[std::get<1>(move)];
+    auto& route_k = routes[std::get<2>(move)];
 
     std::swap(route_i.Sequence[node_i], route_k.Sequence[node_k]);
     

@@ -1,9 +1,8 @@
 #pragma once
 
 #include "ContainerLoading/LoadingChecker.h"
-
 #include "Model/Instance.h"
-
+#include "Model/Solution.h"
 #include "Algorithms/BCRoutingParams.h"
 
 namespace VehicleRouting
@@ -24,7 +23,7 @@ class FullEnumerationSearch
     static void Run(const Instance* instance,
                     const InputParameters& inputParameters,
                     LoadingChecker* loadingChecker,
-                    Collections::IdVector& route);
+                    Solution& currentSolution);
 };
 
 }

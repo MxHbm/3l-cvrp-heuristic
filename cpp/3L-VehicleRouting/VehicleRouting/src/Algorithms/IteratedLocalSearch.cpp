@@ -8,7 +8,7 @@
 
 #include "Algorithms/Heuristics/Constructive.h"
 #include "Algorithms/Heuristics/LocalSearch.h"
-#include "Algorithms/Heuristics/SPHeuristic.h"
+//#include "Algorithms/Heuristics/SPHeuristic.h"
 #include "Helper/HelperIO.h"
 #include "Helper/Serialization.h"
 #include "Model/Instance.h"
@@ -171,9 +171,10 @@ void IteratedLocalSearch::StartSolutionProcedure()
         case ModifiedSavings:
             GenerateStartSolutionSavings();
             break;
-        case SPHeuristic:
-            GenerateStartSolutionSPHeuristic();
-            break;
+        // TODO Decide what is here happening
+        //case SPHeuristic:
+        //    GenerateStartSolutionSPHeuristic();
+        //    break;
         default:
             throw std::runtime_error("Start solution type not implemented.");
     }
@@ -204,15 +205,11 @@ void IteratedLocalSearch::GenerateStartSolutionSavings()
     //TODO what should i do with these values? 
     
     int id = 0;
+    //Label routes new
     for (auto& route : mCurrentSolution.Routes)
     {
-        if (route.Sequence.size() < 2)
-        {
-            continue;
-        }
         route.Id = id;
         ++id;
-        LocalSearch::RunIntraImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, route.Sequence);
     }
         
     /*
@@ -228,7 +225,7 @@ void IteratedLocalSearch::GenerateStartSolutionSavings()
     */
 }
 
-
+/*
 void IteratedLocalSearch::GenerateStartSolutionSPHeuristic()
 {
     auto spHeuristic = Heuristics::SetBased::SPHeuristic(mInstance, mLoadingChecker.get(), &mInputParameters, mEnv);
@@ -245,6 +242,7 @@ void IteratedLocalSearch::GenerateStartSolutionSPHeuristic()
 
     mCurrentSolution.Routes = std::move(solution);
 }
+*/
 
 void IteratedLocalSearch::InfeasibleArcProcedure()
 {
@@ -569,16 +567,12 @@ void IteratedLocalSearch::Solve()
 
     //initial local search
     if(mInputParameters.IteratedLocalSearch.RunLS){
-        LocalSearch::RunInterImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution.Routes);
-        
-        for(auto& route: mCurrentSolution.Routes){
-            LocalSearch::RunIntraImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, route.Sequence);
-        }
+        LocalSearch::RunInterImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution);
+        LocalSearch::RunIntraImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution);
     }
 
     //Iterated Local Search
     std::chrono::time_point<std::chrono::system_clock> start {std::chrono::system_clock::now()};
-    mCurrentSolution.DetermineCosts(mInstance);
     int NoImpr = 0;
     auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start);
     double maxRuntime = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ILS);
@@ -592,16 +586,9 @@ void IteratedLocalSearch::Solve()
             std::cout << "Start ILS - Iteration: " << iteration << std::endl;
             std::cout << "Elapsed Time " << elapsed << std::endl; 
 
-            LocalSearch::RunPerturbation(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution.Routes, mRNG);
-            
-            for(auto& route: mCurrentSolution.Routes){
-                LocalSearch::RunIntraImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, route.Sequence);
-            }
-
-            LocalSearch::RunInterImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution.Routes);
-        
-
-            mCurrentSolution.DetermineCosts(mInstance);
+            LocalSearch::RunPerturbation(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution, mRNG);
+            LocalSearch::RunIntraImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution);
+            LocalSearch::RunInterImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution);
 
             if(mCurrentSolution.Costs < mBestSolution.Costs){
                 mSolutionTracker.UpdateBothSolutions(elapsed.count(),mCurrentSolution.Costs);
@@ -619,7 +606,7 @@ void IteratedLocalSearch::Solve()
 
             std::cout <<"Best Solution Costs: "<< mBestSolution.Costs << std::endl;
 
-           elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start);
+            elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start);
             ++iteration;
 
         }
@@ -640,11 +627,6 @@ void IteratedLocalSearch::Solve()
     std::string solutionStatisticsString = "SolutionStatistics-" + mInstance->Name;
     Serializer::WriteToJson(statistics, mOutputPath, solutionStatisticsString);
 
-    //TODO - Delete when LS OR ILS is implemente
-
-    //Determine Costs of the tour
-    mBestSolution.DetermineCosts(mInstance);
-
     //TODO Change back to best later! 
     OutputSolution final_outputSolution(mBestSolution, mInstance);
     DeterminePackingSolution(final_outputSolution);
@@ -659,6 +641,17 @@ void IteratedLocalSearch::Solve()
 
 void IteratedLocalSearch::DeterminePackingSolution(OutputSolution& outputSolution)
 {
+    //Check if costs are equal to calcualted costs
+    auto costs_before = outputSolution.Costs;
+    outputSolution.DetermineCosts(mInstance);
+    auto epsilon = 1e-9;
+
+    if(fabs(costs_before - outputSolution.Costs) >= epsilon)
+    {
+        throw std::runtime_error("Solution exits with costs of " + std::to_string(costs_before) +
+                                 " but has real costs of " + std::to_string(outputSolution.Costs));
+    }
+
     //outputSolution.NumberOfRoutes = outputSolution.Tours.size();
     for (size_t tourId = 0; tourId < outputSolution.Tours.size(); tourId++)
     {

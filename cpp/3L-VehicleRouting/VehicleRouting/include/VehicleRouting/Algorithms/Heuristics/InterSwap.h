@@ -28,7 +28,7 @@ class InterSwap
     static void Run(const Instance* instance,
                     const InputParameters& inputParameters,
                     LoadingChecker* loadingChecker,
-                    std::vector<Route>& routes);
+                    Solution& currentSolution);
 
   private:
     static std::vector<InterSwapMove> DetermineMoves(const Instance* instance,

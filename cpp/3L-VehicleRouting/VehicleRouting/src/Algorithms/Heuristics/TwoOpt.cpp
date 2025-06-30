@@ -3,6 +3,8 @@
 #include "Algorithms/LoadingInterfaceServices.h"
 #include "CommonBasics/Helper/ModelServices.h"
 
+
+
 #include <algorithm>
 
 namespace VehicleRouting
@@ -18,29 +20,35 @@ using namespace ContainerLoading;
 void TwoOpt::Run(const Instance* const instance,
                  const InputParameters& inputParameters,
                  LoadingChecker* loadingChecker,
-                 Collections::IdVector& route)
+                 Solution& currentSolution)
 {
-    if (route.size() < 3)
-    {
-        return;
-    }
+    for(auto& route : currentSolution.Routes){
 
-    if (loadingChecker->SequenceIsCheckedTwoOpt(route))
-    {
-        return;
-    }
-
-    while (true)
-    {
-        auto moves = DetermineMoves(instance, route);
-        auto savings = GetBestMove(instance, inputParameters, loadingChecker, route, moves);
-        if (savings >= 0.0){
-            break;
-        }else{
-            loadingChecker->AddSequenceCheckedTwoOpt(route);
+        if (route.Sequence.size() < 3)
+        {
+            return;
         }
+
+        if (loadingChecker->SequenceIsCheckedTwoOpt(route.Sequence))
+        {
+            return;
+        }
+
+        while (true)
+        {
+            auto moves = DetermineMoves(instance, route.Sequence);
+            auto savings = GetBestMove(instance, inputParameters, loadingChecker, route.Sequence, moves);
+            if (savings >= 0.0){
+                break;
+            }else{
+                std::cout << "Savings - " << savings << std::endl;
+                loadingChecker->AddSequenceCheckedTwoOpt(route.Sequence);
+                currentSolution.Costs += savings;
+                std::cout << "Costs afterwards - " << currentSolution.Costs << std::endl;
+            }
+        }
+        return;
     }
-    return;
 }
 
 std::vector<TwoOptMove> TwoOpt::DetermineMoves(const Instance* const instance,

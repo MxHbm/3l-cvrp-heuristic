@@ -23,7 +23,7 @@ namespace Improvement
 using namespace ContainerLoading;
 
 
-using K_InterSwapMove = std::tuple<size_t, size_t, size_t, size_t, int, int>;
+using InterSwapMove = std::tuple<double, size_t, size_t, size_t, size_t, int, int>;
 
 class K_RandomSwaps
 {
@@ -31,17 +31,17 @@ class K_RandomSwaps
     static void Run(const Instance* instance,
                     const InputParameters& inputParameters,
                     LoadingChecker* loadingChecker,
-                    std::vector<Route>& routes,
+                    Solution& solution,
                     std::mt19937& RNG);
 
   private:
-    static std::optional<K_InterSwapMove> DetermineMoves(const Instance* instance,
+    static std::optional<InterSwapMove> DetermineMoves(const Instance* instance,
                                                         const std::vector<Route>& routes,
                                                         std::mt19937& RNG);
 
-    static void ChangeRoutes(std::vector<Route>& routes, const K_InterSwapMove& move);
+    static void ChangeRoutes(std::vector<Route>& routes, const InterSwapMove& move);
 
-    static void UpdateRouteVolumeWeight(std::vector<Route>& routes, const K_InterSwapMove& move);
+    static void UpdateRouteVolumeWeight(std::vector<Route>& routes, const InterSwapMove& move);
 
 };
 }

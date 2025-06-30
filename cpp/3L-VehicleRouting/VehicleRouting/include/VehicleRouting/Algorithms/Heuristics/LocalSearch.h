@@ -30,38 +30,30 @@ class LocalSearch
     static void RunIntraImprovement(const Instance* const instance,
                                     LoadingChecker* loadingChecker,
                                     const InputParameters* inputParameters,
-                                    Collections::IdVector& sequence)
+                                    Solution& currentSolution)
     {
-        if (!inputParameters->IteratedLocalSearch.ActivateIntraRouteImprovement)
-        {
-            return;
-        }
 
-        if (sequence.size() < 3)
+        //TODO Find new approach for this problem!
+        if (currentSolution.Routes[0].Sequence.size() < inputParameters->IteratedLocalSearch.IntraRouteFullEnumThreshold)
         {
-            return;
-        }
-
-        if (sequence.size() < inputParameters->IteratedLocalSearch.IntraRouteFullEnumThreshold)
-        {
-            FullEnumerationSearch::Run(instance, *inputParameters, loadingChecker, sequence);
+            FullEnumerationSearch::Run(instance, *inputParameters, loadingChecker, currentSolution);
         }
         else
         {
-            TwoOpt::Run(instance, *inputParameters, loadingChecker, sequence);
+            TwoOpt::Run(instance, *inputParameters, loadingChecker, currentSolution);
         }
     };
 
     static void RunInterImprovement(const Instance* const instance,
                                     LoadingChecker* loadingChecker,
                                     const InputParameters* inputParameters,
-                                    std::vector<Route>& routes)
+                                    Solution& currentSolution)
     {
-        InterSwap::Run(instance, *inputParameters, loadingChecker, routes);
+        InterSwap::Run(instance, *inputParameters, loadingChecker, currentSolution);
 
         std::cout << "Result after InterSwap" << std::endl;
         int id = 0;
-        for(const auto& route : routes){
+        for(const auto& route : currentSolution.Routes){
 
             int tot_vol = 0; 
             int tot_wei = 0;
@@ -77,14 +69,14 @@ class LocalSearch
     static void RunPerturbation(const Instance* const instance,
                                     LoadingChecker* loadingChecker,
                                     const InputParameters* inputParameters,
-                                    std::vector<Route>& routes,
+                                    Solution& currentSolution,
                                     std::mt19937& RNG)
     {
-        K_RandomSwaps::Run(instance, *inputParameters, loadingChecker, routes, RNG);
+        K_RandomSwaps::Run(instance, *inputParameters, loadingChecker, currentSolution, RNG);
 
         std::cout << "Result after Perturbation" << std::endl;
         int id = 0;
-        for(const auto& route : routes){
+        for(const auto& route : currentSolution.Routes){
 
             int tot_vol = 0; 
             int tot_wei = 0;

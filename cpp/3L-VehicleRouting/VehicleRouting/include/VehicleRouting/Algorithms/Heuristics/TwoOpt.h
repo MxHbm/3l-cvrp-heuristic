@@ -3,7 +3,7 @@
 #include "ContainerLoading/LoadingChecker.h"
 
 #include "Model/Instance.h"
-
+#include "Model/Solution.h"
 #include "Algorithms/BCRoutingParams.h"
 
 namespace VehicleRouting
@@ -26,7 +26,7 @@ class TwoOpt
     static void Run(const Instance* instance,
                     const InputParameters& inputParameters,
                     LoadingChecker* loadingChecker,
-                    Collections::IdVector& newRoute);
+                    Solution& currentSolution);
 
   private:
     static std::vector<TwoOptMove> DetermineMoves(const Instance* instance, const Collections::IdVector& route);

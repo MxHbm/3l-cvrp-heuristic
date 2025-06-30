@@ -1,3 +1,4 @@
+/*
 #include "Algorithms/Heuristics/SPHeuristic.h"
 
 #include "Algorithms/LoadingStatus.h"
@@ -162,3 +163,4 @@ Collections::SequenceVector SPHeuristic::CreateRoutesCustomerRemoval(auto& route
 }
 }
 }
+*/
