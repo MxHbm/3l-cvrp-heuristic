@@ -12,6 +12,7 @@
 #include "Algorithms/Heuristics/TwoOpt.h"
 #include "Algorithms/Heuristics/InterSwap.h"
 #include "Algorithms/Heuristics/IntraSwap.h"
+#include "Algorithms/Heuristics/K_RandomSwaps.h"
 
 namespace VehicleRouting
 {
@@ -58,6 +59,15 @@ class LocalSearch
     {
         InterSwap::Run(instance, *inputParameters, loadingChecker, routes);
     };
+
+    static void RunPerturbation(const Instance* const instance,
+                                    LoadingChecker* loadingChecker,
+                                    const InputParameters* inputParameters,
+                                    std::vector<Route>& routes,
+                                    std::mt19937& RNG)
+    {
+        K_RandomSwaps::Run(instance, *inputParameters, loadingChecker, routes, RNG);
+    }
 };
 
 }

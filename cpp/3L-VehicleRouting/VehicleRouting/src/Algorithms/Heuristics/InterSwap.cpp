@@ -67,7 +67,7 @@ std::vector<InterSwapMove> InterSwap::DetermineMoves(const Instance* const insta
 
                 for (size_t node_k = 0; node_k < route_k.Sequence.size(); ++node_k)
                 {
-                    const auto internId_node_k = route_i.Sequence[node_k];
+                    const auto internId_node_k = route_k.Sequence[node_k];
                     const auto weight_item_delta = instance->Nodes[internId_node_i ].TotalWeight - instance->Nodes[internId_node_k].TotalWeight;
                     const auto volume_item_delta = instance->Nodes[internId_node_i ].TotalVolume - instance->Nodes[internId_node_k].TotalVolume;
 

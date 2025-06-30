@@ -567,16 +567,57 @@ void IteratedLocalSearch::Solve()
 
     StartSolutionProcedure();
 
-    std::chrono::time_point<std::chrono::system_clock> start {std::chrono::system_clock::now()};
-
-
+    //initial local search
     if(mInputParameters.IteratedLocalSearch.RunLS){
-        double maxRuntime_LS = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::Constructive);
-        
         LocalSearch::RunInterImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution.Routes);
         
         for(auto& route: mCurrentSolution.Routes){
             LocalSearch::RunIntraImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, route.Sequence);
+        }
+    }
+
+    //Iterated Local Search
+    std::chrono::time_point<std::chrono::system_clock> start {std::chrono::system_clock::now()};
+    mCurrentSolution.DetermineCosts(mInstance);
+    int NoImpr = 0;
+    auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start);
+    double maxRuntime = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ILS);
+    mBestSolution = mCurrentSolution;
+
+    int iteration = 0;
+    if(mInputParameters.IteratedLocalSearch.RunLS){
+        while(elapsed.count() < maxRuntime){
+
+            std::cout << "Start ILS - Iteration: " << iteration << std::endl;
+            std::cout << "Elapsed Time " << elapsed << std::endl; 
+
+            LocalSearch::RunPerturbation(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution.Routes, mRNG);
+            
+            for(auto& route: mCurrentSolution.Routes){
+                LocalSearch::RunIntraImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, route.Sequence);
+            }
+
+            //LocalSearch::RunInterImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution.Routes);
+        
+
+            mCurrentSolution.DetermineCosts(mInstance);
+
+            if(mCurrentSolution.Costs < mBestSolution.Costs){
+                mBestSolution = mCurrentSolution;
+                NoImpr = 0;
+            }else{
+                ++NoImpr;
+            }
+            if(NoImpr >= mInputParameters.IteratedLocalSearch.NoImprLimit){
+                mCurrentSolution = mBestSolution;
+                NoImpr = 0;
+            }
+
+            std::cout <<"Best Solution Costs: "<< mBestSolution.Costs << std::endl;
+
+           elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start);
+            ++iteration;
+
         }
     }
 
@@ -594,13 +635,13 @@ void IteratedLocalSearch::Solve()
     std::string solutionStatisticsString = "SolutionStatistics-" + mInstance->Name;
     Serializer::WriteToJson(statistics, mOutputPath, solutionStatisticsString);
 
-    //TODO - Delete when LS OR ILS is implemented
-    mBestSolution = mCurrentSolution;
+    //TODO - Delete when LS OR ILS is implemente
 
     //Determine Costs of the tour
     mBestSolution.DetermineCosts(mInstance);
 
-    OutputSolution final_outputSolution(mBestSolution, mInstance);
+    //TODO Change back to best later! 
+    OutputSolution final_outputSolution(mCurrentSolution, mInstance);
     DeterminePackingSolution(final_outputSolution);
 
     auto solFile = SolutionFile(mInputParameters, statistics, final_outputSolution);

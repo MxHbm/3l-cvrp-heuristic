@@ -52,6 +52,8 @@ struct IteratedLocalSearchParams
     bool RunLS = true;
     bool ActivateIntraRouteImprovement = false;
     unsigned int IntraRouteFullEnumThreshold = 0;
+    int NoImprLimit = 100;
+    int K_RandomSwaps = 1;
 
     bool ActivateSetPartitioningHeuristic = true;
     unsigned int SetPartitioningHeuristicThreshold = 20;

@@ -114,6 +114,8 @@ void from_json(const json& j, IteratedLocalSearchParams& params)
 {
     j.at("Run_ILS").get_to(params.RunILS);
     j.at("Run_LS").get_to(params.RunLS);
+    j.at("LimitNoImpr").get_to(params.NoImprLimit);
+    j.at("K_RandomSwaps").get_to(params.K_RandomSwaps);
     j.at("SetPartHeurThreshold").get_to(params.SetPartitioningHeuristicThreshold);
     j.at("StartSolution").get_to(params.StartSolution);
     j.at("ActivateSetPartHeur").get_to(params.ActivateSetPartitioningHeuristic);
@@ -129,6 +131,8 @@ void to_json(json& j, const IteratedLocalSearchParams& params)
 {
     j = json{{"Run_ILS", params.RunILS},
              {"Run_LS", params.RunLS},
+             {"LimitNoImpr", params.NoImprLimit},
+             {"K_RandomSwaps", params.K_RandomSwaps},
              {"SetPartHeurThreshold", params.SetPartitioningHeuristicThreshold},
              {"StartSolution", params.StartSolution},
              {"ActivateSetPartHeur", params.ActivateSetPartitioningHeuristic},
