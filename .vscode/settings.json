@@ -11,7 +11,7 @@
             "-i",
             "${workspaceFolder}/data/input/3l-cvrp/gendreau/",
             "-f",
-            "3l_cvrp02.json",
+            "3l_cvrp01.json",
             "-o",
             "${workspaceFolder}/data/output/3l-cvrp/test/",
             "-p",

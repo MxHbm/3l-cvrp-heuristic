@@ -315,7 +315,8 @@ void IteratedLocalSearch::DetermineInfeasiblePaths()
 }
 
 bool IteratedLocalSearch::CheckPath(const Collections::IdVector& path, Container& container, std::vector<Cuboid>& items)
-{
+{   
+    /*
     if (mInputParameters.IteratedLocalSearch.ActivateHeuristic)
     {
         auto heuristicStatus = mLoadingChecker->PackingHeuristic(PackingType::Complete, container, path, items);
@@ -324,7 +325,7 @@ bool IteratedLocalSearch::CheckPath(const Collections::IdVector& path, Container
             return true;
         }
     }
-
+    */
     auto statusSupportRelaxation =
         mLoadingChecker->ConstraintProgrammingSolver(PackingType::NoSupport,
                                                      container,
@@ -399,11 +400,13 @@ void IteratedLocalSearch::DetermineExtendedInfeasiblePath()
 
             auto heuristicStatus = LoadingStatus::Infeasible;
 
+            /*
             if (mInputParameters.IteratedLocalSearch.ActivateHeuristic)
             {
                 heuristicStatus =
                     mLoadingChecker->PackingHeuristic(PackingType::Complete, container, path, selectedItems);
             }
+            */
 
             if (heuristicStatus == LoadingStatus::Infeasible)
             {
@@ -556,10 +559,10 @@ void IteratedLocalSearch::Solve()
     Initialize();
 
     //Sets weights or volumes to 0 depending on the loading problem variant
-    //AdaptWeightsVolumesToLoadingProblem();
+    AdaptWeightsVolumesToLoadingProblem();
 
     //Determine infeasible arcs and tail paths
-    //InfeasibleArcProcedure();
+    InfeasibleArcProcedure();
 
     mInstance->LowerBoundVehicles = DetermineLowerBoundVehicles();
 
@@ -579,11 +582,11 @@ void IteratedLocalSearch::Solve()
     mBestSolution = mCurrentSolution;
     mSolutionTracker.UpdateBothSolutions(elapsed.count(),mCurrentSolution.Costs);
 
-    int iteration = 0;
+    int ILS_iterations = 0;
     if(mInputParameters.IteratedLocalSearch.RunILS){
         while(elapsed.count() < maxRuntime){
 
-            std::cout << "Start ILS - Iteration: " << iteration << std::endl;
+            std::cout << "Start ILS - Iteration: " << ILS_iterations << std::endl;
             std::cout << "Elapsed Time " << elapsed << std::endl; 
 
             LocalSearch::RunPerturbation(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution, mRNG);
@@ -604,21 +607,20 @@ void IteratedLocalSearch::Solve()
                 NoImpr = 0;
             }
 
-            std::cout <<"Best Solution Costs: "<< mBestSolution.Costs << std::endl;
-
             elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start);
-            ++iteration;
+            ++ILS_iterations;
 
         }
     }
 
     mTimer.MetaHeuristic = std::chrono::system_clock::now() - start;
     
+    //TODO Add useful metrics here and variable for K Swaps
 
     auto statistics = SolverStatistics(100,
                                        25,
                                        300,
-                                       200,
+                                       ILS_iterations,
                                        mTimer,
                                        mSolutionTracker,
                                        mInfeasibleArcs.size(),
@@ -702,12 +704,13 @@ void IteratedLocalSearch::DeterminePackingSolution(OutputSolution& outputSolutio
         }
 
         auto heuristicStatus = LoadingStatus::Infeasible;
+        /*
         if (mInputParameters.IteratedLocalSearch.ActivateHeuristic)
         {
             heuristicStatus =
                 mLoadingChecker->PackingHeuristic(PackingType::Complete, container, stopIds, selectedItems);
         }
-
+        */
         std::string feasStatusHeur = heuristicStatus == LoadingStatus::FeasOpt ? "feasible" : "infeasible";
         mLogFile << feasStatusHeur << " with packing heuristic | ";
 

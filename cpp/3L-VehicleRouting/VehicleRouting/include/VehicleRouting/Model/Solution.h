@@ -108,7 +108,7 @@ class SolverStatistics
     double Runtime = -1.0;
     double Gap = -1.0;
     double NodeCount = -1;
-    double SimplexIterationCount = -1;
+    double ILSIterationCount = -1;
     size_t DeletedArcs = 0;
     size_t InfeasibleTailPathStart = 0;
     Helper::Timer Timer;
@@ -125,7 +125,7 @@ class SolverStatistics
     : Runtime(runtime),
       Gap(gap),
       NodeCount(nodeCount),
-      SimplexIterationCount(iterCount),
+      ILSIterationCount(iterCount),
       DeletedArcs(deletedArcs),
       InfeasibleTailPathStart(infTailPathStart),
       Timer(timer),

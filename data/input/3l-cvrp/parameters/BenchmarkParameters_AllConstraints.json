@@ -1,17 +1,13 @@
 {
     "IteratedLocalSearchParams": {
-        "Run_ILS": true,
+        "Run_ILS": false,
         "Run_LS" : true,
         "LimitNoImpr" : 5,
         "K_RandomSwaps" : 5,
         "ActivateIntraRouteImprovement": true,
-        "ActivateHeuristic": true,
-        "ActivateMemoryManagement": true,
         "ActivateSetPartHeur": true,						 
         "IntraRouteFullEnumThreshold": 6,
-        "MinVehicleLiftingThreshold": 0.5,
         "SetPartHeurThreshold": 20,
-        "TrackIncrementalFeasibilityProperty": true,
         "StartSolution": "ModifiedSavings",
         "TimeLimit": [
             [

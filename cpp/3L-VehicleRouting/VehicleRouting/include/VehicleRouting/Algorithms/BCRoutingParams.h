@@ -39,6 +39,20 @@ struct IteratedLocalSearchParams
         SPHeuristic
     };
 
+    enum class LocalSearchTypes
+    {
+        None,
+        TwoOpt,
+        InterSwap,
+        IntraSwap
+    };
+
+    enum class PerturbationTypes
+    {
+        None,
+        K_RandomSwaps
+    };
+
     enum class CallType
     {
         None,
@@ -59,16 +73,15 @@ struct IteratedLocalSearchParams
     unsigned int SetPartitioningHeuristicThreshold = 20;
     StartSolutionType StartSolution = StartSolutionType::ModifiedSavings;
 
+    std::vector<PerturbationTypes> perturbationTypes = {PerturbationTypes::K_RandomSwaps};
+    std::vector<LocalSearchTypes> localSearchTypes = {LocalSearchTypes::TwoOpt, LocalSearchTypes::InterSwap};
+
     std::unordered_map<CallType, double> TimeLimits = {
         {CallType::Exact, std::numeric_limits<double>::max()},
         {CallType::ExactLimit, 1.0},
         {CallType::ILS, 120.0},
         {CallType::Constructive, 10.0}
     };
-
-    bool ActivateHeuristic = false;
-    bool ActivateMemoryManagement = false;
-    bool TrackIncrementalFeasibilityProperty = false;
 };
 
 class InputParameters

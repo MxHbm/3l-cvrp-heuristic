@@ -25,6 +25,18 @@ NLOHMANN_JSON_SERIALIZE_ENUM(IteratedLocalSearchParams::CallType,
     {IteratedLocalSearchParams::CallType::ILS, "ILS"},
     {IteratedLocalSearchParams::CallType::Constructive, "Constructive"}});
 
+NLOHMANN_JSON_SERIALIZE_ENUM(IteratedLocalSearchParams::LocalSearchTypes,
+    {{IteratedLocalSearchParams::LocalSearchTypes::None, "None"},
+    {IteratedLocalSearchParams::LocalSearchTypes::TwoOpt, "TwoOpt"},
+    {IteratedLocalSearchParams::LocalSearchTypes::InterSwap, "InterSwap"},
+    {IteratedLocalSearchParams::LocalSearchTypes::IntraSwap, "IntraSwap"}});
+
+
+NLOHMANN_JSON_SERIALIZE_ENUM(IteratedLocalSearchParams::PerturbationTypes,
+    {{IteratedLocalSearchParams::LocalSearchTypes::None, "None"},
+    {IteratedLocalSearchParams::LocalSearchTypes::K_RandomSwaps, "K_RandomSwaps"}});
+
+
 }
 }
 
@@ -122,9 +134,6 @@ void from_json(const json& j, IteratedLocalSearchParams& params)
     j.at("ActivateIntraRouteImprovement").get_to(params.ActivateIntraRouteImprovement);
     j.at("IntraRouteFullEnumThreshold").get_to(params.IntraRouteFullEnumThreshold);
     j.at("TimeLimit").get_to(params.TimeLimits);
-    j.at("ActivateHeuristic").get_to(params.ActivateHeuristic);
-    j.at("ActivateMemoryManagement").get_to(params.ActivateMemoryManagement);
-    j.at("TrackIncrementalFeasibilityProperty").get_to(params.TrackIncrementalFeasibilityProperty);
 }
 
 void to_json(json& j, const IteratedLocalSearchParams& params)
@@ -138,10 +147,7 @@ void to_json(json& j, const IteratedLocalSearchParams& params)
              {"ActivateSetPartHeur", params.ActivateSetPartitioningHeuristic},
              {"ActivateIntraRouteImprovement", params.ActivateIntraRouteImprovement},
              {"IntraRouteFullEnumThreshold", params.IntraRouteFullEnumThreshold},
-             {"TimeLimit", params.TimeLimits},
-             {"ActivateHeuristic", params.ActivateHeuristic},
-             {"ActivateMemoryManagement", params.ActivateMemoryManagement},
-             {"TrackIncrementalFeasibilityProperty", params.TrackIncrementalFeasibilityProperty}};
+             {"TimeLimit", params.TimeLimits}};
 }
 
 
@@ -260,7 +266,7 @@ void to_json(json& j, const SolverStatistics& statistics)
     j = json{
         {"Runtime", statistics.Runtime},
         {"Gap", statistics.Gap},
-        {"SimplexIterations", statistics.SimplexIterationCount},
+        {"ILSIterations", statistics.ILSIterationCount},
         {"NodeCount", statistics.NodeCount},
         {"DeletedArcs", statistics.DeletedArcs},
         {"InfTailPath", statistics.InfeasibleTailPathStart},

@@ -23,7 +23,6 @@ void InterSwap::Run(const Instance* const instance,
 
     std::vector<Route>& routes = currentSolution.Routes;
 
-    int run = 0;
     if (routes.size() < 2)
     {
         return;
