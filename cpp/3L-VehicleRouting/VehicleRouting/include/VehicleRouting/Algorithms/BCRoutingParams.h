@@ -14,6 +14,21 @@ using namespace ContainerLoading;
 using namespace ContainerLoading::Algorithms;
 
 
+enum class LocalSearchTypes
+{
+    None,
+    TwoOpt,
+    InterSwap,
+    IntraSwap,
+    FullEnumeration
+};
+
+enum class PerturbationTypes
+{
+    None,
+    K_RandomSwaps
+};
+
 struct MIPSolverParams
 {
   public:
@@ -39,20 +54,6 @@ struct IteratedLocalSearchParams
         SPHeuristic
     };
 
-    enum class LocalSearchTypes
-    {
-        None,
-        TwoOpt,
-        InterSwap,
-        IntraSwap
-    };
-
-    enum class PerturbationTypes
-    {
-        None,
-        K_RandomSwaps
-    };
-
     enum class CallType
     {
         None,
@@ -73,8 +74,8 @@ struct IteratedLocalSearchParams
     unsigned int SetPartitioningHeuristicThreshold = 20;
     StartSolutionType StartSolution = StartSolutionType::ModifiedSavings;
 
-    std::vector<PerturbationTypes> perturbationTypes = {PerturbationTypes::K_RandomSwaps};
-    std::vector<LocalSearchTypes> localSearchTypes = {LocalSearchTypes::TwoOpt, LocalSearchTypes::InterSwap};
+    std::vector<PerturbationTypes> perturbationTypes = {PerturbationTypes::None};
+    std::vector<LocalSearchTypes> localSearchTypes = {LocalSearchTypes::None};
 
     std::unordered_map<CallType, double> TimeLimits = {
         {CallType::Exact, std::numeric_limits<double>::max()},

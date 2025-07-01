@@ -1,9 +1,7 @@
-#include "Algorithms/Heuristics/TwoOpt.h"
+#include "Algorithms/Heuristics/IntraSwap.h"
 #include "Algorithms/Evaluation.h"
 #include "Algorithms/LoadingInterfaceServices.h"
 #include "CommonBasics/Helper/ModelServices.h"
-
-
 
 #include <algorithm>
 
@@ -17,19 +15,15 @@ namespace Improvement
 {
 using namespace ContainerLoading;
 
-void TwoOpt::Run(const Instance* const instance,
-                 const InputParameters& inputParameters,
-                 LoadingChecker* loadingChecker,
-                 Solution& currentSolution)
+void IntraSwap::Run(const Instance* const instance,
+                    const InputParameters& inputParameters,
+                    LoadingChecker* loadingChecker,
+                    Solution& currentSolution)
 {
-    for(auto& route : currentSolution.Routes){
 
-        if (route.Sequence.size() < 3)
-        {
-            return;
-        }
+   for(auto& route : currentSolution.Routes){
 
-        if (loadingChecker->SequenceIsCheckedTwoOpt(route.Sequence))
+        if (route.Sequence.size() < 2)
         {
             return;
         }
@@ -41,18 +35,19 @@ void TwoOpt::Run(const Instance* const instance,
             if (savings >= 0.0){
                 break;
             }else{
-                loadingChecker->AddSequenceCheckedTwoOpt(route.Sequence);
                 currentSolution.Costs += savings;
             }
         }
         return;
     }
+       
 }
 
-std::vector<Move> TwoOpt::DetermineMoves(const Instance* const instance,
-                                               const Collections::IdVector& route)
+std::vector<Move> IntraSwap::DetermineMoves(const Instance* const instance,
+                                           const Collections::IdVector& route)
 {
-    std::vector<Move> moves = std::vector<Move>();
+
+    std::vector<Move> moves{};
     auto savings = 0.0; 
 
     for (size_t i = 0; i < route.size() - 1; ++i)
@@ -60,7 +55,7 @@ std::vector<Move> TwoOpt::DetermineMoves(const Instance* const instance,
         for (size_t k = i + 1; k < route.size(); ++k)
         {
 
-            savings = Evaluator::CalculateTwoOptDelta(instance, route, i, k);
+            savings = Evaluator::CalculateIntraSwapDelta(instance, route, i, k);
 
             if (savings < 0.0)
             {
@@ -72,12 +67,12 @@ std::vector<Move> TwoOpt::DetermineMoves(const Instance* const instance,
     return moves;
 }
 
-double TwoOpt::GetBestMove(const Instance* const instance,
-                                            const InputParameters& inputParameters,
-                                            LoadingChecker* loadingChecker,
-                                            Collections::IdVector& route,
-                                            std::vector<Move>& moves)
-    {
+
+double IntraSwap::GetBestMove(const Instance* const instance,
+                             const InputParameters& inputParameters,
+                             LoadingChecker* loadingChecker,
+                             Collections::IdVector& route,
+                             std::vector<Move>& moves){
 
     auto default_return = 0.0; 
 
@@ -127,10 +122,9 @@ double TwoOpt::GetBestMove(const Instance* const instance,
     return default_return;
 }
 
-
-void TwoOpt::ChangeRoutes(Collections::IdVector& route, size_t i, size_t k)
+void IntraSwap::ChangeRoutes(Collections::IdVector& route, const size_t node_i, const size_t node_k)
 {
-    std::reverse(route.begin() + i, route.begin() + k + 1);
+    std::swap(route[node_i], route[node_k]);
     
 }
 

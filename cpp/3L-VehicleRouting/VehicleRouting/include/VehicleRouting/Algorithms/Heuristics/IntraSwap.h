@@ -3,6 +3,7 @@
 #include "ContainerLoading/LoadingChecker.h"
 
 #include "Model/Instance.h"
+#include "Model/Solution.h"
 
 #include "Algorithms/BCRoutingParams.h"
 
@@ -18,7 +19,7 @@ namespace Improvement
 {
 using namespace ContainerLoading;
 
-
+//Savings, node_i, node_k
 using Move = std::tuple<double, size_t, size_t>;
 
 class IntraSwap
@@ -27,18 +28,17 @@ class IntraSwap
     static void Run(const Instance* instance,
                     const InputParameters& inputParameters,
                     LoadingChecker* loadingChecker,
-                    const Collections::IdVector& newRoute);
+                    Solution& currentSolution);
 
   private:
     static std::vector<Move> DetermineMoves(const Instance* instance, const Collections::IdVector& route);
-    static std::optional<Move> GetBestMove(const Instance* instance,
+    static double GetBestMove(const Instance* instance,
                                            const InputParameters& inputParameters,
                                            LoadingChecker* loadingChecker,
-                                           const Collections::IdVector& route,
+                                           Collections::IdVector& route,
                                            std::vector<Move>& moves);
-    static Collections::IdVector MakeBestMove(const Collections::IdVector& route, const Move& bestMove);
 
-    static Collections::IdVector CreateNewRoute(const Collections::IdVector& route, size_t i, size_t k);
+    static void ChangeRoutes(Collections::IdVector& route, const size_t node_i, const size_t node_k);
 };
 
 

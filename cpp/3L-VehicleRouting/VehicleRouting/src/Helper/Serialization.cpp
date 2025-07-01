@@ -25,17 +25,16 @@ NLOHMANN_JSON_SERIALIZE_ENUM(IteratedLocalSearchParams::CallType,
     {IteratedLocalSearchParams::CallType::ILS, "ILS"},
     {IteratedLocalSearchParams::CallType::Constructive, "Constructive"}});
 
-NLOHMANN_JSON_SERIALIZE_ENUM(IteratedLocalSearchParams::LocalSearchTypes,
-    {{IteratedLocalSearchParams::LocalSearchTypes::None, "None"},
-    {IteratedLocalSearchParams::LocalSearchTypes::TwoOpt, "TwoOpt"},
-    {IteratedLocalSearchParams::LocalSearchTypes::InterSwap, "InterSwap"},
-    {IteratedLocalSearchParams::LocalSearchTypes::IntraSwap, "IntraSwap"}});
+NLOHMANN_JSON_SERIALIZE_ENUM(LocalSearchTypes,
+    {{LocalSearchTypes::None, "None"},
+    {LocalSearchTypes::TwoOpt, "TwoOpt"},
+    {LocalSearchTypes::InterSwap, "InterSwap"},
+    {LocalSearchTypes::IntraSwap, "IntraSwap"}});
 
 
-NLOHMANN_JSON_SERIALIZE_ENUM(IteratedLocalSearchParams::PerturbationTypes,
-    {{IteratedLocalSearchParams::LocalSearchTypes::None, "None"},
-    {IteratedLocalSearchParams::LocalSearchTypes::K_RandomSwaps, "K_RandomSwaps"}});
-
+NLOHMANN_JSON_SERIALIZE_ENUM(PerturbationTypes,
+    {{PerturbationTypes::None, "None"},
+    {PerturbationTypes::K_RandomSwaps, "K_RandomSwaps"}});
 
 }
 }
@@ -134,6 +133,8 @@ void from_json(const json& j, IteratedLocalSearchParams& params)
     j.at("ActivateIntraRouteImprovement").get_to(params.ActivateIntraRouteImprovement);
     j.at("IntraRouteFullEnumThreshold").get_to(params.IntraRouteFullEnumThreshold);
     j.at("TimeLimit").get_to(params.TimeLimits);
+    j.at("LocalSearchTypes").get_to(params.localSearchTypes);
+    j.at("PerturbationTypes").get_to(params.perturbationTypes);
 }
 
 void to_json(json& j, const IteratedLocalSearchParams& params)
@@ -142,6 +143,8 @@ void to_json(json& j, const IteratedLocalSearchParams& params)
              {"Run_LS", params.RunLS},
              {"LimitNoImpr", params.NoImprLimit},
              {"K_RandomSwaps", params.K_RandomSwaps},
+             {"LocalSearchTypes",params.localSearchTypes},
+             {"PerturbationTypes",params.perturbationTypes},
              {"SetPartHeurThreshold", params.SetPartitioningHeuristicThreshold},
              {"StartSolution", params.StartSolution},
              {"ActivateSetPartHeur", params.ActivateSetPartitioningHeuristic},

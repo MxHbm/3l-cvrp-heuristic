@@ -84,10 +84,36 @@ class Evaluator
         return savings;
     }  
 
-        static double CalculateTwoOptDelta(const Instance* const instance,
+    static double CalculateIntraSwapDelta(const Instance* const instance,
                                           const Collections::IdVector& route,
-                                          const size_t startIndex,
-                                          const size_t endIndex)
+                                          const size_t nodeA,
+                                          const size_t nodeB)
+    {
+
+        auto interID_A = route[nodeA];
+        auto interID_B = route[nodeB];
+        auto internID_precNodeA = (nodeA == 0) ? instance->GetDepotId() : route[nodeA - 1];
+        auto internID_succNodeA = (nodeA == route.size() - 1) ? instance->GetDepotId() : route[nodeA + 1];
+        auto internID_precNodeB = (nodeB == 0) ? instance->GetDepotId() : route[nodeB - 1];
+        auto internID_succNodeB = (nodeB == route.size() - 1) ? instance->GetDepotId() : route[nodeB + 1];
+
+
+        double savings =   instance->Distance(internID_precNodeA, interID_B)
+                         + instance->Distance(interID_B, internID_succNodeA)
+                         + instance->Distance(internID_precNodeB, interID_A)
+                         + instance->Distance(interID_A, internID_succNodeB)
+                         - instance->Distance(internID_precNodeA, interID_A) 
+                         - instance->Distance(interID_A, internID_succNodeA)
+                         - instance->Distance(internID_precNodeB, interID_B)
+                         - instance->Distance(interID_B, internID_succNodeB);
+
+        return savings;
+    }  
+
+    static double CalculateTwoOptDelta(const Instance* const instance,
+                                        const Collections::IdVector& route,
+                                        const size_t startIndex,
+                                        const size_t endIndex)
     {
         auto interID_startNode = route[startIndex];
         auto interID_endNode = route[endIndex];

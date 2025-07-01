@@ -1,6 +1,6 @@
 {
     "IteratedLocalSearchParams": {
-        "Run_ILS": false,
+        "Run_ILS": true,
         "Run_LS" : true,
         "LimitNoImpr" : 5,
         "K_RandomSwaps" : 5,
@@ -9,6 +9,8 @@
         "IntraRouteFullEnumThreshold": 6,
         "SetPartHeurThreshold": 20,
         "StartSolution": "ModifiedSavings",
+        "LocalSearchTypes": ["TwoOpt","IntraSwap", "InterSwap"],
+        "PerturbationTypes": ["K_RandomSwaps"],
         "TimeLimit": [
             [
                 "ILS",

@@ -570,8 +570,7 @@ void IteratedLocalSearch::Solve()
 
     //initial local search
     if(mInputParameters.IteratedLocalSearch.RunLS){
-        LocalSearch::RunInterImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution);
-        LocalSearch::RunIntraImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution);
+       LocalSearch::RunLocalSearch(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution);
     }
 
     //Iterated Local Search
@@ -590,8 +589,7 @@ void IteratedLocalSearch::Solve()
             std::cout << "Elapsed Time " << elapsed << std::endl; 
 
             LocalSearch::RunPerturbation(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution, mRNG);
-            LocalSearch::RunIntraImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution);
-            LocalSearch::RunInterImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution);
+            LocalSearch::RunLocalSearch(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution);
 
             if(mCurrentSolution.Costs < mBestSolution.Costs){
                 mSolutionTracker.UpdateBothSolutions(elapsed.count(),mCurrentSolution.Costs);

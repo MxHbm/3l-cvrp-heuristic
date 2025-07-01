@@ -5,7 +5,6 @@
 
 #include "Model/Instance.h"
 #include "Model/Solution.h"
-
 #include "Algorithms/BCRoutingParams.h"
 
 #include "Algorithms/Heuristics/FullEnumerationSearch.h"
@@ -27,65 +26,61 @@ namespace Improvement
 class LocalSearch
 {
   public:
-    static void RunIntraImprovement(const Instance* const instance,
-                                    LoadingChecker* loadingChecker,
-                                    const InputParameters* inputParameters,
-                                    Solution& currentSolution)
-    {
+    static void RunLocalSearch(const Instance* const instance,
+                                LoadingChecker* loadingChecker,
+                                const InputParameters* inputParameters,
+                                Solution& currentSolution){
 
-        //TODO Find new approach for this problem!
-        if (currentSolution.Routes[0].Sequence.size() < inputParameters->IteratedLocalSearch.IntraRouteFullEnumThreshold)
-        {
-            FullEnumerationSearch::Run(instance, *inputParameters, loadingChecker, currentSolution);
-        }
-        else
-        {
-            TwoOpt::Run(instance, *inputParameters, loadingChecker, currentSolution);
-        }
-    };
+        for(auto const& localSearchType : inputParameters->IteratedLocalSearch.localSearchTypes){
 
-    static void RunInterImprovement(const Instance* const instance,
-                                    LoadingChecker* loadingChecker,
-                                    const InputParameters* inputParameters,
-                                    Solution& currentSolution)
-    {
-        InterSwap::Run(instance, *inputParameters, loadingChecker, currentSolution);
+            switch(localSearchType){
+                
+                case LocalSearchTypes::TwoOpt:
+                    TwoOpt::Run(instance, *inputParameters, loadingChecker, currentSolution);
+                    break;
 
-        std::cout << "Result after InterSwap" << std::endl;
-        int id = 0;
-        for(const auto& route : currentSolution.Routes){
+                case LocalSearchTypes::InterSwap:
+                    InterSwap::Run(instance, *inputParameters, loadingChecker, currentSolution);
+                    break;
 
-            int tot_vol = 0; 
-            int tot_wei = 0;
-            for(const auto& node : route.Sequence){
-                tot_vol += instance->Nodes[node].TotalVolume;
-                tot_wei += instance->Nodes[node].TotalWeight;
+                case LocalSearchTypes::IntraSwap:
+                    break;
+
+                case LocalSearchTypes::FullEnumeration:
+                    FullEnumerationSearch::Run(instance, *inputParameters, loadingChecker, currentSolution);
+                    break;
+
+                case LocalSearchTypes::None:
+                    break;
+
+                default: 
+                    break;
+
             }
-            std::cout << "Route "<<id<<" - Total Weigth: " << tot_wei  << std::endl;
-            ++id;
         }
     };
 
     static void RunPerturbation(const Instance* const instance,
-                                    LoadingChecker* loadingChecker,
-                                    const InputParameters* inputParameters,
-                                    Solution& currentSolution,
-                                    std::mt19937& RNG)
+                                LoadingChecker* loadingChecker,
+                                const InputParameters* inputParameters,
+                                Solution& currentSolution,
+                                std::mt19937& RNG)
     {
-        K_RandomSwaps::Run(instance, *inputParameters, loadingChecker, currentSolution, RNG);
+        for(const auto& perturb_type : inputParameters->IteratedLocalSearch.perturbationTypes){
 
-        std::cout << "Result after Perturbation" << std::endl;
-        int id = 0;
-        for(const auto& route : currentSolution.Routes){
+            switch(perturb_type){
 
-            int tot_vol = 0; 
-            int tot_wei = 0;
-            for(const auto& node : route.Sequence){
-                tot_vol += instance->Nodes[node].TotalVolume;
-                tot_wei += instance->Nodes[node].TotalWeight;
+                case PerturbationTypes::K_RandomSwaps:
+                    K_RandomSwaps::Run(instance, *inputParameters, loadingChecker, currentSolution, RNG);
+                    break;
+                
+                case PerturbationTypes::None:
+                    break;
+
+                default: 
+                    break;
+
             }
-            std::cout << "Route "<<id<<" - Total Weigth: " << tot_wei  << std::endl;
-            ++id;
         }
     }
 };
