@@ -581,11 +581,9 @@ void IteratedLocalSearch::Solve()
     mBestSolution = mCurrentSolution;
     mSolutionTracker.UpdateBothSolutions(elapsed.count(),mCurrentSolution.Costs);
 
-    int ILS_iterations = 0;
     if(mInputParameters.IteratedLocalSearch.RunILS){
         while(elapsed.count() < maxRuntime){
 
-            std::cout << "Start ILS - Iteration: " << ILS_iterations << std::endl;
             std::cout << "Elapsed Time " << elapsed << std::endl; 
 
             LocalSearch::RunPerturbation(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution, mRNG);
@@ -606,7 +604,7 @@ void IteratedLocalSearch::Solve()
             }
 
             elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start);
-            ++ILS_iterations;
+            ++mSolutionTracker.iterations;
 
         }
     }
@@ -615,11 +613,7 @@ void IteratedLocalSearch::Solve()
     
     //TODO Add useful metrics here and variable for K Swaps
 
-    auto statistics = SolverStatistics(100,
-                                       25,
-                                       300,
-                                       ILS_iterations,
-                                       mTimer,
+    auto statistics = SolverStatistics(mTimer,
                                        mSolutionTracker,
                                        mInfeasibleArcs.size(),
                                        mInfeasibleTailPaths.size());

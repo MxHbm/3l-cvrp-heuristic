@@ -80,6 +80,7 @@ class SolutionTracker
   public:
     std::map<double, double> CurrentSolution;
     std::map<double, double> BestSolution;
+    int iterations{0};
 
 
     //Default constructor
@@ -105,27 +106,17 @@ class SolutionTracker
 class SolverStatistics
 {
   public:
-    double Runtime = -1.0;
-    double Gap = -1.0;
-    double NodeCount = -1;
-    double ILSIterationCount = -1;
+    double ILSIterationCount = 0;
     size_t DeletedArcs = 0;
     size_t InfeasibleTailPathStart = 0;
     Helper::Timer Timer;
     SolutionTracker solutionTracker;
 
-    SolverStatistics(double runtime,
-                     double gap,
-                     double nodeCount,
-                     double iterCount,
-                     Helper::Timer& timer,
+    SolverStatistics(Helper::Timer& timer,
                      SolutionTracker& solTracker,
                      size_t deletedArcs,
                      size_t infTailPathStart)
-    : Runtime(runtime),
-      Gap(gap),
-      NodeCount(nodeCount),
-      ILSIterationCount(iterCount),
+    : ILSIterationCount(solTracker.iterations),
       DeletedArcs(deletedArcs),
       InfeasibleTailPathStart(infTailPathStart),
       Timer(timer),

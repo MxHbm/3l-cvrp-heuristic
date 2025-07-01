@@ -262,15 +262,12 @@ void to_json(json& j, const OutputSolution& solution)
     };
 }
 
-void from_json(const json& j, SolverStatistics& statistics) { j.at("Runtime").get_to(statistics.Runtime); }
+//void from_json(const json& j, SolverStatistics& statistics) { j.at("Runtime").get_to(statistics.Runtime); }
 
 void to_json(json& j, const SolverStatistics& statistics)
 {
     j = json{
-        {"Runtime", statistics.Runtime},
-        {"Gap", statistics.Gap},
         {"ILSIterations", statistics.ILSIterationCount},
-        {"NodeCount", statistics.NodeCount},
         {"DeletedArcs", statistics.DeletedArcs},
         {"InfTailPath", statistics.InfeasibleTailPathStart},
         {"Timer", statistics.Timer},

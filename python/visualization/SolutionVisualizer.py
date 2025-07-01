@@ -111,8 +111,6 @@ def show_analysis():
 
         st.sidebar.write(f'Prepocessing Time: {solver_summary["Preprocessing"]:.2f}s')
         st.sidebar.write(f'Total run time: {solver_summary["Total run time"]:.2f}s')
-        st.sidebar.write(f'Optimality gap: {solver_summary["Gap"]:.2f}%')
-        st.sidebar.write(f'B&B nodes: {solver_summary["B&B-Nodes"]}')
         st.sidebar.write(f'Deleted arcs: {solver_summary["Deleted arcs"]}')
         st.sidebar.write(f'ILS iterations: {solver_summary["ILS iterations"]}')
         st.sidebar.write(f'InfTailPath: {solver_summary["InfTailPath"]}')
@@ -148,10 +146,8 @@ def get_solver_data_from_json(file):
                          "Main Heuristic": solver_statistics["Timer"]["MetaHeuristic"]}
 
     solver_summary = {
-        "Gap": solver_statistics["Gap"] * 100,
         "InfTailPath": solver_statistics["InfTailPath"],
         "Deleted arcs": solver_statistics["DeletedArcs"],
-        "B&B-Nodes": solver_statistics["NodeCount"],
         "ILS iterations": solver_statistics["ILSIterations"]
     }
 
