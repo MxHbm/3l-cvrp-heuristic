@@ -16,8 +16,26 @@ class Timer
     std::chrono::duration<double> LowerBoundVehicles;
     std::chrono::duration<double> StartSolution;
     std::chrono::duration<double> MetaHeuristic;
-
+    std::chrono::time_point<std::chrono::system_clock> start;
+    double elapsed;
+    
     Timer() = default;
+
+    void startMetaheuristicTime(){
+        start = std::chrono::system_clock::now();
+    }
+
+    inline void calculateElapsedTime(){
+        elapsed =  std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start).count();
+    }
+
+    inline double getElapsedTime() const{
+        return elapsed;
+    }
+
+    void calculateMetaHeuristicTime(){
+        MetaHeuristic = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start);
+    }
 
     void Print() const
     {

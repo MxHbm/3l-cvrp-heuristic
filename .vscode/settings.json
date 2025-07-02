@@ -2,10 +2,14 @@
     "cmake.buildDirectory": "${workspaceFolder}/build/${buildType}",
     "cmake.sourceDirectory": "${workspaceFolder}/cpp/3L-VehicleRouting",
     "cmake.configureArgs": [
-        "-DORTOOLS_ROOT_WIN:STRING=C:/Program Files/or-tools_9.8Bin",
+        "-DORTOOLS_ROOT_WIN:STRING=C:/Program Files/or-tools_9.14",
         "-DGUROBI_ROOT_WIN:STRING=C:/gurobi1100/win64/",
-        "-DBOOST_ROOT_WIN:STRING=C:/boost/boost_1_88_0/"
+        "-DBOOST_ROOT_WIN:STRING=C:/boost/boost_1_88_0/",
+        "-DTorch_DIR=C:/pytorch/libtorch/share/cmake/Torch"
     ],
+    "cmake.configureSettings": {
+        "Torch_DIR": "C:/pytorch/libtorch/share/cmake/Torch"
+    },
     "cmake.debugConfig": {
         "args": [
             "-i",
@@ -16,7 +20,13 @@
             "${workspaceFolder}/data/output/3l-cvrp/test/",
             "-p",
             "${workspaceFolder}/data/input/3l-cvrp/parameters/BenchmarkParameters_AllConstraints.json"
-        ]
+        ],
+        "environment": [
+            {
+                "name": "PATH",
+                "value": "C:/Program Files/or-tools_9.14/bin;C:/pytorch/libtorch;C:/boost/boost_1_88_0/;${env:PATH}"
+            }
+            ],
     },
     "editor.formatOnSave": true,
     "files.associations": {

@@ -14,6 +14,8 @@
 #include "Model/Instance.h"
 #include "Model/Solution.h"
 
+#include <torch/torch.h>
+
 #include "Algorithms/LoadingInterfaceServices.h"
 
 #include <cstdint>
@@ -184,6 +186,10 @@ void IteratedLocalSearch::StartSolutionProcedure()
     mCurrentSolution.DetermineCosts(mInstance);
     //TODO Change in Repar Modified Saavings, that Totalvoluem and Totalweight is updated! 
     mCurrentSolution.DeterminWeightsVolumes(mInstance);
+
+    // TODO change, here just for intializing
+    mBestSolution = mCurrentSolution;
+    mSolutionTracker.UpdateBothSolutions(-mTimer.StartSolution.count(), mBestSolution.Costs);
 
     OutputSolution outputSolution(mCurrentSolution, mInstance);
 
@@ -562,54 +568,57 @@ void IteratedLocalSearch::Solve()
     AdaptWeightsVolumesToLoadingProblem();
 
     //Determine infeasible arcs and tail paths
-    InfeasibleArcProcedure();
+    //InfeasibleArcProcedure();
 
     mInstance->LowerBoundVehicles = DetermineLowerBoundVehicles();
 
     StartSolutionProcedure();
 
-    //initial local search
+    //Iterated Local Search
+    mTimer.startMetaheuristicTime();
     if(mInputParameters.IteratedLocalSearch.RunLS){
+
        LocalSearch::RunLocalSearch(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution);
+
+       if(mCurrentSolution.Costs < mBestSolution.Costs){
+            mBestSolution = mCurrentSolution;
+            mSolutionTracker.UpdateBothSolutions(0.0, mBestSolution.Costs);
+       }
     }
 
-    //Iterated Local Search
-    std::chrono::time_point<std::chrono::system_clock> start {std::chrono::system_clock::now()};
     int NoImpr = 0;
-    auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start);
     double maxRuntime = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ILS);
-    mBestSolution = mCurrentSolution;
-    mSolutionTracker.UpdateBothSolutions(elapsed.count(),mCurrentSolution.Costs);
-
     if(mInputParameters.IteratedLocalSearch.RunILS){
-        while(elapsed.count() < maxRuntime){
+        while(mTimer.getElapsedTime() < maxRuntime){
 
-            std::cout << "Elapsed Time " << elapsed << std::endl; 
-
+            std::cout << "Run: " << mSolutionTracker.iterations << " - CurrentBest: " << mCurrentSolution.Costs << " - OverallBest: " << mBestSolution.Costs << std::endl;
+ 
             LocalSearch::RunPerturbation(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution, mRNG);
             LocalSearch::RunLocalSearch(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution);
 
+            mTimer.calculateElapsedTime();
+            torch::Tensor tensor = torch::rand({2, 3});
+            std::cout << tensor << std::endl;
+
             if(mCurrentSolution.Costs < mBestSolution.Costs){
-                mSolutionTracker.UpdateBothSolutions(elapsed.count(),mCurrentSolution.Costs);
+                mSolutionTracker.UpdateBothSolutions(mTimer.getElapsedTime(), mCurrentSolution.Costs);
                 mBestSolution = mCurrentSolution;
                 NoImpr = 0;
             }else{
                 ++NoImpr;
-                mSolutionTracker.UpdateCurrSolution(elapsed.count(),mCurrentSolution.Costs);
+                mSolutionTracker.UpdateCurrSolution(mTimer.getElapsedTime(), mCurrentSolution.Costs);
             }
             if(NoImpr >= mInputParameters.IteratedLocalSearch.NoImprLimit){
                 mCurrentSolution = mBestSolution;
-                mSolutionTracker.UpdateCurrSolution(elapsed.count(),mCurrentSolution.Costs);
+                mSolutionTracker.UpdateCurrSolution(mTimer.getElapsedTime(), mCurrentSolution.Costs);
                 NoImpr = 0;
             }
-
-            elapsed = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start);
             ++mSolutionTracker.iterations;
 
         }
     }
 
-    mTimer.MetaHeuristic = std::chrono::system_clock::now() - start;
+    mTimer.calculateMetaHeuristicTime();
     
     //TODO Add useful metrics here and variable for K Swaps
 

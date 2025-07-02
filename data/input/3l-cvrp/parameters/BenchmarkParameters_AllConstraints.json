@@ -9,12 +9,12 @@
         "IntraRouteFullEnumThreshold": 6,
         "SetPartHeurThreshold": 20,
         "StartSolution": "ModifiedSavings",
-        "LocalSearchTypes": ["TwoOpt","IntraSwap", "InterSwap"],
+        "LocalSearchTypes": ["TwoOpt", "IntraSwap", "InterSwap"],
         "PerturbationTypes": ["K_RandomSwaps"],
         "TimeLimit": [
             [
                 "ILS",
-                30
+                600
             ],
             [
                 "Constructive",

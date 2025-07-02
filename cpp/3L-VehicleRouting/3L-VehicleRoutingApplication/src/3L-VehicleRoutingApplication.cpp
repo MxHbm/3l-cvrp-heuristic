@@ -10,6 +10,8 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <torch/torch.h>
+
 
 #include <ctime>
 #include <filesystem>
@@ -27,6 +29,10 @@ void Run(std::string& inputFilePath,
          bool enableTimeSuffix,
          int seedOffset)
 {
+
+    torch::Tensor tensor = torch::rand({2, 3});
+    std::cout << tensor << std::endl;
+
     InputParameters inputParameters;
 
     if (parameterFile != "")
@@ -86,7 +92,7 @@ void Run(std::string& inputFilePath,
     {
         try
         {
-            std::cout << "Run: " << i << "\n";
+            //std::cout << "Run: " << i << "\n";
             GRBEnv env = GRBEnv(outputPath + "/" + instance.Name + ".LOG");
             inputParameters.MIPSolver.Seed += i;
             IteratedLocalSearch ILS_heuristic(&instance, &env, inputParameters, startSolutionPath, outputPath);

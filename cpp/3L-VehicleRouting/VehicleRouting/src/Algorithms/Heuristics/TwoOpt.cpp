@@ -26,12 +26,12 @@ void TwoOpt::Run(const Instance* const instance,
 
         if (route.Sequence.size() < 3)
         {
-            return;
+            continue;
         }
 
         if (loadingChecker->SequenceIsCheckedTwoOpt(route.Sequence))
         {
-            return;
+            continue;
         }
 
         while (true)
@@ -45,7 +45,6 @@ void TwoOpt::Run(const Instance* const instance,
                 currentSolution.Costs += savings;
             }
         }
-        return;
     }
 }
 
@@ -62,7 +61,7 @@ std::vector<Move> TwoOpt::DetermineMoves(const Instance* const instance,
 
             savings = Evaluator::CalculateTwoOptDelta(instance, route, i, k);
 
-            if (savings < 0.0)
+            if (savings < -1e-6)
             {
                 moves.emplace_back(savings, i, k);
             }

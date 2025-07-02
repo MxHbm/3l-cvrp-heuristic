@@ -25,7 +25,7 @@ void IntraSwap::Run(const Instance* const instance,
 
         if (route.Sequence.size() < 2)
         {
-            return;
+            continue;
         }
 
         while (true)
@@ -38,7 +38,6 @@ void IntraSwap::Run(const Instance* const instance,
                 currentSolution.Costs += savings;
             }
         }
-        return;
     }
        
 }
@@ -57,7 +56,7 @@ std::vector<Move> IntraSwap::DetermineMoves(const Instance* const instance,
 
             savings = Evaluator::CalculateIntraSwapDelta(instance, route, i, k);
 
-            if (savings < 0.0)
+            if (savings < -1e-6)
             {
                 moves.emplace_back(savings, i, k);
             }

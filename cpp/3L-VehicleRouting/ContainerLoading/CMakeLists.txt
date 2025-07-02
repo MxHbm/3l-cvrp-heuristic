@@ -50,3 +50,4 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE CommonBasics)
+target_link_libraries(${PROJECT_NAME}  PUBLIC LibTorch)

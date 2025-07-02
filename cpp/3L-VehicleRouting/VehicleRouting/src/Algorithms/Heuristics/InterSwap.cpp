@@ -85,7 +85,7 @@ std::vector<InterSwapMove> InterSwap::DetermineMoves(const Instance* const insta
                                                                             node_k); 
 
 
-                            if (savings < 0.0)
+                            if (savings < -1e-6)
                             {
                                 moves.emplace_back(savings, route_it_i, route_it_k, node_i, node_k, weight_item_delta, volume_item_delta);
                             }
