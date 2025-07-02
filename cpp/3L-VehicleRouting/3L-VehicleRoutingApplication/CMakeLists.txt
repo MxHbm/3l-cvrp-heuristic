@@ -59,9 +59,5 @@ message(STATUS "Torch_DIR: ${Torch_DIR}")
 message(STATUS "TORCH_LIBRARIES: ${TORCH_LIBRARIES}")
 message(STATUS "TORCH_INCLUDE_DIRS: ${TORCH_INCLUDE_DIRS}")
 
-#I think this is not necessary to include
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
-#message(STATUS "TORCH_CXX_FLAGS: ${TORCH_CXX_FLAGS}")
-
 target_link_libraries(${PROJECT_NAME} PRIVATE VehicleRouting ContainerLoading CommonBasics)
 

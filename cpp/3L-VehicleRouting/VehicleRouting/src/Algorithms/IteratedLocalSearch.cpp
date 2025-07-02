@@ -14,8 +14,6 @@
 #include "Model/Instance.h"
 #include "Model/Solution.h"
 
-#include <torch/torch.h>
-
 #include "Algorithms/LoadingInterfaceServices.h"
 
 #include <cstdint>
@@ -597,8 +595,6 @@ void IteratedLocalSearch::Solve()
             LocalSearch::RunLocalSearch(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution);
 
             mTimer.calculateElapsedTime();
-            torch::Tensor tensor = torch::rand({2, 3});
-            std::cout << tensor << std::endl;
 
             if(mCurrentSolution.Costs < mBestSolution.Costs){
                 mSolutionTracker.UpdateBothSolutions(mTimer.getElapsedTime(), mCurrentSolution.Costs);

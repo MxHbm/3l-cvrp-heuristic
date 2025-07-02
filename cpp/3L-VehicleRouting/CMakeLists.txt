@@ -3,12 +3,6 @@ cmake_minimum_required(VERSION 3.18)
 project(3L-VehicleRouting VERSION 0.9 LANGUAGES CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-
-# include(GNUInstallDirs)
-
-# After a normal build, we can specify the location of various outputs of the
-# build. We put executables and static libraries in the build directory in
-# bin/ and lib/, respectively.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 

@@ -10,7 +10,6 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <torch/torch.h>
 
 
 #include <ctime>
@@ -29,9 +28,6 @@ void Run(std::string& inputFilePath,
          bool enableTimeSuffix,
          int seedOffset)
 {
-
-    torch::Tensor tensor = torch::rand({2, 3});
-    std::cout << tensor << std::endl;
 
     InputParameters inputParameters;
 
