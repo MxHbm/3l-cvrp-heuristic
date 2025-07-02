@@ -53,29 +53,15 @@ add_library(LibTorch INTERFACE)
 target_link_libraries(LibTorch INTERFACE ${TORCH_LIBRARIES})
 target_include_directories(LibTorch INTERFACE ${TORCH_INCLUDE_DIRS})
 target_compile_options(LibTorch INTERFACE ${TORCH_CXX_FLAGS})
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
 target_link_libraries(${PROJECT_NAME} PRIVATE LibTorch)
 
 message(STATUS "Torch_DIR: ${Torch_DIR}")
 message(STATUS "TORCH_LIBRARIES: ${TORCH_LIBRARIES}")
 message(STATUS "TORCH_INCLUDE_DIRS: ${TORCH_INCLUDE_DIRS}")
-message(STATUS "TORCH_CXX_FLAGS: ${TORCH_CXX_FLAGS}")
+
+#I think this is not necessary to include
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+#message(STATUS "TORCH_CXX_FLAGS: ${TORCH_CXX_FLAGS}")
 
 target_link_libraries(${PROJECT_NAME} PRIVATE VehicleRouting ContainerLoading CommonBasics)
 
-# The following code block is suggested to be used on Windows.
-if (MSVC)
-    # Go up *two* levels from Torch_DIR to get root of libtorch
-    get_filename_component(_Torch_CMAKE_DIR "${Torch_DIR}" DIRECTORY) # .../share/cmake
-    get_filename_component(TORCH_INSTALL_PREFIX "${_Torch_CMAKE_DIR}" DIRECTORY) # .../libtorch
-
-    message(STATUS "TORCH_INSTALL_PREFIX: ${TORCH_INSTALL_PREFIX}")
-    file(GLOB TORCH_DLLS "${TORCH_INSTALL_PREFIX}/../lib/*.dll")
-	message(STATUS "TORCH_DLLS: ${TORCH_DLLS}")
-    add_custom_command(TARGET ${PROJECT_NAME}
-                       POST_BUILD
-                       COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                       ${TORCH_DLLS}
-                       $<TARGET_FILE_DIR:${PROJECT_NAME}>)
-endif()
