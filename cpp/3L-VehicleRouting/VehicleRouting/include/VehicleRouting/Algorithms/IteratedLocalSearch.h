@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ContainerLoading/LoadingChecker.h"
+#include "ContainerLoading/MLModelsContainer.h"
 
 #include "Helper/Timer.h"
 #include "Model/Instance.h"
@@ -60,6 +61,7 @@ class IteratedLocalSearch
     std::mt19937 mRNG;
 
     std::unique_ptr<LoadingChecker> mLoadingChecker;
+    std::unique_ptr<Classifier::MLModelsContainer> mClassifier;
 
     void InfeasibleArcProcedure();
     void DetermineInfeasiblePaths();

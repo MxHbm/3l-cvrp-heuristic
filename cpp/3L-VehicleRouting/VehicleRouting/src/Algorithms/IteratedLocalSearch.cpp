@@ -58,6 +58,9 @@ void IteratedLocalSearch::Initialize()
 
     mLoadingChecker = std::make_unique<LoadingChecker>(mInputParameters.ContainerLoading);
     mLoadingChecker->SetBinPackingModel(mEnv, containers, customerNodes, mOutputPath);
+    
+    //Initialize Classifier: 
+    mClassifier = std::make_unique<Classifier::MLModelsContainer>("C:/Users/mahu123a/Documents/train_classifier_model/mlp_cp_status_model_traced.pt");
 
     for (const auto& customer: mInstance->GetCustomers())
     {
