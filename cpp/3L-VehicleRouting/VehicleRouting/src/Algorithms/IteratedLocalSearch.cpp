@@ -587,6 +587,7 @@ void IteratedLocalSearch::Solve()
        }
     }
 
+
     int NoImpr = 0;
     double maxRuntime = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ILS);
     if(mInputParameters.IteratedLocalSearch.RunILS){
@@ -597,6 +598,11 @@ void IteratedLocalSearch::Solve()
             LocalSearch::RunPerturbation(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution, mRNG);
             LocalSearch::RunLocalSearch(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution);
 
+            std::cout << "Check path by classifer: " << std::endl; 
+            auto items = InterfaceConversions::SelectItems(mCurrentSolution.Routes[0].Sequence, mInstance->Nodes, false);
+            auto y = mClassifier->classify(items, mCurrentSolution.Routes[0].Sequence, mInstance->Vehicles.front().Containers.front());
+            std::cout << "Output: " << y << std::endl;
+            
             mTimer.calculateElapsedTime();
 
             if(mCurrentSolution.Costs < mBestSolution.Costs){
