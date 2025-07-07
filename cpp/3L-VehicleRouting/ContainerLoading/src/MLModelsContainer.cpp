@@ -2,14 +2,42 @@
 
 #include "MLModelsContainer.h"
 #include <cmath>
+#include <fstream>
+#include "nlohmann/json.hpp"
 
 namespace ContainerLoading {
 namespace Classifier {
 
-MLModelsContainer::MLModelsContainer(const std::string& model_path) {
+void MLModelsContainer::loadStandardScalingFromJson(const std::string& scaler_path){
+
+    std::ifstream file(scaler_path);
+    if (!file) {
+        throw std::runtime_error("Could not open scaling JSON file.");
+    }
+
+    nlohmann::json j;
+    file >> j;
+
+    std::vector<double> mean_vec = j["mean"];
+    std::vector<double> std_vec = j["std"];
+
+    mean_tensor = torch::tensor(mean_vec, torch::kFloat32).unsqueeze(0); // shape: [1, N]
+    std_tensor = torch::tensor(std_vec, torch::kFloat32).unsqueeze(0);   // shape: [1, N]
+}
+
+MLModelsContainer::MLModelsContainer(const std::string& model_path,
+                                     const std::string& scaler_path) {
     model = torch::jit::load(model_path);
     model.eval();
+
+    loadStandardScalingFromJson(scaler_path);
 }
+
+torch::Tensor MLModelsContainer::applyStandardScaling(const torch::Tensor& input) const{
+
+    return (input - mean_tensor) / std_tensor;
+}
+
 
 
 void MLModelsContainer::iota_own(std::vector<int>::iterator first,
@@ -202,7 +230,9 @@ float MLModelsContainer::classify(const std::vector<Cuboid>& items,
                                   const Container& container) {
 
     torch::Tensor input = extractFeatures(items, route, container);
-    torch::Tensor output = model.forward({input}).toTensor();
+    // Apply scaling before inference
+    torch::Tensor input_scaled = applyStandardScaling(input);
+    torch::Tensor output = model.forward({input_scaled}).toTensor();
     return output.item<float>();
 }
 

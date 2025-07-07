@@ -60,7 +60,8 @@ void IteratedLocalSearch::Initialize()
     mLoadingChecker->SetBinPackingModel(mEnv, containers, customerNodes, mOutputPath);
     
     //Initialize Classifier: 
-    mClassifier = std::make_unique<Classifier::MLModelsContainer>("C:/Users/mahu123a/Documents/train_classifier_model/mlp_cp_status_model_traced.pt");
+    mClassifier = std::make_unique<Classifier::MLModelsContainer>("C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/mlp_cp_status_model_traced.pt",
+                                                                  "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/mlp_input_scaling.json");
 
     for (const auto& customer: mInstance->GetCustomers())
     {

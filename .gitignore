@@ -3,6 +3,7 @@ build/
 
 # results
 data/output/3l-cvrp/test/
+data/input/model
 
 # python
 python/visualization/__pycache__/
