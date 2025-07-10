@@ -2,11 +2,13 @@
 
 #include "Algorithms/CPSolverParameters.h"
 #include "Algorithms/LoadingStatus.h"
+#include "Algorithms/ClassifierParameters.h"
 
 #include <limits>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+
 namespace ContainerLoading
 {
 using namespace Algorithms;
@@ -147,39 +149,11 @@ struct LoadingProblemParams
     };
 };
 
-struct BranchAndCutParameters
-{
-    enum class CallType
-    {
-        None,
-        Exact,
-        ExactLimit,
-        Heuristic
-    };
-
-    std::unordered_map<CallType, double> TimeLimits = {
-        {CallType::Exact, std::numeric_limits<double>::max()},
-        {CallType::ExactLimit, 1.0},
-        {CallType::Heuristic, 0.0},
-    };
-};
-
 struct ContainerLoadingParams
 {
     CPSolverParams CPSolver;
     LoadingProblemParams LoadingProblem;
-    BranchAndCutParameters BranchAndCut;
-
-   [[nodiscard]] double DetermineMaxRuntime(BranchAndCutParameters::CallType callType,
-                               double residualTime = std::numeric_limits<double>::max()) const
-    {
-        return std::min(BranchAndCut.TimeLimits.at(callType), residualTime);
-    }
-
-   [[nodiscard]] bool IsExact(BranchAndCutParameters::CallType callType) const
-    {
-        return callType == BranchAndCutParameters::CallType::Exact;
-    }
+    ClassifierParams classifierParams;
 };
 
 }

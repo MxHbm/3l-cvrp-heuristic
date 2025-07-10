@@ -36,15 +36,28 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 
 # Gurobi
 find_package(GUROBI REQUIRED)
-
 message(STATUS "Gurobi include: ${GUROBI_INCLUDE_DIRS}")
 message(STATUS "Gurobi lib: ${GUROBI_LIBRARY}")
 message(STATUS "Gurobi CXX: ${GUROBI_CXX_LIBRARY}")
 message(STATUS "Gurobi CXX Debug: ${GUROBI_CXX_DEBUG_LIBRARY}")
 
 if(CXX)
-	target_link_libraries(${PROJECT_NAME} PUBLIC optimized ${GUROBI_CXX_LIBRARY}
-		debug ${GUROBI_CXX_LIBRARY})
+	target_link_libraries(${PROJECT_NAME} PUBLIC optimized ${GUROBI_CXX_LIBRARY} debug ${GUROBI_CXX_LIBRARY})
+	#target_link_libraries(${PROJECT_NAME} "${TORCH_LIBRARIES}")
 endif()
 
+# Pytorch
+find_package(Torch REQUIRED)
+
+add_library(LibTorch INTERFACE)
+target_link_libraries(LibTorch INTERFACE ${TORCH_LIBRARIES})
+target_include_directories(LibTorch INTERFACE ${TORCH_INCLUDE_DIRS})
+target_compile_options(LibTorch INTERFACE ${TORCH_CXX_FLAGS})
+target_link_libraries(${PROJECT_NAME} PRIVATE LibTorch)
+
+message(STATUS "Torch_DIR: ${Torch_DIR}")
+message(STATUS "TORCH_LIBRARIES: ${TORCH_LIBRARIES}")
+message(STATUS "TORCH_INCLUDE_DIRS: ${TORCH_INCLUDE_DIRS}")
+
 target_link_libraries(${PROJECT_NAME} PRIVATE VehicleRouting ContainerLoading CommonBasics)
+

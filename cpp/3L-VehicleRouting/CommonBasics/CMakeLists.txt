@@ -54,9 +54,9 @@ message(STATUS "Sources ${_SRCS}")
 find_package(GUROBI REQUIRED)
 
 # OR-Tools
-# list(APPEND CMAKE_PREFIX_PATH "C:/Program Files/or-tools")
-# set(ORTOOLS_ROOT "C:/Program Files/or-tools")
-# list(APPEND CMAKE_PREFIX_PATH ${ORTOOLS_ROOT})
+list(APPEND CMAKE_PREFIX_PATH "C:/ortools/or-tools-9.14")
+set(ORTOOLS_ROOT "C:/ortools/or-tools-9.14")
+list(APPEND CMAKE_PREFIX_PATH ${ORTOOLS_ROOT})
 find_package(ortools CONFIG REQUIRED)
 
 if(${ortools_FOUND})

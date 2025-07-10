@@ -42,6 +42,7 @@ target_include_directories(${PROJECT_NAME} PUBLIC
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE CommonBasics ContainerLoading)
+target_link_libraries(${PROJECT_NAME}  PUBLIC LibTorch)
 
 if(UNIX)
 	target_link_libraries(${PROJECT_NAME} PRIVATE tbb)

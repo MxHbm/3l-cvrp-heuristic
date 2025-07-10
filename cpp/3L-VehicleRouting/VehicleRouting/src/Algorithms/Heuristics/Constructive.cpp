@@ -95,14 +95,16 @@ std::vector<Route> Savings::Run()
     }
 
     std::vector<Route> startSolution;
+    int id = 0;
     for (auto& route: routes)
     {
         if (route.Sequence.empty())
         {
             continue;
         }
-
+        route.Id = id;
         startSolution.emplace_back(route);
+        ++ id;
     }
 
     return startSolution;
@@ -126,7 +128,7 @@ bool Savings::ConcatRoutes(Collections::IdVector& frontSequence,
 
     auto selectedItems = InterfaceConversions::SelectItems(frontSequence, mInstance->Nodes, false);
 
-    double maxRuntime = mInputParameters->DetermineMaxRuntime(BranchAndCutParams::CallType::Heuristic);
+    double maxRuntime = mInputParameters->DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
     auto status =
         mLoadingChecker->HeuristicCompleteCheck(container,
                                                 mLoadingChecker->MakeBitset(mInstance->Nodes.size(), frontSequence),
@@ -157,27 +159,27 @@ std::vector<Route> ModifiedSavings::Run()
     {
         RepairProcedure(startSolution);
     }
-
+    
     return startSolution;
 }
 
-void ModifiedSavings::RepairProcedure(std::vector<Route>& solution)
+void ModifiedSavings::RepairProcedure(std::vector<Route>& solution_routes)
 {
-    std::ranges::sort(solution,
+    std::ranges::sort(solution_routes,
                       [](const auto& routeA, const auto& routeB) { return routeA.TotalVolume > routeB.TotalVolume; });
 
     Collections::IdVector notVisitedCustomers;
 
-    for (size_t k = mInstance->Vehicles.size(); k < solution.size(); ++k)
+    for (size_t k = mInstance->Vehicles.size(); k < solution_routes.size(); ++k)
     {
-        auto& route = solution[k];
+        auto& route = solution_routes[k];
         for (auto nodeId: route.Sequence)
         {
             notVisitedCustomers.emplace_back(nodeId);
         }
     }
 
-    solution.erase(std::begin(solution) + static_cast<int>(mInstance->Vehicles.size()), std::end(solution));
+    solution_routes.erase(std::begin(solution_routes) + static_cast<int>(mInstance->Vehicles.size()), std::end(solution_routes));
 
     while (!notVisitedCustomers.empty())
     {
@@ -187,13 +189,13 @@ void ModifiedSavings::RepairProcedure(std::vector<Route>& solution)
 
         auto nodeToInsert = notVisitedCustomers.back();
 
-        auto insertionCosts = DetermineInsertionCostsAllRoutes(solution, nodeToInsert);
+        auto insertionCosts = DetermineInsertionCostsAllRoutes(solution_routes, nodeToInsert);
 
         bool nodeInserted = false;
 
         for (const auto& costCollection: insertionCosts)
         {
-            auto& route = solution[std::get<1>(costCollection)];
+            auto& route = solution_routes[std::get<1>(costCollection)];
             auto position = std::get<2>(costCollection);
 
             if (!InsertionFeasible(route, nodeToInsert, position))
@@ -209,9 +211,9 @@ void ModifiedSavings::RepairProcedure(std::vector<Route>& solution)
 
         if (!nodeInserted)
         {
-            std::uniform_int_distribution<> distrib(0, static_cast<int>(solution.size()) - 1);
+            std::uniform_int_distribution<> distrib(0, static_cast<int>(solution_routes.size()) - 1);
             auto k = static_cast<size_t>(distrib(*mRNG));
-            auto& route = solution[k];
+            auto& route = solution_routes[k];
             auto removedNodes = InsertInRandomRoute(route, nodeToInsert);
 
             notVisitedCustomers.pop_back();
@@ -352,7 +354,7 @@ bool ModifiedSavings::InsertionFeasible(Route& route, size_t nodeToInsert, size_
 
     auto selectedItems = InterfaceConversions::SelectItems(tmpSequence, mInstance->Nodes, false);
 
-    double maxRuntime = mInputParameters->DetermineMaxRuntime(BranchAndCutParams::CallType::Heuristic);
+    double maxRuntime = mInputParameters->DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
     auto status =
         mLoadingChecker->HeuristicCompleteCheck(container,
                                                 mLoadingChecker->MakeBitset(mInstance->Nodes.size(), tmpSequence),

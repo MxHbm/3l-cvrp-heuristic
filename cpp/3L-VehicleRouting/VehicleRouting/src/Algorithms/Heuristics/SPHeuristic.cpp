@@ -1,3 +1,4 @@
+/*
 #include "Algorithms/Heuristics/SPHeuristic.h"
 
 #include "Algorithms/LoadingStatus.h"
@@ -82,7 +83,7 @@ void SPHeuristic::AddNewRoutes(auto& routes)
 {
     const Container& container = mInstance->Vehicles.front().Containers.front();
 
-    for (const auto& route: routes)
+    for (auto& route: routes)
     {
         if (mInputParameters->ContainerLoading.LoadingProblem.LoadingFlags == LoadingFlag::NoneSet)
         {
@@ -93,7 +94,7 @@ void SPHeuristic::AddNewRoutes(auto& routes)
 
         auto items = InterfaceConversions::SelectItems(route, mInstance->Nodes, false);
 
-        double maxRuntime = mInputParameters->DetermineMaxRuntime(BranchAndCutParams::CallType::Heuristic);
+        double maxRuntime = mInputParameters->DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
         const auto status = mLoadingChecker->HeuristicCompleteCheck(
             container, mLoadingChecker->MakeBitset(mInstance->Nodes.size(), route), route, items, maxRuntime);
 
@@ -162,3 +163,4 @@ Collections::SequenceVector SPHeuristic::CreateRoutesCustomerRemoval(auto& route
 }
 }
 }
+*/

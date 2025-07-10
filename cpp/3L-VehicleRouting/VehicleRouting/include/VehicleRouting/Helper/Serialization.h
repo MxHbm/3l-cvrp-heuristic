@@ -11,13 +11,10 @@ using json = nlohmann::json;
 
 class Timer;
 
-struct MIPSolverParams;
-struct BranchAndCutParams;
-struct ExtremePointParameters;
-struct UserCutParams;
+struct IteratedLocalSearchParams;
 struct CPSolverParams;
 struct LoadingProblemParams;
-struct PackingParameters;
+struct ClassifierParams;
 
 class InputParameters;
 
@@ -25,14 +22,8 @@ namespace VehicleRouting
 {
 namespace Algorithms
 {
-void from_json(const json& j, BranchAndCutParams& params);
-void to_json(json& j, const BranchAndCutParams& params);
-
-void from_json(const json& j, UserCutParams& params);
-void to_json(json& j, const UserCutParams& params);
-
-void from_json(const json& j, MIPSolverParams& params);
-void to_json(json& j, const MIPSolverParams& params);
+void from_json(const json& j, IteratedLocalSearchParams& params);
+void to_json(json& j, const IteratedLocalSearchParams& params);
 
 void from_json(const json& j, InputParameters& inputParameters);
 void to_json(json& j, const InputParameters& inputParameters);
@@ -49,11 +40,12 @@ namespace ContainerLoading
 {
 namespace Algorithms
 {
-void from_json(const json& j, ExtremePointParameters& params);
-void to_json(json& j, const ExtremePointParameters& params);
-
 void from_json(const json& j, CPSolverParams& params);
 void to_json(json& j, const CPSolverParams& params);
+
+void from_json(const json& j, ClassifierParams& params);
+void to_json(json& j, const ClassifierParams& params);
+
 }
 }
 
@@ -64,7 +56,6 @@ namespace Model
 // Note, to acces enums via json.at("EnumName").get<EnumType>(), they must be declared in the head file, which requires
 // forward declaration. Because nested structs/enums cannot be forward declared (see
 // https://stackoverflow.com/a/1021809) this is not possible for some enums.
-enum class CallbackElement;
 
 class Vehicle;
 class Node;
@@ -72,7 +63,8 @@ class SolverStatistics;
 class Solution;
 class SolutionFile;
 class Tour;
-class CallbackTracker;
+class OutputSolution;
+class SolutionTracker;
 
 void from_json(const json& j, Node& node);
 void to_json(json& j, const Node& node);
@@ -86,14 +78,14 @@ void to_json(json& j, const Tour& tour);
 void from_json(const json& j, SolverStatistics& statistics);
 void to_json(json& j, const SolverStatistics& statistics);
 
-void from_json(const json& j, Solution& solution);
-void to_json(json& j, const Solution& solution);
+void from_json(const json& j, OutputSolution& solution);
+void to_json(json& j, const OutputSolution& solution);
 
 void from_json(const json& j, SolutionFile& solutionFile);
 void to_json(json& j, const SolutionFile& solutionFile);
 
-void from_json(const json& j, CallbackTracker& tracker);
-void to_json(json& j, const CallbackTracker& tracker);
+void from_json(const json& j, SolutionTracker& tracker);
+void to_json(json& j, const SolutionTracker& tracker);
 }
 }
 

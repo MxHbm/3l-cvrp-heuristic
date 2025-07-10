@@ -1,7 +1,7 @@
 // 3L-VehicleRoutingApplication.cpp : This file contains the 'main' function. Program execution begins and ends there.
 
 #include "VehicleRouting/Algorithms/BCRoutingParams.h"
-#include "VehicleRouting/Algorithms/BranchAndCutSolver.h"
+#include "VehicleRouting/Algorithms/IteratedLocalSearch.h"
 #include "VehicleRouting/Helper/HelperIO.h"
 #include "VehicleRouting/Model/Instance.h"
 
@@ -10,6 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+
 
 #include <ctime>
 #include <filesystem>
@@ -27,6 +28,7 @@ void Run(std::string& inputFilePath,
          bool enableTimeSuffix,
          int seedOffset)
 {
+
     InputParameters inputParameters;
 
     if (parameterFile != "")
@@ -80,17 +82,14 @@ void Run(std::string& inputFilePath,
 
     // TODO: parametrize
     std::string startSolutionPath = inputFilePath + "../StartSolutions/Zhang/ConvertedSolutions/";
-    inputParameters.MIPSolver.Seed += seedOffset;
 
     for (int i = 0; i < 1; ++i)
     {
         try
         {
-            std::cout << "Run: " << i << "\n";
             GRBEnv env = GRBEnv(outputPath + "/" + instance.Name + ".LOG");
-            inputParameters.MIPSolver.Seed += i;
-            BranchAndCutSolver exactAlgorithm(&instance, &env, inputParameters, startSolutionPath, outputPath);
-            exactAlgorithm.Solve();
+            IteratedLocalSearch ILS_heuristic(&instance, &env, inputParameters, startSolutionPath, outputPath);
+            ILS_heuristic.Solve();
         }
         catch (GRBException& e)
         {

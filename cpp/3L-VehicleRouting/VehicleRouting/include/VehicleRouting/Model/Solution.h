@@ -30,98 +30,6 @@ constexpr inline auto enum_range = [](auto front, auto back)
            | std::views::transform([](auto e) { return decltype(front)(e); });
 };
 
-enum class CallbackElement
-{
-    // Integer
-    None,
-    IntegerSolutions,
-    DetermineRoutes,
-    CheckRoutes,
-    IntegerRoutes,
-    SingleCustomer,
-    MinNumVehicles,
-    Disconnected,
-    Connected,
-    SingleVehicle,
-    MinVehApproxInf,
-    RoutePrechecked,
-    RoutePrecheckedNot,
-    CustCombiInf,
-    CustCombiInfNot,
-    HeuristicFeas,
-    HeuristicInf,
-    CPCheck,
-    ExactLimitFeas,
-    ExactLimitInf,
-    ExactLimitUnk,
-    TwoPathInequality,
-    TwoPathInequalityNot,
-    RegularPathInequality,
-    RegularPathInequalityNot,
-    TailPathInequality,
-    ExactFeas,
-    ExactInf,
-    ExactInvalid,
-    ReverseSequence,
-    RevHeurFeas,
-    RevExactFeas,
-    RevExactInf,
-    InfeasibleTailPathInequality,
-    // Fractional
-    FractionalSolutions,
-    AddFracSolCuts,
-    BuildGraph,
-    // Heuristic
-    SPHeuristic
-};
-
-class CallbackTracker
-{
-  public:
-    std::vector<CallbackElement> IntegerElements;
-    std::vector<CallbackElement> Fractional;
-
-    std::map<CallbackElement, int> Counter;
-    std::map<CallbackElement, uint64_t> Timer;
-
-    std::map<CutType, int> CutCounter;
-    std::map<CutType, uint64_t> CutTimer;
-
-    std::map<CutType, int> LazyConstraintCounter;
-
-    std::map<double, std::pair<double, bool>> UpperBounds;
-    std::map<double, std::pair<double, double>> LowerBounds;
-
-    int HeuristicSolution = 0;
-
-    double LastSolutionFound = 0.0;
-
-    CallbackTracker()
-    {
-        for (const auto e: enum_range(CallbackElement::IntegerSolutions, CallbackElement::RevExactInf))
-        {
-            Counter.insert({e, 0});
-            Timer.insert({e, 0});
-        }
-    };
-
-    void UpdateElement(const CallbackElement element, const uint64_t time)
-    {
-        Counter[element]++;
-        Timer[element] += time;
-    }
-
-    void UpdateLowerBound(const double runtime, const double node, const double bound)
-    {
-        LowerBounds.insert({runtime, {node, bound}});
-    }
-
-    void UpdateUpperBound(const double runtime, const double node, const bool spHeur)
-    {
-        UpperBounds.insert({runtime, {node, spHeur}});
-        LastSolutionFound = runtime;
-    }
-};
 
 class Tour
 {
@@ -167,39 +75,93 @@ class Tour
     };
 };
 
+class SolutionTracker
+{
+  public:
+    std::map<double, double> CurrentSolution;
+    std::map<double, double> BestSolution;
+    int iterations{0};
+
+
+    //Default constructor
+    SolutionTracker(){};
+
+    void UpdateCurrSolution(const double runtime, const double bound)
+    {
+        CurrentSolution.insert({runtime, bound});
+    }
+
+    void UpdateBestSolution(const double runtime, const double bound)
+    {
+        BestSolution.insert({runtime, bound});
+    }
+
+    void UpdateBothSolutions(const double runtime, const double bound){
+
+        BestSolution.insert({runtime, bound});
+        CurrentSolution.insert({runtime, bound});
+    }
+};
+
 class SolverStatistics
 {
   public:
-    double Runtime = -1.0;
-    double Gap = -1.0;
-    double NodeCount = -1;
-    double SimplexIterationCount = -1;
+    double ILSIterationCount = 0;
     size_t DeletedArcs = 0;
     size_t InfeasibleTailPathStart = 0;
-    CallbackTracker SubtourTracker;
     Helper::Timer Timer;
+    SolutionTracker solutionTracker;
 
-    SolverStatistics(double runtime,
-                     double gap,
-                     double nodeCount,
-                     double iterCount,
-                     CallbackTracker& subtourTracker,
-                     Helper::Timer& timer,
+    SolverStatistics(Helper::Timer& timer,
+                     SolutionTracker& solTracker,
                      size_t deletedArcs,
                      size_t infTailPathStart)
-    : Runtime(runtime),
-      Gap(gap),
-      NodeCount(nodeCount),
-      SimplexIterationCount(iterCount),
+    : ILSIterationCount(solTracker.iterations),
       DeletedArcs(deletedArcs),
       InfeasibleTailPathStart(infTailPathStart),
-      SubtourTracker(subtourTracker),
-      Timer(timer)
+      Timer(timer),
+      solutionTracker(solTracker)
     {
     }
 };
 
+
 class Solution
+{
+  public: 
+    double Costs = 0.0; 
+    size_t NumberOfRoutes = 0;
+
+    std::vector<Route> Routes; 
+
+    Solution() = default;
+
+    void DetermineCosts(Instance* instance)
+    {
+        Costs = 0;
+        for (const auto& route: Routes)
+        {
+            Costs += Evaluator::CalculateRouteCosts(instance, route.Sequence);
+        }
+    };
+
+    void DeterminWeightsVolumes(Instance* instance)
+    {
+        for (auto& route: Routes)
+        {   
+            route.TotalVolume = 0;
+            route.TotalWeight = 0;
+
+            for (const auto& node_Id: route.Sequence){
+                
+                route.TotalVolume += instance->Nodes[node_Id].TotalVolume;
+                route.TotalWeight += instance->Nodes[node_Id].TotalWeight;
+            }
+        }
+    };
+};
+
+class OutputSolution
 {
   public:
     double Costs = 0.0;
@@ -209,7 +171,35 @@ class Solution
 
     std::vector<Tour> Tours;
 
-    Solution() = default;
+    OutputSolution() = default;
+    OutputSolution(const std::vector<Tour>& tours, double costs, size_t numberOfRoutes, size_t lowerBoundVehicles)
+    : Tours(tours), Costs(costs), NumberOfRoutes(numberOfRoutes), LowerBoundVehicles(lowerBoundVehicles)
+    {
+    }
+
+    OutputSolution(const Solution& solution,Instance* instance)
+    : Costs(solution.Costs), NumberOfRoutes(solution.Routes.size()), LowerBoundVehicles(instance->LowerBoundVehicles)
+    {
+
+      Tours.reserve(NumberOfRoutes);
+      int vehicleId = 0;
+      // TODO delete after debugging
+
+      for (const auto& route: solution.Routes)
+      { 
+
+          std::vector<Node> sequence;
+          sequence.reserve(route.Sequence.size());
+          for (const auto intern_id: route.Sequence)
+          {
+              sequence.emplace_back(instance->Nodes[intern_id]);
+          }
+
+          Vehicle& vehicle = instance->Vehicles[vehicleId];
+          Tours.emplace_back(instance->Nodes[instance->DepotIndex], vehicle, std::move(sequence));
+          ++vehicleId;
+      }
+  };
 
     void DetermineCosts(Instance* instance)
     {
@@ -221,17 +211,34 @@ class Solution
     };
 };
 
+//TODO if mCurrentSolutionArcs is needed, then add values to output solution format! 
+/*
+    for (const auto& route: mCurrentSolution.Routes)
+    {
+        mCurrentSolutionArcs.emplace_back(1.0, mInstance->GetDepotId(), route.Sequence.front());
+
+        for (size_t iNode = 0; iNode < route.Sequence.size() - 1; ++iNode)
+        {
+            auto nodeA = route.Sequence[iNode];
+            auto nodeB = route.Sequence[iNode + 1];
+            mCurrentSolutionArcs.emplace_back(1.0, nodeA, nodeB);
+        }
+
+        mCurrentSolutionArcs.emplace_back(1.0, route.Sequence.back(), mInstance->GetDepotId());
+    }
+*/
+
 class SolutionFile
 {
   public:
     VehicleRouting::InputParameters InputParameters;
     Model::SolverStatistics SolverStatistics;
-    Model::Solution Solution;
+    Model::OutputSolution OutputSolution;
 
     SolutionFile(VehicleRouting::InputParameters& inputParameters,
                  Model::SolverStatistics& statistics,
-                 Model::Solution& solution)
-    : InputParameters(inputParameters), SolverStatistics(statistics), Solution(solution)
+                 Model::OutputSolution& outputSolution)
+    : InputParameters(inputParameters), SolverStatistics(statistics), OutputSolution(outputSolution)
     {
     }
 };
