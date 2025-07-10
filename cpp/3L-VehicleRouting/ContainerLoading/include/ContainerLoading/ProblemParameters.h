@@ -2,11 +2,13 @@
 
 #include "Algorithms/CPSolverParameters.h"
 #include "Algorithms/LoadingStatus.h"
+#include "Algorithms/ClassifierParameters.h"
 
 #include <limits>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+
 namespace ContainerLoading
 {
 using namespace Algorithms;
@@ -168,6 +170,7 @@ struct ContainerLoadingParams
 {
     CPSolverParams CPSolver;
     LoadingProblemParams LoadingProblem;
+    ClassifierParams classifierParams;
     BranchAndCutParameters BranchAndCut;
 
    [[nodiscard]] double DetermineMaxRuntime(BranchAndCutParameters::CallType callType,

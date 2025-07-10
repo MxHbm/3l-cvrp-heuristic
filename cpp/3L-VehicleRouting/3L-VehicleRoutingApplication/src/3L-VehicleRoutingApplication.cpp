@@ -82,7 +82,6 @@ void Run(std::string& inputFilePath,
 
     // TODO: parametrize
     std::string startSolutionPath = inputFilePath + "../StartSolutions/Zhang/ConvertedSolutions/";
-    inputParameters.MIPSolver.Seed += seedOffset;
 
     for (int i = 0; i < 1; ++i)
     {
@@ -90,7 +89,6 @@ void Run(std::string& inputFilePath,
         {
             //std::cout << "Run: " << i << "\n";
             GRBEnv env = GRBEnv(outputPath + "/" + instance.Name + ".LOG");
-            inputParameters.MIPSolver.Seed += i;
             IteratedLocalSearch ILS_heuristic(&instance, &env, inputParameters, startSolutionPath, outputPath);
             ILS_heuristic.Solve();
         }

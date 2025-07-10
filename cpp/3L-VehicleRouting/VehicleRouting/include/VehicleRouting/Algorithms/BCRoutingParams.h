@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ContainerLoading/ProblemParameters.h"
-
 #include <unordered_map>
 
 // NOLINTBEGIN(readability-magic-numbers)
@@ -29,20 +28,6 @@ enum class PerturbationTypes
     K_RandomSwaps
 };
 
-struct MIPSolverParams
-{
-  public:
-    int Threads = 8;
-    double Seed = 100;
-    int EnableLazyConstraints = 1;
-    int DisablePreCrush = 1;
-    int CutGeneration = -1;
-    int NumericFocus = 0;
-    double TimeLimit = 12.0 * 3600.0;
-    int MaxSolutions = std::numeric_limits<int>::max();
-
-    MIPSolverParams() = default;
-};
 
 struct IteratedLocalSearchParams
 {
@@ -88,7 +73,7 @@ struct IteratedLocalSearchParams
 class InputParameters
 {
   public:
-    MIPSolverParams MIPSolver;
+
     IteratedLocalSearchParams IteratedLocalSearch;
     ContainerLoadingParams ContainerLoading;
 

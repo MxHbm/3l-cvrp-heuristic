@@ -30,6 +30,11 @@
             ]
         ]
     },
+    "ClassifierParams": {
+        "TracedModelPath": "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/mlp_cp_status_model_traced.pt",
+        "SerializeJson_MeanStd" : "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/mlp_input_scaling.json",
+        "UseClassifier": true
+    },
     "CPSolverParams": {
         "EnableCumulativeDimensions": false,
         "EnableNoOverlap2DFloor": false,

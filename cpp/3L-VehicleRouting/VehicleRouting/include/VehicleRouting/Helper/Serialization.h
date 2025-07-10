@@ -14,7 +14,7 @@ class Timer;
 struct IteratedLocalSearchParams;
 struct CPSolverParams;
 struct LoadingProblemParams;
-struct PackingParameters;
+struct ClassifierParams;
 
 class InputParameters;
 
@@ -42,6 +42,10 @@ namespace Algorithms
 {
 void from_json(const json& j, CPSolverParams& params);
 void to_json(json& j, const CPSolverParams& params);
+
+void from_json(const json& j, ClassifierParams& params);
+void to_json(json& j, const ClassifierParams& params);
+
 }
 }
 
