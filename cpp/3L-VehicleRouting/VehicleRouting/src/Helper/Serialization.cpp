@@ -97,29 +97,6 @@ namespace VehicleRouting
 {
 namespace Algorithms
 {
-void from_json(const json& j, MIPSolverParams& params)
-{
-    j.at("Threads").get_to(params.Threads);
-    j.at("Seed").get_to(params.Seed);
-    j.at("EnableLazyConstraints").get_to(params.EnableLazyConstraints);
-    j.at("DisablePreCrush").get_to(params.DisablePreCrush);
-    j.at("CutGeneration").get_to(params.CutGeneration);
-    j.at("NumericFocus").get_to(params.NumericFocus);
-    j.at("TimeLimit").get_to(params.TimeLimit);
-    j.at("SolutionLimit").get_to(params.MaxSolutions);
-}
-
-void to_json(json& j, const MIPSolverParams& params)
-{
-    j = json{{"Threads", params.Threads},
-             {"Seed", params.Seed},
-             {"EnableLazyConstraints", params.EnableLazyConstraints},
-             {"DisablePreCrush", params.DisablePreCrush},
-             {"CutGeneration", params.CutGeneration},
-             {"NumericFocus", params.NumericFocus},
-             {"TimeLimit", params.TimeLimit},
-             {"SolutionLimit", params.MaxSolutions}};
-}
 
 void from_json(const json& j, IteratedLocalSearchParams& params)
 {
@@ -158,7 +135,6 @@ void to_json(json& j, const IteratedLocalSearchParams& params)
 void from_json(const json& j, InputParameters& inputParameters)
 {
     j.at("LoadingProblemParams").get_to(inputParameters.ContainerLoading.LoadingProblem);
-    j.at("MIPSolverParams").get_to(inputParameters.MIPSolver);
     j.at("IteratedLocalSearchParams").get_to(inputParameters.IteratedLocalSearch);
     j.at("CPSolverParams").get_to(inputParameters.ContainerLoading.CPSolver);
 }
@@ -166,7 +142,6 @@ void from_json(const json& j, InputParameters& inputParameters)
 void to_json(json& j, const InputParameters& inputParameters)
 {
     j = json{{"LoadingProblemParams", inputParameters.ContainerLoading.LoadingProblem},
-             {"MIPSolverParams", inputParameters.MIPSolver},
              {"IteratedLocalSearchParams", inputParameters.IteratedLocalSearch},
              {"CPSolverParams", inputParameters.ContainerLoading.CPSolver}};
 }

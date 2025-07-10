@@ -37,16 +37,6 @@
         "Seed": 1000,
         "Threads": 8
     },
-    "MIPSolverParams": {
-        "CutGeneration": -1,
-        "DisablePreCrush": 1,
-        "EnableLazyConstraints": 1,
-        "NumericFocus": 0,
-        "Seed": 0,
-        "SolutionLimit": 10000,
-        "Threads": 2,
-        "TimeLimit": 120
-    },
     "LoadingProblemParams":{
     "ProblemVariant": "AllConstraints",
     "SupportArea": 0.75

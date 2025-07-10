@@ -5,6 +5,9 @@ build/
 data/output/3l-cvrp/test/
 data/input/model
 
+.vscode/
+assets/
+
 # python
 python/visualization/__pycache__/
 python/.venv/

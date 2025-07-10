@@ -11,7 +11,6 @@ using json = nlohmann::json;
 
 class Timer;
 
-struct MIPSolverParams;
 struct IteratedLocalSearchParams;
 struct CPSolverParams;
 struct LoadingProblemParams;
@@ -25,9 +24,6 @@ namespace Algorithms
 {
 void from_json(const json& j, IteratedLocalSearchParams& params);
 void to_json(json& j, const IteratedLocalSearchParams& params);
-
-void from_json(const json& j, MIPSolverParams& params);
-void to_json(json& j, const MIPSolverParams& params);
 
 void from_json(const json& j, InputParameters& inputParameters);
 void to_json(json& j, const InputParameters& inputParameters);
