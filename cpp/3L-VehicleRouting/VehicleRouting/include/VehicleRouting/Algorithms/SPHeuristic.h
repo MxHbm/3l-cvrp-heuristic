@@ -13,8 +13,6 @@ namespace VehicleRouting
 using namespace Model;
 namespace Algorithms
 {
-namespace Heuristics
-{
 namespace SetBased
 {
 using namespace ContainerLoading;
@@ -46,7 +44,6 @@ class SPHeuristic
     void AddNewRoutes(auto& routes);
 };
 
-}
 }
 }
 }

@@ -1,4 +1,4 @@
-#include "Algorithms/Heuristics/FullEnumerationSearch.h"
+#include "Improvement/FullEnumerationSearch.h"
 
 #include <algorithm>
 
@@ -6,10 +6,6 @@
 #include "Algorithms/LoadingInterfaceServices.h"
 
 namespace VehicleRouting
-{
-namespace Algorithms
-{
-namespace Heuristics
 {
 namespace Improvement
 {
@@ -88,7 +84,5 @@ void FullEnumerationSearch::Run(const Instance* const instance,
     }
 }
 
-}
-}
 }
 }

@@ -14,8 +14,6 @@ using namespace Model;
 
 namespace Algorithms
 {
-namespace Heuristics
-{
 namespace Constructive
 {
 using namespace ContainerLoading;
@@ -69,7 +67,6 @@ class ModifiedSavings
     bool InsertionFeasible(Route& route, size_t nodeToInsert, size_t position);
 };
 
-}
 }
 }
 }

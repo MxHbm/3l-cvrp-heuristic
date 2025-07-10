@@ -6,8 +6,8 @@
 #include "ContainerLoading/Algorithms/LoadingStatus.h"
 #include "ContainerLoading/Helper/HelperIO.h"
 
-#include "Algorithms/Heuristics/Constructive.h"
-#include "Algorithms/Heuristics/LocalSearch.h"
+#include "Algorithms/Constructive.h"
+#include "Improvement/LocalSearch.h"
 //#include "Algorithms/Heuristics/SPHeuristic.h"
 #include "Helper/HelperIO.h"
 #include "Helper/Serialization.h"
@@ -28,7 +28,7 @@ namespace Algorithms
 namespace CLP = ContainerLoading;
 using namespace ContainerLoading;
 using namespace ContainerLoading::Algorithms;
-using namespace Heuristics::Improvement;
+using namespace Improvement;
 using namespace Helper;
 
 void IteratedLocalSearch::Initialize()
@@ -207,7 +207,7 @@ void IteratedLocalSearch::StartSolutionProcedure()
 void IteratedLocalSearch::GenerateStartSolutionSavings()
 {
     mCurrentSolution.Routes =
-        Heuristics::Constructive::ModifiedSavings(mInstance, &mInputParameters, mLoadingChecker.get(), &mRNG).Run();
+        Constructive::ModifiedSavings(mInstance, &mInputParameters, mLoadingChecker.get(), &mRNG).Run();
 
     //TODO what should i do with these values? 
     

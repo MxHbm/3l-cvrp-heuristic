@@ -1,4 +1,4 @@
-#include "Algorithms/Heuristics/Constructive.h"
+#include "Algorithms/Constructive.h"
 
 #include <algorithm>
 
@@ -9,8 +9,6 @@
 namespace VehicleRouting
 {
 namespace Algorithms
-{
-namespace Heuristics
 {
 namespace Constructive
 {
@@ -374,7 +372,6 @@ bool ModifiedSavings::InsertionFeasible(Route& route, size_t nodeToInsert, size_
     return true;
 }
 
-}
 }
 }
 }

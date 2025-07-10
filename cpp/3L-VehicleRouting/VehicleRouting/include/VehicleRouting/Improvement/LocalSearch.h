@@ -7,20 +7,16 @@
 #include "Model/Solution.h"
 #include "Algorithms/BCRoutingParams.h"
 
-#include "Algorithms/Heuristics/FullEnumerationSearch.h"
-#include "Algorithms/Heuristics/TwoOpt.h"
-#include "Algorithms/Heuristics/InterSwap.h"
-#include "Algorithms/Heuristics/IntraSwap.h"
-#include "Algorithms/Heuristics/K_RandomSwaps.h"
+#include "Improvement/FullEnumerationSearch.h"
+#include "Improvement/TwoOpt.h"
+#include "Improvement/InterSwap.h"
+#include "Improvement/IntraSwap.h"
+#include "Improvement/K_RandomSwaps.h"
 
 namespace VehicleRouting
 {
 using namespace Model;
 
-namespace Algorithms
-{
-namespace Heuristics
-{
 namespace Improvement
 {
 class LocalSearch
@@ -86,7 +82,5 @@ class LocalSearch
     }
 };
 
-}
-}
 }
 }

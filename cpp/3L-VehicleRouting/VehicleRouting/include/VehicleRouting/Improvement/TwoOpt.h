@@ -10,12 +10,9 @@ namespace VehicleRouting
 {
 using namespace Model;
 
-namespace Algorithms
-{
-namespace Heuristics
-{
 namespace Improvement
 {
+
 using namespace ContainerLoading;
 
 using Move = std::tuple<double, size_t, size_t>;
@@ -40,7 +37,5 @@ class TwoOpt
     static void ChangeRoutes(Collections::IdVector& route, size_t i, size_t k);
 };
 
-}
-}
 }
 }

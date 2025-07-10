@@ -1,4 +1,4 @@
-#include "Algorithms/Heuristics/IntraSwap.h"
+#include "Improvement/IntraSwap.h"
 #include "Algorithms/Evaluation.h"
 #include "Algorithms/LoadingInterfaceServices.h"
 #include "CommonBasics/Helper/ModelServices.h"
@@ -6,10 +6,6 @@
 #include <algorithm>
 
 namespace VehicleRouting
-{
-namespace Algorithms
-{
-namespace Heuristics
 {
 namespace Improvement
 {
@@ -126,7 +122,5 @@ void IntraSwap::ChangeRoutes(Collections::IdVector& route, const size_t node_i, 
     std::swap(route[node_i], route[node_k]);
 }
 
-}
-}
 }
 }

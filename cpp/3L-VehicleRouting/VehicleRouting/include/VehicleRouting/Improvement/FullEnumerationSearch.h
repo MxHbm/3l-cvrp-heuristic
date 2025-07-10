@@ -9,10 +9,6 @@ namespace VehicleRouting
 {
 using namespace Model;
 
-namespace Algorithms
-{
-namespace Heuristics
-{
 namespace Improvement
 {
 using namespace ContainerLoading;
@@ -26,7 +22,5 @@ class FullEnumerationSearch
                     Solution& currentSolution);
 };
 
-}
-}
 }
 }

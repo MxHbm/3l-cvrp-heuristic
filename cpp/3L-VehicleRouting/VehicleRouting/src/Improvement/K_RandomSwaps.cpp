@@ -1,4 +1,4 @@
-#include "Algorithms/Heuristics/K_RandomSwaps.h"
+#include "Improvement/K_RandomSwaps.h"
 #include "Algorithms/Evaluation.h"
 #include "Algorithms/LoadingInterfaceServices.h"
 #include "CommonBasics/Helper/ModelServices.h"
@@ -7,10 +7,6 @@
 #include <algorithm>
 
 namespace VehicleRouting
-{
-namespace Algorithms
-{
-namespace Heuristics
 {
 namespace Improvement
 {
@@ -182,8 +178,6 @@ void K_RandomSwaps::ChangeRoutes(std::vector<Route>& routes, const InterSwapMove
 
     std::swap(route_i.Sequence[node_i], route_k.Sequence[node_k]);
     
-}
-}
 }
 }
 }

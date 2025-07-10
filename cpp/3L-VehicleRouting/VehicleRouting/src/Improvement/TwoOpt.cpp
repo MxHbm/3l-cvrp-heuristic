@@ -1,4 +1,4 @@
-#include "Algorithms/Heuristics/TwoOpt.h"
+#include "Improvement/TwoOpt.h"
 #include "Algorithms/Evaluation.h"
 #include "Algorithms/LoadingInterfaceServices.h"
 #include "CommonBasics/Helper/ModelServices.h"
@@ -8,10 +8,6 @@
 #include <algorithm>
 
 namespace VehicleRouting
-{
-namespace Algorithms
-{
-namespace Heuristics
 {
 namespace Improvement
 {
@@ -131,7 +127,5 @@ void TwoOpt::ChangeRoutes(Collections::IdVector& route, size_t i, size_t k)
     
 }
 
-}
-}
 }
 }
