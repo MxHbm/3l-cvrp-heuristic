@@ -124,7 +124,6 @@ double IntraSwap::GetBestMove(const Instance* const instance,
 void IntraSwap::ChangeRoutes(Collections::IdVector& route, const size_t node_i, const size_t node_k)
 {
     std::swap(route[node_i], route[node_k]);
-    
 }
 
 }

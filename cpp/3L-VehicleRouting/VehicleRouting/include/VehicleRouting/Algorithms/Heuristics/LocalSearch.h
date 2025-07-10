@@ -44,6 +44,7 @@ class LocalSearch
                     break;
 
                 case LocalSearchTypes::IntraSwap:
+                    IntraSwap::Run(instance, *inputParameters, loadingChecker, currentSolution);
                     break;
 
                 case LocalSearchTypes::FullEnumeration:

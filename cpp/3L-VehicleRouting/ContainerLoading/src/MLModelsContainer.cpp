@@ -22,15 +22,16 @@ void MLModelsContainer::loadStandardScalingFromJson(const std::string& scaler_pa
     std::vector<double> std_vec = j["std"];
 
     mean_tensor = torch::tensor(mean_vec, torch::kFloat32).unsqueeze(0); // shape: [1, N]
-    std_tensor = torch::tensor(std_vec, torch::kFloat32).unsqueeze(0);   // shape: [1, N]
+    std_tensor = torch::tensor(std_vec, torch::kFloat32).unsqueeze(0);   // shape: s[1, N]
 }
 
-MLModelsContainer::MLModelsContainer(const std::string& model_path,
-                                     const std::string& scaler_path) {
-    model = torch::jit::load(model_path);
+MLModelsContainer::MLModelsContainer(const ClassifierParams& classifierParams){
+
+    model = torch::jit::load(classifierParams.TracedModelPath);
     model.eval();
 
-    loadStandardScalingFromJson(scaler_path);
+    loadStandardScalingFromJson(classifierParams.SerializeJson_MeanStd);
+
 }
 
 torch::Tensor MLModelsContainer::applyStandardScaling(const torch::Tensor& input) const{

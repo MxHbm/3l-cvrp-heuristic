@@ -2,9 +2,12 @@
 #pragma once
 
 #include <torch/script.h>
+#include <vector>
+
+
 #include "CommonBasics/Helper/ModelServices.h"
 #include "Model/ContainerLoadingInstance.h"
-#include <vector>
+#include "ProblemParameters.h"
 
 namespace ContainerLoading {
 
@@ -15,8 +18,7 @@ namespace Classifier {
 class MLModelsContainer {
 public:
 
-    MLModelsContainer(const std::string& model_path,
-                      const std::string& scaler_path);
+    MLModelsContainer(const ClassifierParams& classifierParams);
 
     // Output: classification probability (0–1)
     float classify(const std::vector<Cuboid>& items,

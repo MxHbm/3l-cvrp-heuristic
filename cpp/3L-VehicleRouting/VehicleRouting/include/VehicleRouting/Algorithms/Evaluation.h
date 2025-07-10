@@ -73,13 +73,13 @@ class Evaluator
 
 
         double savings = instance->Distance(internID_precNodeA, interID_B)
-                         + instance->Distance(interID_B, internID_succNodeA)
-                         + instance->Distance(internID_precNodeB, interID_A)
-                         + instance->Distance(interID_A, internID_succNodeB)
-                         - instance->Distance(internID_precNodeA, interID_A) 
-                         - instance->Distance(interID_A, internID_succNodeA)
-                         - instance->Distance(internID_precNodeB, interID_B)
-                         - instance->Distance(interID_B, internID_succNodeB);
+                        + instance->Distance(interID_B, internID_succNodeA)
+                        + instance->Distance(internID_precNodeB, interID_A)
+                        + instance->Distance(interID_A, internID_succNodeB)
+                        - instance->Distance(internID_precNodeA, interID_A) 
+                        - instance->Distance(interID_A, internID_succNodeA)
+                        - instance->Distance(internID_precNodeB, interID_B)
+                        - instance->Distance(interID_B, internID_succNodeB);
 
         return savings;
     }  
@@ -97,18 +97,26 @@ class Evaluator
         auto internID_precNodeB = (nodeB == 0) ? instance->GetDepotId() : route[nodeB - 1];
         auto internID_succNodeB = (nodeB == route.size() - 1) ? instance->GetDepotId() : route[nodeB + 1];
 
+        auto savings{0.0};
 
-        double savings =   instance->Distance(internID_precNodeA, interID_B)
-                         + instance->Distance(interID_B, internID_succNodeA)
-                         + instance->Distance(internID_precNodeB, interID_A)
-                         + instance->Distance(interID_A, internID_succNodeB)
-                         - instance->Distance(internID_precNodeA, interID_A) 
-                         - instance->Distance(interID_A, internID_succNodeA)
-                         - instance->Distance(internID_precNodeB, interID_B)
-                         - instance->Distance(interID_B, internID_succNodeB);
+        if(nodeB - nodeA <= 2){
+            savings = instance->Distance(internID_precNodeA, interID_B)
+                        + instance->Distance(interID_A, internID_succNodeB)
+                        - instance->Distance(internID_precNodeA, interID_A) 
+                        - instance->Distance(interID_B, internID_succNodeB);
+        }else{ 
+            savings = instance->Distance(internID_precNodeA, interID_B)
+                        + instance->Distance(interID_B, internID_succNodeA)
+                        + instance->Distance(internID_precNodeB, interID_A)
+                        + instance->Distance(interID_A, internID_succNodeB)
+                        - instance->Distance(internID_precNodeA, interID_A) 
+                        - instance->Distance(interID_A, internID_succNodeA)
+                        - instance->Distance(internID_precNodeB, interID_B)
+                        - instance->Distance(interID_B, internID_succNodeB);
 
         return savings;
-    }  
+    } 
+    }
 
     static double CalculateTwoOptDelta(const Instance* const instance,
                                         const Collections::IdVector& route,
