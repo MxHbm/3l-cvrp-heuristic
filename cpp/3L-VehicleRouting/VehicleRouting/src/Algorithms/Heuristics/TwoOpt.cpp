@@ -38,11 +38,11 @@ void TwoOpt::Run(const Instance* const instance,
         {
             auto moves = DetermineMoves(instance, route.Sequence);
             auto savings = GetBestMove(instance, inputParameters, loadingChecker, route.Sequence, moves);
-            if (savings >= 0.0){
+            if (!savings){
                 break;
             }else{
                 loadingChecker->AddSequenceCheckedTwoOpt(route.Sequence);
-                currentSolution.Costs += savings;
+                currentSolution.Costs += *savings;
             }
         }
     }
@@ -71,18 +71,16 @@ std::vector<Move> TwoOpt::DetermineMoves(const Instance* const instance,
     return moves;
 }
 
-double TwoOpt::GetBestMove(const Instance* const instance,
+std::optional<double> TwoOpt::GetBestMove(const Instance* const instance,
                                             const InputParameters& inputParameters,
                                             LoadingChecker* loadingChecker,
                                             Collections::IdVector& route,
                                             std::vector<Move>& moves)
     {
 
-    auto default_return = 0.0; 
-
     if (moves.size() == 0)
     {
-        return default_return;
+        return  std::nullopt;
     }
 
     std::ranges::sort(moves, [](const auto& a, const auto& b) {
@@ -123,7 +121,7 @@ double TwoOpt::GetBestMove(const Instance* const instance,
         ChangeRoutes(route, std::get<1>(move), std::get<2>(move));
     }
 
-    return default_return;
+        return  std::nullopt;
 }
 
 

@@ -33,11 +33,11 @@ void InterSwap::Run(const Instance* const instance,
         auto moves = DetermineMoves(instance, routes);
         auto savings = GetBestMove(instance, inputParameters, loadingChecker, routes, moves);
 
-        if(savings >= 0.0){
+        if(!savings){
             break;
+        }else{
+            currentSolution.Costs += *savings;
         }
-        
-        currentSolution.Costs += savings;
     }
 
     return;
@@ -101,18 +101,16 @@ std::vector<InterSwapMove> InterSwap::DetermineMoves(const Instance* const insta
 }
 
 
-double InterSwap::GetBestMove(const Instance* const instance,
+std::optional<double> InterSwap::GetBestMove(const Instance* const instance,
                             const InputParameters& inputParameters,
                             LoadingChecker* loadingChecker,
                             std::vector<Route>& routes,
                             std::vector<InterSwapMove>& moves)
 {
-    
-    auto default_return = 0.0;
 
     if (moves.size() == 0)
     {
-        return default_return;
+        return std::nullopt;
     }
 
     std::ranges::sort(moves, [](const auto& a, const auto& b) {
@@ -174,7 +172,7 @@ double InterSwap::GetBestMove(const Instance* const instance,
         return std::get<0>(move);
     }
 
-    return default_return;
+    return std::nullopt;
 }
 
 void InterSwap::UpdateRouteVolumeWeight(std::vector<Route>& routes, const InterSwapMove& move){

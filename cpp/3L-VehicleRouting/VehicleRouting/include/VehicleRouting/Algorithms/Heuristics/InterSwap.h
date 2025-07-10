@@ -33,11 +33,11 @@ class InterSwap
   private:
     static std::vector<InterSwapMove> DetermineMoves(const Instance* instance,
                                                      const std::vector<Route>& routes);
-    static double GetBestMove(const Instance* instance,
-                      const InputParameters& inputParameters,
-                      LoadingChecker* loadingChecker,
-                      std::vector<Route>& routes,
-                      std::vector<InterSwapMove>& moves);
+    static std::optional<double> GetBestMove(const Instance* instance,
+                                            const InputParameters& inputParameters,
+                                            LoadingChecker* loadingChecker,
+                                            std::vector<Route>& routes,
+                                            std::vector<InterSwapMove>& moves);
 
     static void ChangeRoutes(std::vector<Route>& routes, const InterSwapMove& move);
 

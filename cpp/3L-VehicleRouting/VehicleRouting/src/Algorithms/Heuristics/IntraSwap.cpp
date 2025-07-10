@@ -28,14 +28,15 @@ void IntraSwap::Run(const Instance* const instance,
             continue;
         }
 
-        while (true)
-        {
+        while(true){
+
             auto moves = DetermineMoves(instance, route.Sequence);
             auto savings = GetBestMove(instance, inputParameters, loadingChecker, route.Sequence, moves);
-            if (savings >= 0.0){
+
+            if(!savings){
                 break;
             }else{
-                currentSolution.Costs += savings;
+                currentSolution.Costs += *savings;
             }
         }
     }
@@ -67,17 +68,16 @@ std::vector<Move> IntraSwap::DetermineMoves(const Instance* const instance,
 }
 
 
-double IntraSwap::GetBestMove(const Instance* const instance,
+std::optional<double> IntraSwap::GetBestMove(const Instance* const instance,
                              const InputParameters& inputParameters,
                              LoadingChecker* loadingChecker,
                              Collections::IdVector& route,
                              std::vector<Move>& moves){
 
-    auto default_return = 0.0; 
 
     if (moves.size() == 0)
     {
-        return default_return;
+        return std::nullopt;
     }
 
     std::ranges::sort(moves, [](const auto& a, const auto& b) {
@@ -118,7 +118,7 @@ double IntraSwap::GetBestMove(const Instance* const instance,
         ChangeRoutes(route, std::get<1>(move), std::get<2>(move));
     }
 
-    return default_return;
+    return std::nullopt;
 }
 
 void IntraSwap::ChangeRoutes(Collections::IdVector& route, const size_t node_i, const size_t node_k)

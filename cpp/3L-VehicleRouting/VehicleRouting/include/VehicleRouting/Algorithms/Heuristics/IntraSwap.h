@@ -32,7 +32,7 @@ class IntraSwap
 
   private:
     static std::vector<Move> DetermineMoves(const Instance* instance, const Collections::IdVector& route);
-    static double GetBestMove(const Instance* instance,
+    static std::optional<double> GetBestMove(const Instance* instance,
                                            const InputParameters& inputParameters,
                                            LoadingChecker* loadingChecker,
                                            Collections::IdVector& route,
