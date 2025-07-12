@@ -1,9 +1,5 @@
-#include "Improvement/InterSwap.h"
-#include "Algorithms/Evaluation.h"
-#include "Algorithms/LoadingInterfaceServices.h"
-#include "CommonBasics/Helper/ModelServices.h"
 
-#include <algorithm>
+#include "Improvement/InterSwap.h"
 
 namespace VehicleRouting
 {
@@ -11,40 +7,12 @@ namespace Improvement
 {
 using namespace ContainerLoading;
 
-void InterSwap::Run(const Instance* const instance,
-                    const InputParameters& inputParameters,
-                    LoadingChecker* loadingChecker,
-                    Solution& currentSolution)
-{
 
-    std::vector<Route>& routes = currentSolution.Routes;
-
-    if (routes.size() < 2)
-    {
-        return;
-    }
-
-    while(true){
-
-        auto moves = DetermineMoves(instance, routes);
-        auto savings = GetBestMove(instance, inputParameters, loadingChecker, routes, moves);
-
-        if(!savings){
-            break;
-        }else{
-            currentSolution.Costs += *savings;
-        }
-    }
-
-    return;
-       
-}
-
-std::vector<InterSwapMove> InterSwap::DetermineMoves(const Instance* const instance,
+std::vector<InterMove> InterSwap::DetermineMoves(const Instance* const instance,
                                                      const std::vector<Route>& routes)
 {
 
-    std::vector<InterSwapMove> moves{};
+    std::vector<InterMove> moves{};
     const auto container_weight_limit = instance->Vehicles.front().Containers.front().WeightLimit;
     const auto container_volume_limit = instance->Vehicles.front().Containers.front().Volume;
 
@@ -97,96 +65,7 @@ std::vector<InterSwapMove> InterSwap::DetermineMoves(const Instance* const insta
 }
 
 
-std::optional<double> InterSwap::GetBestMove(const Instance* const instance,
-                            const InputParameters& inputParameters,
-                            LoadingChecker* loadingChecker,
-                            std::vector<Route>& routes,
-                            std::vector<InterSwapMove>& moves)
-{
-
-    if (moves.size() == 0)
-    {
-        return std::nullopt;
-    }
-
-    std::ranges::sort(moves, [](const auto& a, const auto& b) {
-        return std::get<0>(a) < std::get<0>(b);  // sort by savings ascending
-    });
-    
-    //TODO - Create Bitset for all the two routes!
-    //auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route);
-
-    //Initiate variables before loop
-    const double maxRuntime = inputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
-    const auto& container = instance->Vehicles.front().Containers.front();
-
-    for (const auto& move: moves)
-    {
-        bool controlFlag = true;
-        
-
-        if (loadingChecker->Parameters.LoadingProblem.LoadingFlags == LoadingFlag::NoneSet)
-        {
-            UpdateRouteVolumeWeight(routes, move);
-            return std::get<0>(move);
-        }
-
-        ChangeRoutes(routes, move);
-
-
-        for(auto& route_index : {std::get<1>(move), std::get<2>(move)})
-        {
-            auto& route = routes[route_index];
-            auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
-            
-            // If lifo is disabled, feasibility of route is independent from actual sequence
-            // -> move is always feasible if route is feasible
-            if (!loadingChecker->Parameters.LoadingProblem.EnableLifo && loadingChecker->RouteIsInFeasSequences(route.Sequence))
-            {
-                UpdateRouteVolumeWeight(routes, move);
-                return std::get<0>(move);
-            }
-
-            auto selectedItems = InterfaceConversions::SelectItems(route.Sequence, instance->Nodes, false);
-            auto status = loadingChecker->HeuristicCompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
-
-            if (status != LoadingStatus::FeasOpt)
-            {
-               controlFlag = false;
-               break;
-            }
-
-        }
-        // Change routes back if not feasible!
-        if (!controlFlag)
-        {
-            ChangeRoutes(routes, move);
-            continue;
-        }
-
-        UpdateRouteVolumeWeight(routes, move);
-        return std::get<0>(move);
-    }
-
-    return std::nullopt;
-}
-
-void InterSwap::UpdateRouteVolumeWeight(std::vector<Route>& routes, const InterSwapMove& move){
-
-    const auto item_delta = std::get<5>(move);
-    const auto volume_delta = std::get<6>(move);
-
-    auto& route_i = routes[std::get<1>(move)];
-    auto& route_k = routes[std::get<2>(move)];
-
-    route_i.TotalWeight -= item_delta;
-    route_k.TotalWeight += item_delta;
-    route_i.TotalVolume -= volume_delta;
-    route_k.TotalVolume += volume_delta;
-}
-
-
-void InterSwap::ChangeRoutes(std::vector<Route>& routes, const InterSwapMove& move)
+void InterSwap::ChangeRoutes(std::vector<Route>& routes, const InterMove& move)
 {
 
     auto node_i = std::get<3>(move);
@@ -197,6 +76,20 @@ void InterSwap::ChangeRoutes(std::vector<Route>& routes, const InterSwapMove& mo
 
     std::swap(route_i.Sequence[node_i], route_k.Sequence[node_k]);
     
-}
+};
+
+void InterSwap::RevertChangeRoutes(std::vector<Route>& routes, const InterMove& move)
+{
+
+    auto node_i = std::get<3>(move);
+    auto node_k = std::get<4>(move);
+
+    auto& route_i = routes[std::get<1>(move)];
+    auto& route_k = routes[std::get<2>(move)];
+
+    std::swap(route_i.Sequence[node_i], route_k.Sequence[node_k]);
+    
+};
+
 }
 }

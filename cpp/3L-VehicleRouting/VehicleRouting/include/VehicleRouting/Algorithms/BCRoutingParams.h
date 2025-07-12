@@ -19,13 +19,15 @@ enum class LocalSearchTypes
     TwoOpt,
     InterSwap,
     IntraSwap,
-    FullEnumeration
+    FullEnumeration,
+    Insertion
 };
 
 enum class PerturbationTypes
 {
     None,
-    K_RandomSwaps
+    K_RandomSwaps,
+    K_RandomInsertions
 };
 
 

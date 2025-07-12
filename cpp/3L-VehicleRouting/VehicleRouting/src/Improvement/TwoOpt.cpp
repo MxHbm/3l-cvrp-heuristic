@@ -1,10 +1,4 @@
 #include "Improvement/TwoOpt.h"
-#include "Algorithms/Evaluation.h"
-#include "Algorithms/LoadingInterfaceServices.h"
-#include "CommonBasics/Helper/ModelServices.h"
-
-
-
 #include <algorithm>
 
 namespace VehicleRouting
@@ -13,6 +7,43 @@ namespace Improvement
 {
 using namespace ContainerLoading;
 
+std::vector<IntraMove> TwoOpt::DetermineMoves(const Instance* const instance,
+                                               const Collections::IdVector& route)
+{
+    std::vector<IntraMove> moves = std::vector<IntraMove>();
+    auto savings = 0.0; 
+
+    for (size_t i = 0; i < route.size() - 1; ++i)
+    {
+        for (size_t k = i + 1; k < route.size(); ++k)
+        {
+
+            savings = Evaluator::CalculateTwoOptDelta(instance, route, i, k);
+
+            if (savings < -1e-6)
+            {
+                moves.emplace_back(savings, i, k);
+            }
+        }
+    }
+
+    return moves;
+}
+
+
+
+void TwoOpt::ChangeRoute(Collections::IdVector& route, size_t i, size_t k)
+{
+    std::reverse(route.begin() + i, route.begin() + k + 1);
+    
+}
+
+}
+}
+
+
+//TODO: Old Run method --> discuss with Florian linß if important to keep
+/*
 void TwoOpt::Run(const Instance* const instance,
                  const InputParameters& inputParameters,
                  LoadingChecker* loadingChecker,
@@ -43,89 +74,4 @@ void TwoOpt::Run(const Instance* const instance,
         }
     }
 }
-
-std::vector<Move> TwoOpt::DetermineMoves(const Instance* const instance,
-                                               const Collections::IdVector& route)
-{
-    std::vector<Move> moves = std::vector<Move>();
-    auto savings = 0.0; 
-
-    for (size_t i = 0; i < route.size() - 1; ++i)
-    {
-        for (size_t k = i + 1; k < route.size(); ++k)
-        {
-
-            savings = Evaluator::CalculateTwoOptDelta(instance, route, i, k);
-
-            if (savings < -1e-6)
-            {
-                moves.emplace_back(savings, i, k);
-            }
-        }
-    }
-
-    return moves;
-}
-
-std::optional<double> TwoOpt::GetBestMove(const Instance* const instance,
-                                            const InputParameters& inputParameters,
-                                            LoadingChecker* loadingChecker,
-                                            Collections::IdVector& route,
-                                            std::vector<Move>& moves)
-    {
-
-    if (moves.size() == 0)
-    {
-        return  std::nullopt;
-    }
-
-    std::ranges::sort(moves, [](const auto& a, const auto& b) {
-        return std::get<0>(a) < std::get<0>(b);  // sort by savings ascending
-    });
-
-    auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route);
-
-    const auto& container = instance->Vehicles.front().Containers.front();
-    double maxRuntime = inputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
-
-    for (const auto& move: moves)
-    {
-
-        ChangeRoutes(route, std::get<1>(move), std::get<2>(move));
-
-        if (loadingChecker->Parameters.LoadingProblem.LoadingFlags == LoadingFlag::NoneSet)
-        {
-            return std::get<0>(move);
-        }
-
-        // If lifo is disabled, feasibility of route is independent from actual sequence
-        // -> move is always feasible if route is feasible
-        if (!loadingChecker->Parameters.LoadingProblem.EnableLifo && loadingChecker->RouteIsInFeasSequences(route))
-        {
-            return std::get<0>(move);
-        }
-
-        auto selectedItems = InterfaceConversions::SelectItems(route, instance->Nodes, false);
-        auto status = loadingChecker->HeuristicCompleteCheck(container, set, route, selectedItems, maxRuntime);
-
-        if (status == LoadingStatus::FeasOpt)
-        {
-            return std::get<0>(move);
-        }
-        
-        //Change routes back if it was not feasible! 
-        ChangeRoutes(route, std::get<1>(move), std::get<2>(move));
-    }
-
-        return  std::nullopt;
-}
-
-
-void TwoOpt::ChangeRoutes(Collections::IdVector& route, size_t i, size_t k)
-{
-    std::reverse(route.begin() + i, route.begin() + k + 1);
-    
-}
-
-}
-}
+*/

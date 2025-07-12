@@ -2,6 +2,7 @@
 
 #include "ContainerLoading/LoadingChecker.h"
 #include "ContainerLoading/MLModelsContainer.h"
+#include "Improvement/LocalSearch.h"
 
 #include "Helper/Timer.h"
 #include "Model/Instance.h"
@@ -25,10 +26,10 @@ class IteratedLocalSearch
 {
   public:
   IteratedLocalSearch(Instance* instance,
-                       GRBEnv* env,
-                       const VehicleRouting::InputParameters& inputParameters,
-                       const std::string& startSolutionFolderPath,
-                       const std::string& outputPath)
+                      GRBEnv* env,
+                      const VehicleRouting::InputParameters& inputParameters,
+                      const std::string& startSolutionFolderPath,
+                      const std::string& outputPath)
     : mEnv(env),
       mInstance(instance),
       mInputParameters(inputParameters),
@@ -36,6 +37,12 @@ class IteratedLocalSearch
       mOutputPath(outputPath)
     {
         mLogFile.open(env->get(GRB_StringParam_LogFile), std::ios::out | std::ios::app);
+
+        //Initialize Classifier: 
+        mClassifier = std::make_unique<Classifier::MLModelsContainer>(mInputParameters.ContainerLoading.classifierParams);
+
+        //Initialize Local Search
+        mLocalSearch = std::make_unique<Improvement::LocalSearch>(mInputParameters, mInstance);
     }
 
     void Solve();
@@ -62,6 +69,7 @@ class IteratedLocalSearch
 
     std::unique_ptr<LoadingChecker> mLoadingChecker;
     std::unique_ptr<Classifier::MLModelsContainer> mClassifier;
+    std::unique_ptr<Improvement::LocalSearch> mLocalSearch;
 
     void InfeasibleArcProcedure();
     void DetermineInfeasiblePaths();

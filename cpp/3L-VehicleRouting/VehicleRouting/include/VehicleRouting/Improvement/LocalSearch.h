@@ -1,17 +1,12 @@
 #pragma once
 
-#include "CommonBasics/Helper/ModelServices.h"
-#include "ContainerLoading/LoadingChecker.h"
-
-#include "Model/Instance.h"
-#include "Model/Solution.h"
-#include "Algorithms/BCRoutingParams.h"
-
 #include "Improvement/FullEnumerationSearch.h"
 #include "Improvement/TwoOpt.h"
 #include "Improvement/InterSwap.h"
 #include "Improvement/IntraSwap.h"
+#include "Improvement/Insertion.h"
 #include "Improvement/K_RandomSwaps.h"
+#include "Improvement/K_RandomInsertions.h"
 
 namespace VehicleRouting
 {
@@ -19,68 +14,32 @@ using namespace Model;
 
 namespace Improvement
 {
+
 class LocalSearch
 {
-  public:
-    static void RunLocalSearch(const Instance* const instance,
-                                LoadingChecker* loadingChecker,
-                                const InputParameters* inputParameters,
-                                Solution& currentSolution){
+public:
+    // Build operator lists once, from whatever vectors your config provides
+    LocalSearch(const InputParameters& params,
+                const Instance* inst);
 
-        for(auto const& localSearchType : inputParameters->IteratedLocalSearch.localSearchTypes){
+    // Run all local‑search moves in order
+    void RunLocalSearch(Solution& sol,ContainerLoading::LoadingChecker* checker);
 
-            switch(localSearchType){
-                
-                case LocalSearchTypes::TwoOpt:
-                    TwoOpt::Run(instance, *inputParameters, loadingChecker, currentSolution);
-                    break;
+    // Run all perturbations in order
+    void RunPerturbation(Solution& sol,
+                        ContainerLoading::LoadingChecker* checker,
+                         std::mt19937& rng);
 
-                case LocalSearchTypes::InterSwap:
-                    InterSwap::Run(instance, *inputParameters, loadingChecker, currentSolution);
-                    break;
+private:
+    std::vector<std::unique_ptr<LocalSearchOperatorBase>>  lsOperators;
+    std::vector<std::unique_ptr<PerturbationOperatorBase>> pertOperators;
+    const Instance* mInstance = nullptr;
+    const InputParameters mInputParameters;
 
-                case LocalSearchTypes::IntraSwap:
-                    IntraSwap::Run(instance, *inputParameters, loadingChecker, currentSolution);
-                    break;
-
-                case LocalSearchTypes::FullEnumeration:
-                    FullEnumerationSearch::Run(instance, *inputParameters, loadingChecker, currentSolution);
-                    break;
-
-                case LocalSearchTypes::None:
-                    break;
-
-                default: 
-                    break;
-
-            }
-        }
-    };
-
-    static void RunPerturbation(const Instance* const instance,
-                                LoadingChecker* loadingChecker,
-                                const InputParameters* inputParameters,
-                                Solution& currentSolution,
-                                std::mt19937& RNG)
-    {
-        for(const auto& perturb_type : inputParameters->IteratedLocalSearch.perturbationTypes){
-
-            switch(perturb_type){
-
-                case PerturbationTypes::K_RandomSwaps:
-                    K_RandomSwaps::Run(instance, *inputParameters, loadingChecker, currentSolution, RNG);
-                    break;
-                
-                case PerturbationTypes::None:
-                    break;
-
-                default: 
-                    break;
-
-            }
-        }
-    }
+    std::unique_ptr<LocalSearchOperatorBase> CreateLocalSearchOperator(LocalSearchTypes t);
+    std::unique_ptr<PerturbationOperatorBase> CreatePerturbationOperator(PerturbationTypes t);
 };
 
-}
-}
+}} // namespace VehicleRouting::Improvement
+
+

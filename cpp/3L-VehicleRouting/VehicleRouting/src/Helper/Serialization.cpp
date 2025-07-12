@@ -27,13 +27,14 @@ NLOHMANN_JSON_SERIALIZE_ENUM(LocalSearchTypes,
     {{LocalSearchTypes::None, "None"},
     {LocalSearchTypes::TwoOpt, "TwoOpt"},
     {LocalSearchTypes::InterSwap, "InterSwap"},
-    {LocalSearchTypes::IntraSwap, "IntraSwap"}});
+    {LocalSearchTypes::IntraSwap, "IntraSwap"},
+    {LocalSearchTypes::Insertion, "Insertion"}});
 
 
 NLOHMANN_JSON_SERIALIZE_ENUM(PerturbationTypes,
     {{PerturbationTypes::None, "None"},
-    {PerturbationTypes::K_RandomSwaps, "K_RandomSwaps"}});
-
+    {PerturbationTypes::K_RandomSwaps, "K_RandomSwaps"},
+    {PerturbationTypes::K_RandomInsertions, "K_RandomInsertions"}});
 }
 }
 

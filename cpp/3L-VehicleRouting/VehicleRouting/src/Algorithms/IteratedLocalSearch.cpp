@@ -11,8 +11,6 @@
 //#include "Algorithms/Heuristics/SPHeuristic.h"
 #include "Helper/HelperIO.h"
 #include "Helper/Serialization.h"
-#include "Model/Instance.h"
-#include "Model/Solution.h"
 
 #include "Algorithms/LoadingInterfaceServices.h"
 
@@ -58,9 +56,7 @@ void IteratedLocalSearch::Initialize()
 
     mLoadingChecker = std::make_unique<LoadingChecker>(mInputParameters.ContainerLoading);
     mLoadingChecker->SetBinPackingModel(mEnv, containers, customerNodes, mOutputPath);
-    
-    //Initialize Classifier: 
-    mClassifier = std::make_unique<Classifier::MLModelsContainer>(mInputParameters.ContainerLoading.classifierParams);
+
 
     for (const auto& customer: mInstance->GetCustomers())
     {
@@ -579,7 +575,7 @@ void IteratedLocalSearch::Solve()
     mTimer.startMetaheuristicTime();
     if(mInputParameters.IteratedLocalSearch.RunLS){
 
-       LocalSearch::RunLocalSearch(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution);
+       mLocalSearch->RunLocalSearch(mCurrentSolution, mLoadingChecker.get());
 
        if(mCurrentSolution.Costs < mBestSolution.Costs){
             mBestSolution = mCurrentSolution;
@@ -595,8 +591,8 @@ void IteratedLocalSearch::Solve()
 
             std::cout << "Run: " << mSolutionTracker.iterations << " - CurrentBest: " << mCurrentSolution.Costs << " - OverallBest: " << mBestSolution.Costs << std::endl;
  
-            LocalSearch::RunPerturbation(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution, mRNG);
-            LocalSearch::RunLocalSearch(mInstance, mLoadingChecker.get(), &mInputParameters, mCurrentSolution);
+            mLocalSearch->RunPerturbation(mCurrentSolution, mLoadingChecker.get(), mRNG);
+            mLocalSearch->RunLocalSearch(mCurrentSolution, mLoadingChecker.get());
 
             std::cout << "Check path by classifer: " << std::endl; 
             auto items = InterfaceConversions::SelectItems(mCurrentSolution.Routes[0].Sequence, mInstance->Nodes, false);
@@ -604,6 +600,11 @@ void IteratedLocalSearch::Solve()
             std::cout << "Output: " << y << std::endl;
             
             mTimer.calculateElapsedTime();
+            
+            //TODO - Remove just to find failures! 
+            
+            OutputSolution final_outputSolution(mCurrentSolution, mInstance);
+            DeterminePackingSolution(final_outputSolution);
 
             if(mCurrentSolution.Costs < mBestSolution.Costs){
                 mSolutionTracker.UpdateBothSolutions(mTimer.getElapsedTime(), mCurrentSolution.Costs);
@@ -636,7 +637,7 @@ void IteratedLocalSearch::Solve()
     Serializer::WriteToJson(statistics, mOutputPath, solutionStatisticsString);
 
     //TODO Change back to best later! 
-    OutputSolution final_outputSolution(mBestSolution, mInstance);
+    OutputSolution final_outputSolution(mCurrentSolution, mInstance);
     DeterminePackingSolution(final_outputSolution);
 
     auto solFile = SolutionFile(mInputParameters, statistics, final_outputSolution);

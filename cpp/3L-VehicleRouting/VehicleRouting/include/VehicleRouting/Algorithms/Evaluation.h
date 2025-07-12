@@ -113,9 +113,8 @@ class Evaluator
                         - instance->Distance(interID_A, internID_succNodeA)
                         - instance->Distance(internID_precNodeB, interID_B)
                         - instance->Distance(interID_B, internID_succNodeB);
-
+        }
         return savings;
-    } 
     }
 
     static double CalculateTwoOptDelta(const Instance* const instance,
@@ -135,7 +134,43 @@ class Evaluator
                          - instance->Distance(interID_endNode,internID_succEndNode);
 
         return savings;
-    }  
+    } 
+
+    static double CalculateInsertionDelta(const Instance* const instance,
+                                          const Collections::IdVector& routeA,
+                                          const Collections::IdVector& routeB,
+                                          const size_t nodeA,
+                                          const size_t positionB){
+        
+    const auto nodeID = routeA[nodeA];
+    const auto preA = (nodeA == 0) ? instance->GetDepotId() : routeA[nodeA - 1];
+    const auto succA = (nodeA == routeA.size() - 1) ? instance->GetDepotId() : routeA[nodeA + 1];
+
+    int preB, succB;
+    if(routeB.size() == 0){
+        preB = instance->GetDepotId();
+        succB = instance->GetDepotId();
+    }else if (positionB == 0) {
+        preB = instance->GetDepotId();
+        succB = routeB.front();
+    } else if (positionB == routeB.size()) {
+        preB = routeB.back();
+        succB = instance->GetDepotId();
+    } else {
+        preB = routeB[positionB - 1];
+        succB = routeB[positionB];
+    }
+
+    double savings =
+          instance->Distance(preB, nodeID)
+        + instance->Distance(nodeID, succB)
+        + instance->Distance(preA, succA)
+        - instance->Distance(preA, nodeID)
+        - instance->Distance(nodeID, succA)
+        - instance->Distance(preB, succB);
+
+    return savings;
+    }
 };
 
 }
