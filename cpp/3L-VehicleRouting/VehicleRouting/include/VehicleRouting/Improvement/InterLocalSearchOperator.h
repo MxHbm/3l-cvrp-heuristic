@@ -19,12 +19,14 @@ class InterLocalSearchOperator : public LocalSearchOperatorBase
     void Run(const Instance* instance,
                     const InputParameters& inputParameters,
                     LoadingChecker* loadingChecker,
+                    ContainerLoading::Classifier*    classifier,
                     Solution& currentSolution) override;
 
   protected:
     std::optional<double> GetBestMove(const Instance* instance,
                                 const InputParameters& inputParameters,
                                 LoadingChecker* loadingChecker,
+                                ContainerLoading::Classifier*    classifier,
                                 std::vector<Route>& routes,
                                 std::vector<InterMove>& moves);
 

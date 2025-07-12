@@ -23,11 +23,14 @@ public:
                 const Instance* inst);
 
     // Run all local‑search moves in order
-    void RunLocalSearch(Solution& sol,ContainerLoading::LoadingChecker* checker);
+    void RunLocalSearch(Solution& sol,
+                        ContainerLoading::LoadingChecker* checker,
+                        ContainerLoading::Classifier* classifier);
 
     // Run all perturbations in order
     void RunPerturbation(Solution& sol,
                         ContainerLoading::LoadingChecker* checker,
+                        ContainerLoading::Classifier* classifier,
                          std::mt19937& rng);
 
 private:

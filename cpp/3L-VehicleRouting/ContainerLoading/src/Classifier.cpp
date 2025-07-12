@@ -1,14 +1,13 @@
-// File: MLModelsContainer.cpp
+// File: Classifier.cpp
 
-#include "MLModelsContainer.h"
+#include "Classifier.h"
 #include <cmath>
 #include <fstream>
 #include "nlohmann/json.hpp"
 
 namespace ContainerLoading {
-namespace Classifier {
 
-void MLModelsContainer::loadStandardScalingFromJson(const std::string& scaler_path){
+void Classifier::loadStandardScalingFromJson(const std::string& scaler_path){
 
     std::ifstream file(scaler_path);
     if (!file) {
@@ -25,7 +24,7 @@ void MLModelsContainer::loadStandardScalingFromJson(const std::string& scaler_pa
     std_tensor = torch::tensor(std_vec, torch::kFloat32).unsqueeze(0);   // shape: s[1, N]
 }
 
-MLModelsContainer::MLModelsContainer(const ClassifierParams& classifierParams){
+Classifier::Classifier(const ClassifierParams& classifierParams){
 
     model = torch::jit::load(classifierParams.TracedModelPath);
     model.eval();
@@ -34,14 +33,14 @@ MLModelsContainer::MLModelsContainer(const ClassifierParams& classifierParams){
 
 }
 
-torch::Tensor MLModelsContainer::applyStandardScaling(const torch::Tensor& input) const{
+torch::Tensor Classifier::applyStandardScaling(const torch::Tensor& input) const{
 
     return (input - mean_tensor) / std_tensor;
 }
 
 
 
-void MLModelsContainer::iota_own(std::vector<int>::iterator first,
+void Classifier::iota_own(std::vector<int>::iterator first,
                                  std::vector<int>::iterator last,
                                  const int value)
 {
@@ -59,7 +58,7 @@ void MLModelsContainer::iota_own(std::vector<int>::iterator first,
     }
 }
 
-float MLModelsContainer::getMean(std::vector<float>::iterator first,
+float Classifier::getMean(std::vector<float>::iterator first,
                                  std::vector<float>::iterator last,
                                  const int noItems){
 
@@ -70,7 +69,7 @@ float MLModelsContainer::getMean(std::vector<float>::iterator first,
     return init / noItems;
 }
 
-float MLModelsContainer::getStd(std::vector<float>::iterator first,
+float Classifier::getStd(std::vector<float>::iterator first,
                                  std::vector<float>::iterator last,
                                  const int noItems){
 
@@ -93,7 +92,7 @@ float MLModelsContainer::getStd(std::vector<float>::iterator first,
 //['NoItems', 'NoCustomers', 'Rel Volume', 'Rel Weight', 'Weight Distribution', 'Volume Distribution', 'Fragile Ratio',
 //'Rel Total Length Items', 'Rel Total Width Items', 'Rel Total Height Items']
 
-torch::Tensor MLModelsContainer::extractFeatures(const std::vector<Cuboid>& items,
+torch::Tensor Classifier::extractFeatures(const std::vector<Cuboid>& items,
                                                 const Collections::IdVector& route,
                                                 const Container& container) const {
 
@@ -226,7 +225,7 @@ torch::Tensor MLModelsContainer::extractFeatures(const std::vector<Cuboid>& item
     return result;
 }
 
-float MLModelsContainer::classify(const std::vector<Cuboid>& items,
+float Classifier::classify(const std::vector<Cuboid>& items,
                                   const Collections::IdVector& route,
                                   const Container& container) {
 
@@ -237,5 +236,4 @@ float MLModelsContainer::classify(const std::vector<Cuboid>& items,
     return output.item<float>();
 }
 
-}  // namespace Classifier
 }  // namespace ContainerLoading

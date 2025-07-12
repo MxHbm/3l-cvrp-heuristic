@@ -18,12 +18,14 @@ class IntraLocalSearchOperator : public LocalSearchOperatorBase
     void Run(const Instance* instance,
                     const InputParameters& inputParameters,
                     LoadingChecker* loadingChecker,
+                    ContainerLoading::Classifier*    classifier,
                     Solution& currentSolution) override;
 
   protected:
     std::optional<double> GetBestMove(const Instance* instance,
                                     const InputParameters& inputParameters,
                                     LoadingChecker* loadingChecker,
+                                    ContainerLoading::Classifier*    classifier,
                                     Collections::IdVector& route,
                                     std::vector<IntraMove>& moves);
 

@@ -5,6 +5,7 @@
 #include "Model/Solution.h"
 #include "Algorithms/BCRoutingParams.h"
 #include "Algorithms/LoadingInterfaceServices.h"
+#include "ContainerLoading/Classifier.h"
 
 #include <optional>
 #include <tuple>
@@ -20,6 +21,7 @@ public:
     virtual void Run(const Instance* instance,
                      const InputParameters& inputParameters,
                      LoadingChecker* loadingChecker,
+                     Classifier* classifier,
                      Solution& currentSolution) = 0;
 };
 

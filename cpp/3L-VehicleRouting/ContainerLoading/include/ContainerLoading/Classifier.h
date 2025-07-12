@@ -12,13 +12,11 @@
 namespace ContainerLoading {
 
 using namespace Model;
-
-namespace Classifier {
     
-class MLModelsContainer {
+class Classifier {
 public:
 
-    MLModelsContainer(const ClassifierParams& classifierParams);
+    Classifier(const ClassifierParams& classifierParams);
 
     // Output: classification probability (0–1)
     float classify(const std::vector<Cuboid>& items,
@@ -53,6 +51,5 @@ private:
 
 };
 
-}  // namespace Classifier
-}  // namespace ContainerLoading
+}  // namespace ContianerLaoding
 

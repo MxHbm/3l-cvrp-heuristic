@@ -12,6 +12,7 @@ using namespace ContainerLoading;
 void InterLocalSearchOperator::Run(const Instance* instance,
                     const InputParameters& inputParameters,
                     LoadingChecker* loadingChecker,
+                    Classifier* classifier,
                     Solution& currentSolution){
 
   std::vector<Route>& routes = currentSolution.Routes;
@@ -24,7 +25,7 @@ void InterLocalSearchOperator::Run(const Instance* instance,
   while(true){
 
       auto moves = DetermineMoves(instance, routes);
-      auto savings = GetBestMove(instance, inputParameters, loadingChecker, routes, moves);
+      auto savings = GetBestMove(instance, inputParameters, loadingChecker,classifier, routes, moves);
 
       if(!savings){
           break;
@@ -40,6 +41,7 @@ void InterLocalSearchOperator::Run(const Instance* instance,
 std::optional<double> InterLocalSearchOperator::GetBestMove(const Instance* instance,
                                 const InputParameters& inputParameters,
                                 LoadingChecker* loadingChecker,
+                                ContainerLoading::Classifier* classifier,
                                 std::vector<Route>& routes,
                                 std::vector<InterMove>& moves){
   if (moves.size() == 0)
@@ -74,28 +76,39 @@ std::optional<double> InterLocalSearchOperator::GetBestMove(const Instance* inst
 
       for(auto& route_index : {std::get<1>(move), std::get<2>(move)})
       {
-          auto& route = routes[route_index];
-          if(route.Sequence.empty()){
+        auto& route = routes[route_index];
+        if(route.Sequence.empty()){
+        continue;
+    }
+        auto selectedItems = Algorithms::InterfaceConversions::SelectItems(route.Sequence, instance->Nodes, false);
+        // If lifo is disabled, feasibility of route is independent from actual sequence
+        // -> move is always feasible if route is feasible
+        if (!loadingChecker->Parameters.LoadingProblem.EnableLifo && loadingChecker->RouteIsInFeasSequences(route.Sequence))
+        {
             continue;
-          }
-          //TODO Here somewhere it needs to be checked what to do with size zero! 
-          auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
-          
-          // If lifo is disabled, feasibility of route is independent from actual sequence
-          // -> move is always feasible if route is feasible
-          if (!loadingChecker->Parameters.LoadingProblem.EnableLifo && loadingChecker->RouteIsInFeasSequences(route.Sequence))
-          {
-            continue;
-          }
+        }
 
-          auto selectedItems = InterfaceConversions::SelectItems(route.Sequence, instance->Nodes, false);
-          auto status = loadingChecker->HeuristicCompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
+        if(inputParameters.ContainerLoading.classifierParams.UseClassifier){
 
-          if (status != LoadingStatus::FeasOpt)
-          {
-              controlFlag = false;
-              break;
-          }
+            auto y = classifier->classify(selectedItems, route.Sequence, container);
+            std::cout << "Output: " << y << std::endl;
+            if (y <= 0.6)
+            {
+                controlFlag = false;
+                break;
+            }
+
+        }else{
+
+            auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
+            auto status = loadingChecker->HeuristicCompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
+
+            if (status != LoadingStatus::FeasOpt)
+            {
+            controlFlag = false;
+            break;
+            }
+        }
 
       }
       // Change routes back if not feasible!

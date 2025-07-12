@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ContainerLoading/LoadingChecker.h"
-#include "ContainerLoading/MLModelsContainer.h"
+#include "ContainerLoading/Classifier.h"
 #include "Improvement/LocalSearch.h"
 
 #include "Helper/Timer.h"
@@ -39,7 +39,7 @@ class IteratedLocalSearch
         mLogFile.open(env->get(GRB_StringParam_LogFile), std::ios::out | std::ios::app);
 
         //Initialize Classifier: 
-        mClassifier = std::make_unique<Classifier::MLModelsContainer>(mInputParameters.ContainerLoading.classifierParams);
+        mClassifier = std::make_unique<Classifier>(mInputParameters.ContainerLoading.classifierParams);
 
         //Initialize Local Search
         mLocalSearch = std::make_unique<Improvement::LocalSearch>(mInputParameters, mInstance);
@@ -68,7 +68,7 @@ class IteratedLocalSearch
     std::mt19937 mRNG;
 
     std::unique_ptr<LoadingChecker> mLoadingChecker;
-    std::unique_ptr<Classifier::MLModelsContainer> mClassifier;
+    std::unique_ptr<Classifier> mClassifier;
     std::unique_ptr<Improvement::LocalSearch> mLocalSearch;
 
     void InfeasibleArcProcedure();

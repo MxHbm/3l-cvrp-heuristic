@@ -13,6 +13,7 @@ using namespace ContainerLoading;
 void IntraLocalSearchOperator::Run(const Instance* instance,
                 const InputParameters& inputParameters,
                 LoadingChecker* loadingChecker,
+                Classifier* classifier,
                 Solution& currentSolution)
 {
    for(auto& route : currentSolution.Routes){
@@ -25,7 +26,7 @@ void IntraLocalSearchOperator::Run(const Instance* instance,
         while(true){
 
             auto moves = DetermineMoves(instance, route.Sequence);
-            auto savings = GetBestMove(instance, inputParameters, loadingChecker, route.Sequence, moves);
+            auto savings = GetBestMove(instance, inputParameters, loadingChecker, classifier, route.Sequence, moves);
 
             if(!savings){
                 break;
@@ -40,6 +41,7 @@ void IntraLocalSearchOperator::Run(const Instance* instance,
 std::optional<double> IntraLocalSearchOperator::GetBestMove(const Instance* instance,
                                 const InputParameters& inputParameters,
                                 LoadingChecker* loadingChecker,
+                                ContainerLoading::Classifier*    classifier,
                                 Collections::IdVector& route,
                                 std::vector<IntraMove>& moves){
 
@@ -75,11 +77,24 @@ std::optional<double> IntraLocalSearchOperator::GetBestMove(const Instance* inst
         }
 
         auto selectedItems = InterfaceConversions::SelectItems(route, instance->Nodes, false);
-        auto status = loadingChecker->HeuristicCompleteCheck(container, set, route, selectedItems, maxRuntime);
 
-        if (status == LoadingStatus::FeasOpt)
-        {
-            return std::get<0>(move);
+
+        if(inputParameters.ContainerLoading.classifierParams.UseClassifier){
+
+            auto y = classifier->classify(selectedItems, route, container);
+            std::cout << "Output: " << y << std::endl;
+            if (y > 0.6)
+            {
+                return std::get<0>(move);
+            }
+
+        }else{
+
+            auto status = loadingChecker->HeuristicCompleteCheck(container, set, route, selectedItems, maxRuntime);
+            if (status == LoadingStatus::FeasOpt)
+            {
+                return std::get<0>(move);
+            }
         }
         
         //Change routes back if it was not feasible! 

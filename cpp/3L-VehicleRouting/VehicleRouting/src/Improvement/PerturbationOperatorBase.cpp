@@ -6,6 +6,7 @@ namespace Improvement {
 void PerturbationOperatorBase::Run(const Model::Instance*            instance,
         const InputParameters&            params,
         ContainerLoading::LoadingChecker* loadingChecker,
+        ContainerLoading::Classifier*    classifier,
         Model::Solution&                  solution,
         std::mt19937&                     rng)
 {
@@ -54,9 +55,8 @@ void PerturbationOperatorBase::Run(const Model::Instance*            instance,
             if(route.Sequence.empty()){
                 continue;
             }
-
-            auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
             
+            auto selectedItems = Algorithms::InterfaceConversions::SelectItems(route.Sequence, instance->Nodes, false);
             // If lifo is disabled, feasibility of route is independent from actual sequence
             // -> move is always feasible if route is feasible
             if (!loadingChecker->Parameters.LoadingProblem.EnableLifo && loadingChecker->RouteIsInFeasSequences(route.Sequence))
@@ -64,13 +64,26 @@ void PerturbationOperatorBase::Run(const Model::Instance*            instance,
                 continue;
             }
 
-            auto selectedItems = Algorithms::InterfaceConversions::SelectItems(route.Sequence, instance->Nodes, false);
-            auto status = loadingChecker->HeuristicCompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
+            if(params.ContainerLoading.classifierParams.UseClassifier){
 
-            if (status != LoadingStatus::FeasOpt)
-            {
-            controlFlag = false;
-            break;
+                auto y = classifier->classify(selectedItems, route.Sequence, container);
+                std::cout << "Output: " << y << std::endl;
+                if (y <= 0.6)
+                {
+                    controlFlag = false;
+                    break;
+                }
+
+            }else{
+
+                auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
+                auto status = loadingChecker->HeuristicCompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
+
+                if (status != LoadingStatus::FeasOpt)
+                {
+                controlFlag = false;
+                break;
+                }
             }
 
         }
