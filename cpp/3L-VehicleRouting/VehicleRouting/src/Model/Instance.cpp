@@ -6,6 +6,16 @@ namespace VehicleRouting
 {
 namespace Model
 {
+
+void Instance::DetermineTotalNoItems()
+{
+    for(const auto& node : Nodes){
+        for(const auto& item : node.Items){
+            ++totalNoItems;
+        }
+    }
+}
+
 void Instance::DetermineDistanceMatrixEuclidean()
 {
     for (size_t i = 0; i < Nodes.size(); ++i)

@@ -72,8 +72,10 @@ float Classifier::getStd(std::vector<float>::iterator first,
 //'Rel Total Length Items', 'Rel Total Width Items', 'Rel Total Height Items']
 
 torch::Tensor Classifier::extractFeatures(const std::vector<Cuboid>& items,
-                                                const Collections::IdVector& route,
-                                                const Container& container) const {
+                                          const Collections::IdVector& route,
+                                          const Container& container,
+                                          const int totalNoCustomers,
+                                          const int totalNoItems) const {
 
     torch::Tensor result = torch::zeros({1,38});
     //std::vector<float> features;
@@ -81,8 +83,8 @@ torch::Tensor Classifier::extractFeatures(const std::vector<Cuboid>& items,
     
     const auto containerWeightLimit = container.WeightLimit;
     const float containerVolume = container.Volume;
-    const auto noItems = items.size();
-    const auto noCustomers = route.size();
+    const float noItems = items.size();
+    const float noCustomers = route.size();
     const float containerDx = container.Dx;
     const float containerDy = container.Dy;
     const float containerDz = container.Dz;
@@ -138,7 +140,6 @@ torch::Tensor Classifier::extractFeatures(const std::vector<Cuboid>& items,
         width_W_ratios[it] = item.Dy / containerDy;
         height_H_ratios[it] = item.Dz / containerDz;
         volume_WLH_ratios[it] = item.Volume / containerVolume;
-
         ++it;
     }
 
@@ -203,16 +204,65 @@ torch::Tensor Classifier::extractFeatures(const std::vector<Cuboid>& items,
     // Resize or pad to match model input if needed
     return result;
 }
+/*
+std::string Classifier::get_timestamp() {
+    using namespace std::chrono;
+
+    auto now = system_clock::now();
+    auto now_time_t = system_clock::to_time_t(now);
+    auto now_ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
+    std::tm* parts = std::localtime(&now_time_t);
+
+    std::ostringstream oss;
+    oss << std::put_time(parts, "%Y-%m-%d_%H-%M-%S");
+    oss << "-" << std::setw(3) << std::setfill('0') << now_ms.count();  // add milliseconds
+
+    return oss.str();
+}
+
+
+// Save a 1D or 2D tensor as CSV with timestamp
+void Classifier::save_tensor_to_csv(const torch::Tensor& tensor) {
+    torch::Tensor cpu_tensor = tensor.detach().cpu();
+    std::string filename = "H:/Data/TensorData/tensor_" + get_timestamp() + ".csv";
+
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Failed to open file: " << filename << "\n";
+        return;
+    }
+
+    torch::Tensor tensor_2d = cpu_tensor;
+    if (tensor_2d.dim() == 1) {
+        tensor_2d = tensor_2d.unsqueeze(0);  // make it 2D: [1, N]
+    }
+
+    auto accessor = tensor_2d.accessor<float, 2>();
+    for (int i = 0; i < tensor_2d.size(0); ++i) {
+        for (int j = 0; j < tensor_2d.size(1); ++j) {
+            file << accessor[i][j];
+            if (j < tensor_2d.size(1) - 1)
+                file << ",";
+        }
+        file << "\n";
+    }
+
+    file.close();
+}
+*/
+
 
 float Classifier::classify(const std::vector<Cuboid>& items,
-                                  const Collections::IdVector& route,
-                                  const Container& container) {
+                           const Collections::IdVector& route,
+                           const Container& container,
+                           const int totalNoCustomers,
+                           const int totalNoItems) {
 
-    torch::Tensor input = extractFeatures(items, route, container);
+    torch::Tensor input = extractFeatures(items, route, container, totalNoCustomers, totalNoItems);
     // Apply scaling before inference
     torch::Tensor input_scaled = applyStandardScaling(input);
+    //save_tensor_to_csv(input_scaled);
     //TODO Change back to input scaled
-    std::cout << input_scaled << std::endl;
     torch::Tensor output = model.forward({input_scaled}).toTensor();
     return output.item<float>();
 }

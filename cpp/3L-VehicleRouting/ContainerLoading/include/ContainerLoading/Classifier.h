@@ -5,11 +5,19 @@
 #include <vector>
 #include <numeric> // for std::iota
 
-
 #include "CommonBasics/Helper/ModelServices.h"
 #include "Model/ContainerLoadingInstance.h"
 #include "ProblemParameters.h"
 
+
+//TODO Delete after check -- for saving tensor data!
+/*
+#include <fstream>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
+#include <iostream>
+*/
 namespace ContainerLoading {
 
 using namespace Model;
@@ -22,7 +30,9 @@ public:
     // Output: classification probability (0–1)
     float classify(const std::vector<Cuboid>& items,
                    const Collections::IdVector& route,
-                   const Container& container);
+                   const Container& container,
+                   const int totalNoCustomers,
+                   const int totalNoItems);
 
 private:
     
@@ -30,13 +40,19 @@ private:
     torch::Tensor std_tensor;
 
     void loadStandardScalingFromJson(const std::string& scaler_path);
+    
+    std::string get_timestamp();
+
+    void save_tensor_to_csv(const torch::Tensor& tensor); 
 
     torch::Tensor applyStandardScaling(const torch::Tensor& input) const;
 
     torch::jit::script::Module model;
     torch::Tensor extractFeatures(const std::vector<Cuboid>& items,
                                   const Collections::IdVector& route,
-                                  const Container& container) const;
+                                  const Container& container,
+                                  const int totalNoCustomers,
+                                  const int totalNoItems) const;
 
     static float getMean(std::vector<float>::iterator first,
                         std::vector<float>::iterator last);
