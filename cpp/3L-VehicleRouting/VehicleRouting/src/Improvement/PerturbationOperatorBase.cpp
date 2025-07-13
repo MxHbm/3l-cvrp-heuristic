@@ -25,7 +25,7 @@ void PerturbationOperatorBase::Run(const Model::Instance*            instance,
 
     // Implement unordered_set as tabu list
 
-    while(succesful_moves < params.IteratedLocalSearch.K_RandomSwaps){
+    while(succesful_moves < params.IteratedLocalSearch.K_RandomMoves){
 
         // Implement unordered_set as tabu list
         //Update DetermineMovesTo give only one Move, where routes are different! 
@@ -67,23 +67,24 @@ void PerturbationOperatorBase::Run(const Model::Instance*            instance,
             if(params.ContainerLoading.classifierParams.UseClassifier){
 
                 auto y = classifier->classify(selectedItems, route.Sequence, container);
-                std::cout << "Output: " << y << std::endl;
-                if (y <= 0.6)
+                //std::cout << "Output Perturbation: " << y << std::endl;
+                if (y <= params.ContainerLoading.classifierParams.AcceptanceThreshold)
                 {
                     controlFlag = false;
                     break;
                 }
+                continue;
 
             }else{
 
                 auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
                 auto status = loadingChecker->HeuristicCompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
-
                 if (status != LoadingStatus::FeasOpt)
                 {
-                controlFlag = false;
-                break;
+                    controlFlag = false;
+                    break;
                 }
+                continue;
             }
 
         }

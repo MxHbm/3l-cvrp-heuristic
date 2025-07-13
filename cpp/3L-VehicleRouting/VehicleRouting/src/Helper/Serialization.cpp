@@ -80,13 +80,15 @@ void from_json(const json& j, ClassifierParams& params)
     j.at("TracedModelPath").get_to(params.TracedModelPath);
     j.at("SerializeJson_MeanStd").get_to(params.SerializeJson_MeanStd);
     j.at("UseClassifier").get_to(params.UseClassifier);
+    j.at("AcceptanceThreshold").get_to(params.AcceptanceThreshold);
 }
 
 void to_json(json& j, const ClassifierParams& params)
 {
     j = json{{"TracedModelPath", params.TracedModelPath},
              {"SerializeJson_MeanStd", params.SerializeJson_MeanStd},
-             {"UseClassifier", params.UseClassifier}};
+             {"UseClassifier", params.UseClassifier},
+             {"AcceptanceThreshold", params.AcceptanceThreshold}};
 }
 
 }
@@ -116,7 +118,7 @@ void from_json(const json& j, IteratedLocalSearchParams& params)
     j.at("Run_ILS").get_to(params.RunILS);
     j.at("Run_LS").get_to(params.RunLS);
     j.at("LimitNoImpr").get_to(params.NoImprLimit);
-    j.at("K_RandomSwaps").get_to(params.K_RandomSwaps);
+    j.at("K_RandomMoves").get_to(params.K_RandomMoves);
     j.at("SetPartHeurThreshold").get_to(params.SetPartitioningHeuristicThreshold);
     j.at("StartSolution").get_to(params.StartSolution);
     j.at("ActivateSetPartHeur").get_to(params.ActivateSetPartitioningHeuristic);
@@ -132,7 +134,7 @@ void to_json(json& j, const IteratedLocalSearchParams& params)
     j = json{{"Run_ILS", params.RunILS},
              {"Run_LS", params.RunLS},
              {"LimitNoImpr", params.NoImprLimit},
-             {"K_RandomSwaps", params.K_RandomSwaps},
+             {"K_RandomMoves", params.K_RandomMoves},
              {"LocalSearchTypes",params.localSearchTypes},
              {"PerturbationTypes",params.perturbationTypes},
              {"SetPartHeurThreshold", params.SetPartitioningHeuristicThreshold},

@@ -3,6 +3,7 @@
 
 #include <torch/script.h>
 #include <vector>
+#include <numeric> // for std::iota
 
 
 #include "CommonBasics/Helper/ModelServices.h"
@@ -38,16 +39,10 @@ private:
                                   const Container& container) const;
 
     static float getMean(std::vector<float>::iterator first,
-                        std::vector<float>::iterator last,
-                        const int value);
+                        std::vector<float>::iterator last);
 
     static float getStd(std::vector<float>::iterator first,
-                        std::vector<float>::iterator last,
-                        const int value);
-
-    static void iota_own(std::vector<int>::iterator first,
-                        std::vector<int>::iterator last,
-                        const int value);
+                        std::vector<float>::iterator last);
 
 };
 

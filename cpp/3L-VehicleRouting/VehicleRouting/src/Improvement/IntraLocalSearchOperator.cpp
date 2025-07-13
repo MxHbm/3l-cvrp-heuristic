@@ -82,8 +82,8 @@ std::optional<double> IntraLocalSearchOperator::GetBestMove(const Instance* inst
         if(inputParameters.ContainerLoading.classifierParams.UseClassifier){
 
             auto y = classifier->classify(selectedItems, route, container);
-            std::cout << "Output: " << y << std::endl;
-            if (y > 0.6)
+            //std::cout << "Output IntraLocalSearch: " << y << std::endl;
+            if (y > inputParameters.ContainerLoading.classifierParams.AcceptanceThreshold)
             {
                 return std::get<0>(move);
             }

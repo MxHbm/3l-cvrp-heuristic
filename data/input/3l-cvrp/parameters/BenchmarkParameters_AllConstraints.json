@@ -3,18 +3,18 @@
         "Run_ILS": true,
         "Run_LS" : true,
         "LimitNoImpr" : 5,
-        "K_RandomSwaps" : 5,
+        "K_RandomMoves" : 5,
         "ActivateIntraRouteImprovement": true,
         "ActivateSetPartHeur": true,						 
         "IntraRouteFullEnumThreshold": 6,
         "SetPartHeurThreshold": 20,
         "StartSolution": "ModifiedSavings",
-        "LocalSearchTypes": ["TwoOpt","IntraSwap","Insertion"],
+        "LocalSearchTypes": ["TwoOpt","IntraSwap","Insertion","InterSwap"],
         "PerturbationTypes": ["K_RandomInsertions"],
         "TimeLimit": [
             [
                 "ILS",
-                30
+                1
             ],
             [
                 "Constructive",
@@ -33,7 +33,8 @@
     "ClassifierParams": {
         "TracedModelPath": "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/mlp_cp_status_model_traced.pt",
         "SerializeJson_MeanStd" : "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/mlp_input_scaling.json",
-        "UseClassifier": true
+        "UseClassifier": true,
+        "AcceptanceThreshold": 0.8
     },
     "CPSolverParams": {
         "EnableCumulativeDimensions": false,

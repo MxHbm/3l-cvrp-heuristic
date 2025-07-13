@@ -78,8 +78,9 @@ std::optional<double> InterLocalSearchOperator::GetBestMove(const Instance* inst
       {
         auto& route = routes[route_index];
         if(route.Sequence.empty()){
-        continue;
-    }
+            continue;
+        }
+
         auto selectedItems = Algorithms::InterfaceConversions::SelectItems(route.Sequence, instance->Nodes, false);
         // If lifo is disabled, feasibility of route is independent from actual sequence
         // -> move is always feasible if route is feasible
@@ -91,8 +92,8 @@ std::optional<double> InterLocalSearchOperator::GetBestMove(const Instance* inst
         if(inputParameters.ContainerLoading.classifierParams.UseClassifier){
 
             auto y = classifier->classify(selectedItems, route.Sequence, container);
-            std::cout << "Output: " << y << std::endl;
-            if (y <= 0.6)
+            //std::cout << "Output InterLocalSearch: " << y << std::endl;
+            if (y <= inputParameters.ContainerLoading.classifierParams.AcceptanceThreshold)
             {
                 controlFlag = false;
                 break;

@@ -22,6 +22,7 @@ void Classifier::loadStandardScalingFromJson(const std::string& scaler_path){
 
     mean_tensor = torch::tensor(mean_vec, torch::kFloat32).unsqueeze(0); // shape: [1, N]
     std_tensor = torch::tensor(std_vec, torch::kFloat32).unsqueeze(0);   // shape: s[1, N]
+
 }
 
 Classifier::Classifier(const ClassifierParams& classifierParams){
@@ -38,54 +39,32 @@ torch::Tensor Classifier::applyStandardScaling(const torch::Tensor& input) const
     return (input - mean_tensor) / std_tensor;
 }
 
-
-
-void Classifier::iota_own(std::vector<int>::iterator first,
-                                 std::vector<int>::iterator last,
-                                 const int value)
-{
-    auto mid = -(value / 2); 
-
-    if(value % 2 != 0){
-        for (; first != last; ++first, ++mid)
-            *first = mid;
-    }else{
-        for (; first != last; ++first, ++mid)
-            if(mid == 0){
-                ++mid;
-            }
-            *first = mid;
-    }
-}
-
 float Classifier::getMean(std::vector<float>::iterator first,
-                                 std::vector<float>::iterator last,
-                                 const int noItems){
+                          std::vector<float>::iterator last)
+{
+    auto count = std::distance(first, last);
+    if (count == 0) return 0.0f;
 
-    auto init{0.0f};                                
-    for (; first != last; ++first)
-        init += *first;
- 
-    return init / noItems;
+    float sum = std::accumulate(first, last, 0.0f);
+    return sum / count;
 }
+
 
 float Classifier::getStd(std::vector<float>::iterator first,
-                                 std::vector<float>::iterator last,
-                                 const int noItems){
+                         std::vector<float>::iterator last)
+{
+    auto count = std::distance(first, last);
+    if (count <= 1) return 0.0f;
 
-    if(noItems == 1){
-        return 0.0f;
-    }
+    float mean = getMean(first, last);
 
-    auto const mean = getMean(first, last, noItems); 
-    
-    auto init{0.0f};    
-    for (; first != last; ++first)
-        init += std::pow(*first - mean, 2);
- 
-    return std::sqrt(init / noItems);
+    float variance = 0.0f;
+    for (auto it = first; it != last; ++it)
+        variance += std::pow(*it - mean, 2);
 
+    return std::sqrt(variance / count);  // or / (count - 1) for sample stddev
 }
+
 
 
 
@@ -101,22 +80,22 @@ torch::Tensor Classifier::extractFeatures(const std::vector<Cuboid>& items,
     //features.reserve(38);
     
     const auto containerWeightLimit = container.WeightLimit;
-    const auto containerVolume = container.Volume;
+    const float containerVolume = container.Volume;
     const auto noItems = items.size();
     const auto noCustomers = route.size();
-    const auto containerDx = container.Dx;
-    const auto containerDy = container.Dy;
-    const auto containerDz = container.Dz;
+    const float containerDx = container.Dx;
+    const float containerDy = container.Dy;
+    const float containerDz = container.Dz;
 
     //No Items
     result[0][0] = static_cast<float>(noItems);
 
     //NoCustomers
     result[0][1] = static_cast<float>(noCustomers);
-    
-    std::vector<int> pyramideValues;
-    pyramideValues.reserve(noCustomers); 
-    iota_own(pyramideValues.begin(), pyramideValues.end(), noCustomers);
+
+    std::vector<int> pyramideValues(noCustomers);  // sets size = noCustomers
+    std::iota(pyramideValues.begin(), pyramideValues.end(), 1);  // fills: 1, 2, 3, ..., noCustomers
+
 
 	std::vector<float> width_height_ratios(noItems, 0.0f);
     std::vector<float> length_height_ratios(noItems, 0.0f);
@@ -140,8 +119,8 @@ torch::Tensor Classifier::extractFeatures(const std::vector<Cuboid>& items,
         // Extract features per Rectangle, e.g.:
         tot_volume += item.Volume;
         tot_weight += item.Weight;
-        tot_width += item.Dx;
-        tot_length += item.Dy;
+        tot_width += item.Dy;
+        tot_length += item.Dx;
         tot_height += item.Dz;
         if(item.Fragility == Fragility::Fragile){
             ++fragile_count;
@@ -152,11 +131,11 @@ torch::Tensor Classifier::extractFeatures(const std::vector<Cuboid>& items,
 
         // Add more as needed, matching the Python training input
 
-        width_height_ratios[it] = item.Dx / item.Dz;
-        length_height_ratios[it] = item.Dy / item.Dz;
-        width_length_ratios[it] = item.Dx / item.Dy;
-        length_L_ratios[it] = item.Dy / containerDy;
-        width_W_ratios[it] = item.Dx / containerDx;
+        width_height_ratios[it] = static_cast<float>(item.Dy) / item.Dz;
+        length_height_ratios[it] = static_cast<float>(item.Dx) / item.Dz;
+        width_length_ratios[it] = static_cast<float>(item.Dy) / item.Dx;
+        length_L_ratios[it] = item.Dx / containerDx;
+        width_W_ratios[it] = item.Dy / containerDy;
         height_H_ratios[it] = item.Dz / containerDz;
         volume_WLH_ratios[it] = item.Volume / containerVolume;
 
@@ -175,51 +154,51 @@ torch::Tensor Classifier::extractFeatures(const std::vector<Cuboid>& items,
     result[0][6] = fragile_count / noItems;
 
     //Rel Total Length Items', 'Rel Total Width Items', 'Rel Total Height Items', 
-    result[0][7] = tot_length / containerDy;
-    result[0][8] = tot_width / containerDx;
+    result[0][7] = tot_length / containerDx;
+    result[0][8] = tot_width / containerDy;
     result[0][9] = tot_height / containerDz;
 
     // 'width_height_min', 'width_height_max', 'width_height_mean', 'width_height_std',
     result[0][10] = *std::min_element(width_height_ratios.begin(), width_height_ratios.end());
     result[0][11] = *std::max_element(width_height_ratios.begin(), width_height_ratios.end());
-    result[0][12] = getMean(width_height_ratios.begin(), width_height_ratios.end(), noItems);
-    result[0][13] = getStd(width_height_ratios.begin(), width_height_ratios.end(), noItems);
+    result[0][12] = getMean(width_height_ratios.begin(), width_height_ratios.end());
+    result[0][13] = getStd(width_height_ratios.begin(), width_height_ratios.end());
     
     //'length_height_min', 'length_height_max', 'length_height_mean', 'length_height_std',
     result[0][14] = *std::min_element(length_height_ratios.begin(), length_height_ratios.end());
     result[0][15] = *std::max_element(length_height_ratios.begin(), length_height_ratios.end());
-    result[0][16] = getMean(length_height_ratios.begin(), length_height_ratios.end(), noItems);
-    result[0][17] = getStd(length_height_ratios.begin(), length_height_ratios.end(), noItems);
+    result[0][16] = getMean(length_height_ratios.begin(), length_height_ratios.end());
+    result[0][17] = getStd(length_height_ratios.begin(), length_height_ratios.end());
 
     // 'width_length_min', 'width_length_max', 'width_length_mean', 'width_length_std',
     result[0][18] = *std::min_element(width_length_ratios.begin(), width_length_ratios.end());
     result[0][19] = *std::max_element(width_length_ratios.begin(), width_length_ratios.end());
-    result[0][20] = getMean(width_length_ratios.begin(), width_length_ratios.end(), noItems);
-    result[0][21] = getStd(width_length_ratios.begin(), width_length_ratios.end(), noItems);
+    result[0][20] = getMean(width_length_ratios.begin(), width_length_ratios.end());
+    result[0][21] = getStd(width_length_ratios.begin(), width_length_ratios.end());
 
     // 'width_W_min', 'width_W_max', 'width_W_mean', 'width_W_std', 
     result[0][22] = *std::min_element(width_W_ratios.begin(), width_W_ratios.end());
     result[0][23] = *std::max_element(width_W_ratios.begin(), width_W_ratios.end());
-    result[0][24] = getMean(width_W_ratios.begin(), width_W_ratios.end(), noItems);
-    result[0][25] = getStd(width_W_ratios.begin(), width_W_ratios.end(), noItems);
+    result[0][24] = getMean(width_W_ratios.begin(), width_W_ratios.end());
+    result[0][25] = getStd(width_W_ratios.begin(), width_W_ratios.end());
     
     //'length_L_min', 'length_L_max', 'length_L_mean', 'length_L_std',
     result[0][26] = *std::min_element(length_L_ratios.begin(), length_L_ratios.end());
     result[0][27] = *std::max_element(length_L_ratios.begin(), length_L_ratios.end());
-    result[0][28] = getMean(length_L_ratios.begin(), length_L_ratios.end(), noItems);
-    result[0][29] = getStd(length_L_ratios.begin(), length_L_ratios.end(), noItems);
+    result[0][28] = getMean(length_L_ratios.begin(), length_L_ratios.end());
+    result[0][29] = getStd(length_L_ratios.begin(), length_L_ratios.end());
     
     //'height_H_min', 'height_H_max', 'height_H_mean', 'height_H_std'
     result[0][30] = *std::min_element(height_H_ratios.begin(), height_H_ratios.end());
     result[0][31] = *std::max_element(height_H_ratios.begin(), height_H_ratios.end());
-    result[0][32] = getMean(height_H_ratios.begin(), height_H_ratios.end(), noItems);
-    result[0][33] = getStd(height_H_ratios.begin(), height_H_ratios.end(), noItems);
+    result[0][32] = getMean(height_H_ratios.begin(), height_H_ratios.end());
+    result[0][33] = getStd(height_H_ratios.begin(), height_H_ratios.end());
     
     //'volume_WLH_min', 'volume_WLH_max', 'volume_WLH_mean', 'volume_WLH_std'
     result[0][34] = *std::min_element(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
     result[0][35] = *std::max_element(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
-    result[0][36] = getMean(volume_WLH_ratios.begin(), volume_WLH_ratios.end(), noItems);
-    result[0][37] = getStd(volume_WLH_ratios.begin(), volume_WLH_ratios.end(), noItems);
+    result[0][36] = getMean(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
+    result[0][37] = getStd(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
 
     // Resize or pad to match model input if needed
     return result;
@@ -232,6 +211,8 @@ float Classifier::classify(const std::vector<Cuboid>& items,
     torch::Tensor input = extractFeatures(items, route, container);
     // Apply scaling before inference
     torch::Tensor input_scaled = applyStandardScaling(input);
+    //TODO Change back to input scaled
+    std::cout << input_scaled << std::endl;
     torch::Tensor output = model.forward({input_scaled}).toTensor();
     return output.item<float>();
 }

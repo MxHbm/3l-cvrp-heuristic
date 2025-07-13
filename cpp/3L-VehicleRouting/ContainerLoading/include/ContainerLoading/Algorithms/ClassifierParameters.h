@@ -11,6 +11,7 @@ struct ClassifierParams
     std::string TracedModelPath = "";
     std::string SerializeJson_MeanStd = "";
     bool UseClassifier = false;
+    float AcceptanceThreshold{0.5f};
 };
 
 }
