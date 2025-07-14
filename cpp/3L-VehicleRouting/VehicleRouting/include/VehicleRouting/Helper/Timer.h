@@ -26,8 +26,9 @@ class Timer
     }
 
     inline void calculateElapsedTime(){
-        elapsed =  std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now() - start).count();
+        elapsed = std::chrono::duration<double>(std::chrono::system_clock::now() - start).count();  // result in seconds as double (e.g., 16.2541)
     }
+
 
     inline double getElapsedTime() const{
         return elapsed;

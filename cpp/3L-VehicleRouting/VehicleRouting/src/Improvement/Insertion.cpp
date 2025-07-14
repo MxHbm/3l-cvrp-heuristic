@@ -45,7 +45,7 @@ std::vector<InterMove> Insertion::DetermineMoves(const Instance* const instance,
                                                     position_k); 
 
 
-                            if (savings < -1e-6)
+                            if (savings < -1e-3)
                             {
                                 moves.emplace_back(savings, route_it_i, route_it_k, node_i, position_k, weight_item_delta, volume_item_delta);
                             }

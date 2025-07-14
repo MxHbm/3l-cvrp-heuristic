@@ -22,7 +22,7 @@ std::vector<IntraMove> IntraSwap::DetermineMoves(const Instance* const instance,
 
             savings = Evaluator::CalculateIntraSwapDelta(instance, route, i, k);
 
-            if (savings < -1e-6)
+            if (savings < -1e-3)
             {
                 moves.emplace_back(savings, i, k);
             }

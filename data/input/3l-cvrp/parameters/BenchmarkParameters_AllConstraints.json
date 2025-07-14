@@ -10,11 +10,11 @@
         "SetPartHeurThreshold": 20,
         "StartSolution": "ModifiedSavings",
         "LocalSearchTypes": ["TwoOpt","IntraSwap","Insertion","InterSwap"],
-        "PerturbationTypes": ["K_RandomInsertions"],
+        "PerturbationTypes": ["K_RandomInsertions","K_RandomSwaps"],
         "TimeLimit": [
             [
                 "ILS",
-                2
+                1200
             ],
             [
                 "Constructive",

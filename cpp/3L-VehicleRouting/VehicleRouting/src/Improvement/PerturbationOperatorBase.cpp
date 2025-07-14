@@ -66,7 +66,7 @@ void PerturbationOperatorBase::Run(const Model::Instance*            instance,
 
             if(params.ContainerLoading.classifierParams.UseClassifier){
 
-                auto y = classifier->classify(selectedItems, route.Sequence, container,instance->Nodes.size(), instance->totalNoItems);
+                auto y = classifier->classify(selectedItems, route.Sequence, container);
                 //std::cout << "Output Perturbation: " << y << std::endl;
                 if (y <= params.ContainerLoading.classifierParams.AcceptanceThreshold)
                 {

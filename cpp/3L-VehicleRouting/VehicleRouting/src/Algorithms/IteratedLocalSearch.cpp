@@ -550,6 +550,26 @@ size_t IteratedLocalSearch::DetermineLowerBoundVehicles()
     return lowerBound1D;
 }
 
+bool IteratedLocalSearch::IsCurrentSolutionCPValid(const Solution& solution, double time_limit) {
+    for(const auto& route : solution.Routes) {
+        auto items = InterfaceConversions::SelectItems(route.Sequence, mInstance->Nodes, false);
+        auto status =
+            mLoadingChecker->HeuristicCompleteCheck(mInstance->Vehicles.front().Containers.front(),
+                                                    mLoadingChecker->MakeBitset(mInstance->Nodes.size(), route.Sequence),
+                                                    route.Sequence,
+                                                    items,
+                                                    time_limit);
+
+        if(status != LoadingStatus::FeasOpt) {
+            std::cout << "Route was rejected by CPSolver" << std::endl;
+            ++mSolutionTracker.rejections;
+            return false;
+        }
+    }
+    return true;
+}
+
+
 void IteratedLocalSearch::Solve()
 {
     mLogFile << "### START EXACT APPROACH ###\n";
@@ -570,84 +590,66 @@ void IteratedLocalSearch::Solve()
     mInstance->LowerBoundVehicles = DetermineLowerBoundVehicles();
 
     StartSolutionProcedure();
-
+    double maxRuntime_CPSolver = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
     //Iterated Local Search
     mTimer.startMetaheuristicTime();
     if(mInputParameters.IteratedLocalSearch.RunLS){
 
        mLocalSearch->RunLocalSearch(mCurrentSolution, mLoadingChecker.get(), mClassifier.get());
 
-        if(mInputParameters.ContainerLoading.classifierParams.UseClassifier){
-            double maxRuntime = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
-            for(const auto& route : mCurrentSolution.Routes){
-                auto items = InterfaceConversions::SelectItems(route.Sequence, mInstance->Nodes, false);
-                auto status =
-                    mLoadingChecker->HeuristicCompleteCheck(mInstance->Vehicles.front().Containers.front(),
-                                                            mLoadingChecker->MakeBitset(mInstance->Nodes.size(), route.Sequence),
-                                                            route.Sequence,
-                                                            items,
-                                                            maxRuntime);
-                if(status != LoadingStatus::FeasOpt){
-                    mCurrentSolution = mBestSolution;
-                    std::cout << "Route was rejected by CPSolver" << std::endl;
-                    break;
-                }
-            }
+        if (mInputParameters.ContainerLoading.classifierParams.UseClassifier &&
+            !IsCurrentSolutionCPValid(mCurrentSolution, maxRuntime_CPSolver)) {
+            mCurrentSolution = mBestSolution;
         }
 
-       if(mCurrentSolution.Costs < mBestSolution.Costs){
+        //Wont be applied, when current = best solution
+        if(mCurrentSolution.Costs < mBestSolution.Costs){
             mBestSolution = mCurrentSolution;
             mSolutionTracker.UpdateBothSolutions(0.0, mBestSolution.Costs);
-       }
+        }
     }
 
+    Solution lastValidSolution = mCurrentSolution;
 
-    int NoImpr = 0;
     double maxRuntime = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ILS);
     if(mInputParameters.IteratedLocalSearch.RunILS){
         while(mTimer.getElapsedTime() < maxRuntime){
-
-            std::cout << "Run: " << mSolutionTracker.iterations << " - CurrentBest: " << mCurrentSolution.Costs << " - OverallBest: " << mBestSolution.Costs << std::endl;
- 
-            mLocalSearch->RunPerturbation(mCurrentSolution, mLoadingChecker.get(), mClassifier.get(), mRNG);
-            mLocalSearch->RunLocalSearch(mCurrentSolution, mLoadingChecker.get(), mClassifier.get());
             
-            //TODO Wrap this in useful funtion
-            if(mInputParameters.ContainerLoading.classifierParams.UseClassifier){
-                double maxRuntime = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
-                for(const auto& route : mCurrentSolution.Routes){
-                    auto items = InterfaceConversions::SelectItems(route.Sequence, mInstance->Nodes, false);
-                    auto status =
-                        mLoadingChecker->HeuristicCompleteCheck(mInstance->Vehicles.front().Containers.front(),
-                                                                mLoadingChecker->MakeBitset(mInstance->Nodes.size(), route.Sequence),
-                                                                route.Sequence,
-                                                                items,
-                                                                maxRuntime);
-                    if(status != LoadingStatus::FeasOpt){
-                        mCurrentSolution = mBestSolution;
-                        std::cout << "Route was rejected by CPSolver" << std::endl;
-                        break;
-                    }
-                }
+            if(mSolutionTracker.RoundsWithNoImpr > 2){
+                mLocalSearch->RunBigPerturbation(mCurrentSolution, mLoadingChecker.get(), mClassifier.get(), mRNG);
+                mSolutionTracker.RoundsWithNoImpr = 0;
+            }else{
+                mLocalSearch->RunPerturbation(mCurrentSolution, mLoadingChecker.get(), mClassifier.get(), mRNG);
             }
-            
-            mTimer.calculateElapsedTime();
+            mLocalSearch->RunLocalSearch(mCurrentSolution, mLoadingChecker.get(), mClassifier.get());
+
             ++mSolutionTracker.iterations;
+
+            if (mInputParameters.ContainerLoading.classifierParams.UseClassifier && !IsCurrentSolutionCPValid(mCurrentSolution,maxRuntime_CPSolver)) {
+                mCurrentSolution = lastValidSolution;
+                --mSolutionTracker.NoImpr;
+            }
+
+            mTimer.calculateElapsedTime();
     
-            if(mCurrentSolution.Costs < mBestSolution.Costs){
+            if(mCurrentSolution.Costs < mBestSolution.Costs - 1e-2){
                 mSolutionTracker.UpdateBothSolutions(mTimer.getElapsedTime(), mCurrentSolution.Costs);
                 mBestSolution = mCurrentSolution;
-                NoImpr = 0;
+                mSolutionTracker.NoImpr = 0;
+                mSolutionTracker.RoundsWithNoImpr = 0;
+                lastValidSolution = mCurrentSolution;
                 continue;
             }
 
-            ++NoImpr;
             mSolutionTracker.UpdateCurrSolution(mTimer.getElapsedTime(), mCurrentSolution.Costs);
-
-            if(NoImpr == mInputParameters.IteratedLocalSearch.NoImprLimit){
+            if(mSolutionTracker.NoImpr >= mInputParameters.IteratedLocalSearch.NoImprLimit){
                 mCurrentSolution = mBestSolution;
-                NoImpr = 0;
+                ++mSolutionTracker.RoundsWithNoImpr;
+                mSolutionTracker.NoImpr = 0;
             }
+
+            ++mSolutionTracker.NoImpr;
+            lastValidSolution = mCurrentSolution;
 
         }
     }

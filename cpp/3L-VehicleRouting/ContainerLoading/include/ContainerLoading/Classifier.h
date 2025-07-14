@@ -30,9 +30,7 @@ public:
     // Output: classification probability (0–1)
     float classify(const std::vector<Cuboid>& items,
                    const Collections::IdVector& route,
-                   const Container& container,
-                   const int totalNoCustomers,
-                   const int totalNoItems);
+                   const Container& container);
 
 private:
     
@@ -50,9 +48,7 @@ private:
     torch::jit::script::Module model;
     torch::Tensor extractFeatures(const std::vector<Cuboid>& items,
                                   const Collections::IdVector& route,
-                                  const Container& container,
-                                  const int totalNoCustomers,
-                                  const int totalNoItems) const;
+                                  const Container& container) const;
 
     static float getMean(std::vector<float>::iterator first,
                         std::vector<float>::iterator last);

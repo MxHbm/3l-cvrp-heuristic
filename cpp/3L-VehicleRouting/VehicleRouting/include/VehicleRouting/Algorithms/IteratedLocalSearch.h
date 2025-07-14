@@ -92,7 +92,8 @@ class IteratedLocalSearch
     void StartSolutionProcedure();
     void GenerateStartSolutionSavings();
     void GenerateStartSolutionSPHeuristic();
-};
+    bool IsCurrentSolutionCPValid(const Solution& solution, double time_limit);
 
+};
 }
 }

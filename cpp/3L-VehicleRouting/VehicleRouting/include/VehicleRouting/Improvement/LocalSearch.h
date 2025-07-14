@@ -33,6 +33,12 @@ public:
                         ContainerLoading::Classifier* classifier,
                          std::mt19937& rng);
 
+        // Run all perturbations in order
+    void RunBigPerturbation(Solution& sol,
+                        ContainerLoading::LoadingChecker* checker,
+                        ContainerLoading::Classifier* classifier,
+                         std::mt19937& rng);
+
 private:
     std::vector<std::unique_ptr<LocalSearchOperatorBase>>  lsOperators;
     std::vector<std::unique_ptr<PerturbationOperatorBase>> pertOperators;
