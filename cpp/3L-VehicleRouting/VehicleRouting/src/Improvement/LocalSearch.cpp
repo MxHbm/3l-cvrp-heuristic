@@ -30,8 +30,9 @@ void LocalSearch::RunLocalSearch(Model::Solution& sol,
                                 ContainerLoading::LoadingChecker* checker,
                                 ContainerLoading::Classifier* classifier)
 {
-    for (auto& op : lsOperators)
+    for (auto& op : lsOperators){
         op->Run(mInstance, mInputParameters, checker,classifier, sol);
+    }
 };
 
 // Run all perturbations in order
@@ -62,7 +63,7 @@ void LocalSearch::RunBigPerturbation(Model::Solution&                  sol,
         }
 };
 
-std::unique_ptr<LocalSearchOperatorBase> LocalSearch::CreateLocalSearchOperator(LocalSearchTypes t)
+std::unique_ptr<LocalSearchOperatorBase> LocalSearch::CreateLocalSearchOperator(const LocalSearchTypes& t)
 {
     switch (t)
     {
@@ -70,10 +71,12 @@ std::unique_ptr<LocalSearchOperatorBase> LocalSearch::CreateLocalSearchOperator(
             return std::make_unique<TwoOpt>();
         case LocalSearchTypes::IntraSwap:       
             return std::make_unique<IntraSwap>();
+        case LocalSearchTypes::IntraInsertion:       
+            return std::make_unique<IntraInsertion>();
         case LocalSearchTypes::InterSwap:       
             return std::make_unique<InterSwap>();
-        case LocalSearchTypes::Insertion:       
-            return std::make_unique<Insertion>();
+        case LocalSearchTypes::InterInsertion:       
+            return std::make_unique<InterInsertion>();
         //case LocalSearchTypes::FullEnumeration: 
         //    return std::make_unique<FullEnumerationSearch>();
         default:                                
@@ -81,7 +84,7 @@ std::unique_ptr<LocalSearchOperatorBase> LocalSearch::CreateLocalSearchOperator(
     }
 }
 
-std::unique_ptr<PerturbationOperatorBase> LocalSearch::CreatePerturbationOperator(PerturbationTypes t)
+std::unique_ptr<PerturbationOperatorBase> LocalSearch::CreatePerturbationOperator(const PerturbationTypes& t)
 {
         switch (t)
         {

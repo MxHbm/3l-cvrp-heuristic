@@ -8,7 +8,7 @@ namespace VehicleRouting
 namespace Improvement
 {
 
-class Insertion : public InterLocalSearchOperator
+class InterInsertion : public InterLocalSearchOperator
 {
   private:
     std::vector<InterMove> DetermineMoves(const Instance* instance,

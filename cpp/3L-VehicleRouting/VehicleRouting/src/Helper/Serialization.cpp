@@ -28,8 +28,9 @@ NLOHMANN_JSON_SERIALIZE_ENUM(LocalSearchTypes,
     {LocalSearchTypes::TwoOpt, "TwoOpt"},
     {LocalSearchTypes::InterSwap, "InterSwap"},
     {LocalSearchTypes::IntraSwap, "IntraSwap"},
-    {LocalSearchTypes::Insertion, "Insertion"}});
-
+    {LocalSearchTypes::InterInsertion, "InterInsertion"},
+    {LocalSearchTypes::IntraInsertion, "IntraInsertion"}
+});
 
 NLOHMANN_JSON_SERIALIZE_ENUM(PerturbationTypes,
     {{PerturbationTypes::None, "None"},

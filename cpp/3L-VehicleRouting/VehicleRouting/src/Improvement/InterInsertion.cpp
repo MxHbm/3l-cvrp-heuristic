@@ -1,5 +1,5 @@
 
-#include "Improvement/Insertion.h"
+#include "Improvement/InterInsertion.h"
 
 namespace VehicleRouting
 {
@@ -8,7 +8,7 @@ namespace Improvement
 using namespace ContainerLoading;
 
 
-std::vector<InterMove> Insertion::DetermineMoves(const Instance* const instance,
+std::vector<InterMove> InterInsertion::DetermineMoves(const Instance* const instance,
                                                  const std::vector<Route>& routes)
 {
 
@@ -61,7 +61,7 @@ std::vector<InterMove> Insertion::DetermineMoves(const Instance* const instance,
 }
 
 
-void Insertion::ChangeRoutes(std::vector<Route>& routes, const InterMove& move)
+void InterInsertion::ChangeRoutes(std::vector<Route>& routes, const InterMove& move)
 {
 
     auto node_i = std::get<3>(move);
@@ -78,43 +78,16 @@ void Insertion::ChangeRoutes(std::vector<Route>& routes, const InterMove& move)
 
     // 3. …and erase it from the source
     route_i.erase(it);
-    /*
-    std::cout << "Routes after changing:" << std::endl;
-    std::cout << "Route i: ";
-    for(const auto node : route_i){
-        std::cout << node << " "; 
-    }
-    std::cout << std::endl;
-    std::cout << "Route k: ";
-    for(const auto node : route_k){
-        std::cout << node << " "; 
-    }
-    std::cout << std::endl << std::endl;
-    */
     
 }
 
-void Insertion::RevertChangeRoutes(std::vector<Route>& routes, const InterMove& move)
+void InterInsertion::RevertChangeRoutes(std::vector<Route>& routes, const InterMove& move)
 {
     auto node_i     = std::get<3>(move);  // original position in route_i
     auto position_k = std::get<4>(move);  // inserted position in route_k
 
     auto& route_i = routes[std::get<1>(move)].Sequence;  // source in original move
     auto& route_k = routes[std::get<2>(move)].Sequence;  // destination in original move
-
-    /*
-    std::cout << "Routes before reverting:" << std::endl;
-    std::cout << "Route i: ";
-    for(const auto node : route_i){
-        std::cout << node << " "; 
-    }
-    std::cout << std::endl;
-    std::cout << "Route k: ";
-    for(const auto node : route_k){
-        std::cout << node << " "; 
-    }
-    std::cout << std::endl << std::endl;
-    */
 
     // 1. grab iterator to the element that was inserted into route_k
     auto it = route_k.begin() + position_k;

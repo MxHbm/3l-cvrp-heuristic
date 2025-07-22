@@ -19,8 +19,9 @@ enum class LocalSearchTypes
     TwoOpt,
     InterSwap,
     IntraSwap,
-    FullEnumeration,
-    Insertion
+    InterInsertion,
+    IntraInsertion,
+    FullEnumeration
 };
 
 enum class PerturbationTypes

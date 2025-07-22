@@ -32,10 +32,17 @@ std::vector<IntraMove> TwoOpt::DetermineMoves(const Instance* const instance,
 
 
 
-void TwoOpt::ChangeRoute(Collections::IdVector& route, size_t i, size_t k)
+void TwoOpt::ChangeRoute(Collections::IdVector& route, const size_t i, const size_t k)
 {
     std::reverse(route.begin() + i, route.begin() + k + 1);
     
+}
+
+
+void TwoOpt::RevertRoute(Collections::IdVector& route, const size_t i, const size_t k){
+
+    std::reverse(route.begin() + i, route.begin() + k + 1);
+
 }
 
 }

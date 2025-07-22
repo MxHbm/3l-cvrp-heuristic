@@ -32,7 +32,8 @@ class IntraLocalSearchOperator : public LocalSearchOperatorBase
     virtual std::vector<IntraMove> DetermineMoves(const Instance* instance,
                                                   const Collections::IdVector& route) = 0;
 
-    virtual void ChangeRoute(Collections::IdVector& route, const size_t node_i, const size_t node_k) = 0;
+    virtual void ChangeRoute(Collections::IdVector& route, const size_t i, const size_t k) = 0;
+    virtual void RevertRoute(Collections::IdVector& route, const size_t k, const size_t i) = 0;
 };
 }
 }

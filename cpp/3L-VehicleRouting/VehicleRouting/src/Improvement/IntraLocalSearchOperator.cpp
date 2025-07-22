@@ -81,7 +81,16 @@ std::optional<double> IntraLocalSearchOperator::GetBestMove(const Instance* inst
 
         if(inputParameters.ContainerLoading.classifierParams.UseClassifier){
 
-            auto y = classifier->classify(selectedItems, route, container);
+            auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route);
+            auto status = loadingChecker->HeuristicCompleteCheck(container, set, route, selectedItems, maxRuntime);
+            auto y{0.0};
+            
+            if (status != LoadingStatus::FeasOpt)
+            {
+                y = classifier->classify(selectedItems, route, container, 0);
+            }else{
+                y = classifier->classify(selectedItems, route, container, 1);
+            }
             //std::cout << "Output IntraLocalSearch: " << y << std::endl;
             if (y > inputParameters.ContainerLoading.classifierParams.AcceptanceThreshold)
             {
@@ -98,7 +107,8 @@ std::optional<double> IntraLocalSearchOperator::GetBestMove(const Instance* inst
         }
         
         //Change routes back if it was not feasible! 
-        ChangeRoute(route, std::get<1>(move), std::get<2>(move));
+        //TODO Dont forget to delete 
+        RevertRoute(route, std::get<1>(move), std::get<2>(move));
     }
 
     return std::nullopt;

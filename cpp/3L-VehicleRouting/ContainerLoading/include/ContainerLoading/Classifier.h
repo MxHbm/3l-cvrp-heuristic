@@ -30,7 +30,8 @@ public:
     // Output: classification probability (0–1)
     float classify(const std::vector<Cuboid>& items,
                    const Collections::IdVector& route,
-                   const Container& container);
+                   const Container& container,
+                   const int status);
 
 private:
     
@@ -41,7 +42,7 @@ private:
     
     std::string get_timestamp();
 
-    void save_tensor_to_csv(const torch::Tensor& tensor); 
+    void save_tensor_to_csv(const torch::Tensor& tensor, const int status, const float output); 
 
     torch::Tensor applyStandardScaling(const torch::Tensor& input) const;
 

@@ -4,7 +4,8 @@
 #include "Improvement/TwoOpt.h"
 #include "Improvement/InterSwap.h"
 #include "Improvement/IntraSwap.h"
-#include "Improvement/Insertion.h"
+#include "Improvement/InterInsertion.h"
+#include "Improvement/IntraInsertion.h"
 #include "Improvement/K_RandomSwaps.h"
 #include "Improvement/K_RandomInsertions.h"
 
@@ -45,8 +46,8 @@ private:
     const Instance* mInstance = nullptr;
     const InputParameters mInputParameters;
 
-    std::unique_ptr<LocalSearchOperatorBase> CreateLocalSearchOperator(LocalSearchTypes t);
-    std::unique_ptr<PerturbationOperatorBase> CreatePerturbationOperator(PerturbationTypes t);
+    std::unique_ptr<LocalSearchOperatorBase> CreateLocalSearchOperator(const LocalSearchTypes& t);
+    std::unique_ptr<PerturbationOperatorBase> CreatePerturbationOperator(const PerturbationTypes& t);
 };
 
 }} // namespace VehicleRouting::Improvement

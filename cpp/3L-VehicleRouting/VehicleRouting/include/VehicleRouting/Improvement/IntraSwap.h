@@ -16,6 +16,8 @@ class IntraSwap : public IntraLocalSearchOperator
     std::vector<IntraMove> DetermineMoves(const Instance* instance, const Collections::IdVector& route) override;
 
     void ChangeRoute(Collections::IdVector& route, const size_t node_i, const size_t node_k) override;
+
+    void RevertRoute(Collections::IdVector& route, const size_t node_k, const size_t node_i) override;
 };
 
 

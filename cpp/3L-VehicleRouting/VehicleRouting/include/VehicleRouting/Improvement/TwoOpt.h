@@ -17,7 +17,9 @@ class TwoOpt : public IntraLocalSearchOperator
     std::vector<IntraMove> DetermineMoves(const Instance* instance,
                                           const Collections::IdVector& route) override;
 
-    void ChangeRoute(Collections::IdVector& route, size_t i, size_t k) override;
+    void ChangeRoute(Collections::IdVector& route, const size_t i, const size_t k) override;
+
+    void RevertRoute(Collections::IdVector& route, const size_t k, const size_t i) override;
 };
 
 }

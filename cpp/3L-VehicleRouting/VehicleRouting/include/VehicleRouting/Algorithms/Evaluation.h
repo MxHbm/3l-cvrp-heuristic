@@ -1,8 +1,7 @@
 #pragma once
 
 #include "Model/Instance.h"
-//TODO Delete afterwards
-#include <iostream>
+
 
 namespace VehicleRouting
 {
@@ -115,6 +114,39 @@ class Evaluator
                         - instance->Distance(interID_B, internID_succNodeB);
         }
         return savings;
+    }
+
+        static double CalculateIntraInsertionDelta(const Instance* const instance,
+                                                    const Collections::IdVector& route,
+                                                    const size_t nodeA,
+                                                    const size_t positionB)
+    {
+
+        auto ID_A = route[nodeA];
+        auto preA = (nodeA == 0) ? instance->GetDepotId() : route[nodeA - 1];
+        auto succA = (nodeA == route.size() - 1) ? instance->GetDepotId() : route[nodeA + 1];
+
+        int preB, succB;
+        if (positionB == 0) {
+            preB = instance->GetDepotId();
+            succB = route.front();
+        } else if (positionB == route.size()) {
+            preB = route.back();
+            succB = instance->GetDepotId();
+        }else{
+            preB = route[positionB - 1];
+            succB = route[positionB];
+        }
+
+        double savings =
+          instance->Distance(preB, ID_A)
+        + instance->Distance(ID_A, succB)
+        + instance->Distance(preA, succA)
+        - instance->Distance(preA, ID_A)
+        - instance->Distance(ID_A, succA)
+        - instance->Distance(preB, succB);
+
+    return savings;
     }
 
     static double CalculateTwoOptDelta(const Instance* const instance,

@@ -37,5 +37,11 @@ void IntraSwap::ChangeRoute(Collections::IdVector& route, const size_t node_i, c
     std::swap(route[node_i], route[node_k]);
 };
 
+
+void IntraSwap::RevertRoute(Collections::IdVector& route, const size_t node_i, const size_t node_k)
+{
+    std::swap(route[node_i], route[node_k]);
+};
+
 }
 }

@@ -614,6 +614,8 @@ void IteratedLocalSearch::Solve()
     double maxRuntime = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ILS);
     if(mInputParameters.IteratedLocalSearch.RunILS){
         while(mTimer.getElapsedTime() < maxRuntime){
+
+            std::cout << "Run: " << mSolutionTracker.iterations << " - CurrentCosts: " << mCurrentSolution.Costs << " - BestCosts:" << mCurrentSolution.Costs << std::endl;
             
             if(mSolutionTracker.RoundsWithNoImpr > 2){
                 mLocalSearch->RunBigPerturbation(mCurrentSolution, mLoadingChecker.get(), mClassifier.get(), mRNG);

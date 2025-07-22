@@ -195,7 +195,7 @@ torch::Tensor Classifier::extractFeatures(const std::vector<Cuboid>& items,
     // Resize or pad to match model input if needed
     return result;
 }
-/*
+
 std::string Classifier::get_timestamp() {
     using namespace std::chrono;
 
@@ -213,9 +213,9 @@ std::string Classifier::get_timestamp() {
 
 
 // Save a 1D or 2D tensor as CSV with timestamp
-void Classifier::save_tensor_to_csv(const torch::Tensor& tensor) {
+void Classifier::save_tensor_to_csv(const torch::Tensor& tensor, const int status, const float output) {
     torch::Tensor cpu_tensor = tensor.detach().cpu();
-    std::string filename = "H:/Data/TensorData/tensor_" + get_timestamp() + ".csv";
+    std::string filename = "H:/Data/TensorDataWithCPStatusPlusOutput/tensor_" + get_timestamp() + ".csv";
 
     std::ofstream file(filename);
     if (!file.is_open()) {
@@ -230,6 +230,9 @@ void Classifier::save_tensor_to_csv(const torch::Tensor& tensor) {
 
     auto accessor = tensor_2d.accessor<float, 2>();
     for (int i = 0; i < tensor_2d.size(0); ++i) {
+        // First column: status
+        file << status << "," << output << ",";
+
         for (int j = 0; j < tensor_2d.size(1); ++j) {
             file << accessor[i][j];
             if (j < tensor_2d.size(1) - 1)
@@ -240,19 +243,20 @@ void Classifier::save_tensor_to_csv(const torch::Tensor& tensor) {
 
     file.close();
 }
-*/
+
 
 
 float Classifier::classify(const std::vector<Cuboid>& items,
                            const Collections::IdVector& route,
-                           const Container& container) {
+                           const Container& container,
+                           const int status) {
 
     torch::Tensor input = extractFeatures(items, route, container);
     // Apply scaling before inference
     torch::Tensor input_scaled = applyStandardScaling(input);
-    //save_tensor_to_csv(input_scaled);
     //TODO Change back to input scaled
     torch::Tensor output = model.forward({input_scaled}).toTensor();
+    save_tensor_to_csv(input_scaled, status, output.item<float>());
     return output.item<float>();
 }
 

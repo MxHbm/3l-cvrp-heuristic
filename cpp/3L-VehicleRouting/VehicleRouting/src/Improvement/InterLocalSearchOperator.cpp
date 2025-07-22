@@ -91,7 +91,16 @@ std::optional<double> InterLocalSearchOperator::GetBestMove(const Instance* inst
 
         if(inputParameters.ContainerLoading.classifierParams.UseClassifier){
 
-            auto y = classifier->classify(selectedItems, route.Sequence, container);
+            auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
+            auto status = loadingChecker->HeuristicCompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
+            auto y{0.0};
+            
+            if (status != LoadingStatus::FeasOpt)
+            {
+                y = classifier->classify(selectedItems, route.Sequence, container, 0);
+            }else{
+                y = classifier->classify(selectedItems, route.Sequence, container, 1);
+            }
             //std::cout << "Output InterLocalSearch: " << y << std::endl;
             if (y <= inputParameters.ContainerLoading.classifierParams.AcceptanceThreshold)
             {
