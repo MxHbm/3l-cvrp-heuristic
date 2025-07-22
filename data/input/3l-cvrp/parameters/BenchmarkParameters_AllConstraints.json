@@ -14,7 +14,7 @@
         "TimeLimit": [
             [
                 "ILS",
-                30
+                300
             ],
             [
                 "Constructive",
@@ -31,9 +31,9 @@
         ]
     },
     "ClassifierParams": {
-        "TracedModelPath": "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/Old_Gendreau28880/mlp_cp_status_model_traced.pt",
-        "SerializeJson_MeanStd" : "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/Old_Gendreau28880/mlp_input_scaling.json",
-        "UseClassifier": false,
+        "TracedModelPath": "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/Gendreau_14440_inf_1_1/_mlp_cp_status_model_traced.pt",
+        "SerializeJson_MeanStd" : "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/Gendreau_14440_inf_1_1/_mlp_input_scaling.json",
+        "UseClassifier": true,
         "AcceptanceThreshold": 0.5
     },
     "CPSolverParams": {

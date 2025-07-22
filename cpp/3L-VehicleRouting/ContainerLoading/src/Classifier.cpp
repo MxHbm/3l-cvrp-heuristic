@@ -215,7 +215,7 @@ std::string Classifier::get_timestamp() {
 // Save a 1D or 2D tensor as CSV with timestamp
 void Classifier::save_tensor_to_csv(const torch::Tensor& tensor, const int status, const float output) {
     torch::Tensor cpu_tensor = tensor.detach().cpu();
-    std::string filename = "H:/Data/TensorDataWithCPStatusPlusOutput/tensor_" + get_timestamp() + ".csv";
+    std::string filename = "H:/Data/220725_TensorDataWithCPStatus/tensor_" + get_timestamp() + ".csv";
 
     std::ofstream file(filename);
     if (!file.is_open()) {
