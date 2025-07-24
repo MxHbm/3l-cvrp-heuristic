@@ -88,7 +88,7 @@ void Run(std::string& inputFilePath,
         try
         {
             GRBEnv env = GRBEnv(outputPath + "/" + instance.Name + ".LOG");
-            IteratedLocalSearch ILS_heuristic(&instance, &env, inputParameters, startSolutionPath, outputPath);
+            IteratedLocalSearch ILS_heuristic(&instance, &env, inputParameters, startSolutionPath, outputPath, seedOffset);
             ILS_heuristic.Solve();
         }
         catch (GRBException& e)

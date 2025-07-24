@@ -37,6 +37,7 @@ private:
     
     torch::Tensor mean_tensor;
     torch::Tensor std_tensor;
+    ClassifierParams mClassifierParams;
 
     void loadStandardScalingFromJson(const std::string& scaler_path);
     

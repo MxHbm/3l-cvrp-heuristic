@@ -97,8 +97,6 @@ void IteratedLocalSearch::Initialize()
             }
         }
     }
-
-    mRNG.seed(1008);
 }
 
 
@@ -615,7 +613,7 @@ void IteratedLocalSearch::Solve()
     if(mInputParameters.IteratedLocalSearch.RunILS){
         while(mTimer.getElapsedTime() < maxRuntime){
 
-            std::cout << "Run: " << mSolutionTracker.iterations << " - CurrentCosts: " << mCurrentSolution.Costs << " - BestCosts:" << mCurrentSolution.Costs << std::endl;
+            std::cout << "Run: " << mSolutionTracker.iterations << " - CurrentCosts: " << mCurrentSolution.Costs << " - BestCosts:" << mBestSolution.Costs << std::endl;
             
             if(mSolutionTracker.RoundsWithNoImpr > 2){
                 mLocalSearch->RunBigPerturbation(mCurrentSolution, mLoadingChecker.get(), mClassifier.get(), mRNG);

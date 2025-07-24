@@ -29,7 +29,8 @@ class IteratedLocalSearch
                       GRBEnv* env,
                       const VehicleRouting::InputParameters& inputParameters,
                       const std::string& startSolutionFolderPath,
-                      const std::string& outputPath)
+                      const std::string& outputPath,
+                      const int seedOffset)
     : mEnv(env),
       mInstance(instance),
       mInputParameters(inputParameters),
@@ -43,6 +44,9 @@ class IteratedLocalSearch
 
         //Initialize Local Search
         mLocalSearch = std::make_unique<Improvement::LocalSearch>(mInputParameters, mInstance);
+
+        //Initialize RNG 
+        mRNG.seed(42 + seedOffset);
     }
 
     void Solve();

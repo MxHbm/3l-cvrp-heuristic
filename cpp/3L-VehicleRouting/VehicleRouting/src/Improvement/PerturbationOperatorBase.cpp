@@ -66,16 +66,23 @@ void PerturbationOperatorBase::Run(const Model::Instance*            instance,
 
             if(params.ContainerLoading.classifierParams.UseClassifier){
 
-                auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
-                auto status = loadingChecker->HeuristicCompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
                 auto y{0.0};
-                
-                if (status != LoadingStatus::FeasOpt)
-                {
-                    y = classifier->classify(selectedItems, route.Sequence, container, 0);
+
+                if(params.ContainerLoading.classifierParams.SaveTensorData){
+                    auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
+                    auto status = loadingChecker->HeuristicCompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
+                    
+                    if (status != LoadingStatus::FeasOpt)
+                    {
+                        y = classifier->classify(selectedItems, route.Sequence, container, 0);
+                    }else{
+                        y = classifier->classify(selectedItems, route.Sequence, container, 1);
+                    }
+        
                 }else{
-                    y = classifier->classify(selectedItems, route.Sequence, container, 1);
+                    y = classifier->classify(selectedItems, route.Sequence, container, 0);
                 }
+
                 //std::cout << "Output Perturbation: " << y << std::endl;
                 if (y <= params.ContainerLoading.classifierParams.AcceptanceThreshold)
                 {

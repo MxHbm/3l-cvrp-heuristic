@@ -25,7 +25,8 @@ void Classifier::loadStandardScalingFromJson(const std::string& scaler_path){
 
 }
 
-Classifier::Classifier(const ClassifierParams& classifierParams){
+Classifier::Classifier(const ClassifierParams& classifierParams) : mClassifierParams(classifierParams)
+{
 
     model = torch::jit::load(classifierParams.TracedModelPath);
     model.eval();
@@ -75,7 +76,7 @@ torch::Tensor Classifier::extractFeatures(const std::vector<Cuboid>& items,
                                           const Collections::IdVector& route,
                                           const Container& container) const {
 
-    torch::Tensor result = torch::zeros({1,36});
+    torch::Tensor result = torch::zeros({1,37});
     //std::vector<float> features;
     //features.reserve(38);
     
@@ -133,64 +134,66 @@ torch::Tensor Classifier::extractFeatures(const std::vector<Cuboid>& items,
         volume_WLH_ratios[it] = item.Volume / containerVolume;
         ++it;
     }
+    //NoItems 
+    result[0][0] = noItems;
 
     //'Rel Volume' and 'Rel Weight'
-    result[0][0] = tot_volume / containerVolume;
-    result[0][1] = tot_weight / containerWeightLimit;
+    result[0][1] = tot_volume / containerVolume;
+    result[0][2] = tot_weight / containerWeightLimit;
 
     //'Weight Distribution', 'Volume Distribution'
-    result[0][2] = weightDistribution / containerWeightLimit;
-    result[0][3] = volumeDistribution / containerVolume;
+    result[0][3] = weightDistribution / containerWeightLimit;
+    result[0][4] = volumeDistribution / containerVolume;
 
     //'Fragile Ratio'
-    result[0][4] = fragile_count / noItems;
+    result[0][5] = fragile_count / noItems;
 
     //Rel Total Length Items', 'Rel Total Width Items', 'Rel Total Height Items', 
-    result[0][5] = tot_length / containerDx;
-    result[0][6] = tot_width / containerDy;
-    result[0][7] = tot_height / containerDz;
+    result[0][6] = tot_length / containerDx;
+    result[0][7] = tot_width / containerDy;
+    result[0][8] = tot_height / containerDz;
 
     // 'width_height_min', 'width_height_max', 'width_height_mean', 'width_height_std',
-    result[0][8] = *std::min_element(width_height_ratios.begin(), width_height_ratios.end());
-    result[0][9] = *std::max_element(width_height_ratios.begin(), width_height_ratios.end());
-    result[0][10] = getMean(width_height_ratios.begin(), width_height_ratios.end());
-    result[0][11] = getStd(width_height_ratios.begin(), width_height_ratios.end());
+    result[0][9] = *std::min_element(width_height_ratios.begin(), width_height_ratios.end());
+    result[0][10] = *std::max_element(width_height_ratios.begin(), width_height_ratios.end());
+    result[0][11] = getMean(width_height_ratios.begin(), width_height_ratios.end());
+    result[0][12] = getStd(width_height_ratios.begin(), width_height_ratios.end());
     
     //'length_height_min', 'length_height_max', 'length_height_mean', 'length_height_std',
-    result[0][12] = *std::min_element(length_height_ratios.begin(), length_height_ratios.end());
-    result[0][13] = *std::max_element(length_height_ratios.begin(), length_height_ratios.end());
-    result[0][14] = getMean(length_height_ratios.begin(), length_height_ratios.end());
-    result[0][15] = getStd(length_height_ratios.begin(), length_height_ratios.end());
+    result[0][13] = *std::min_element(length_height_ratios.begin(), length_height_ratios.end());
+    result[0][14] = *std::max_element(length_height_ratios.begin(), length_height_ratios.end());
+    result[0][15] = getMean(length_height_ratios.begin(), length_height_ratios.end());
+    result[0][16] = getStd(length_height_ratios.begin(), length_height_ratios.end());
 
     // 'width_length_min', 'width_length_max', 'width_length_mean', 'width_length_std',
-    result[0][16] = *std::min_element(width_length_ratios.begin(), width_length_ratios.end());
-    result[0][17] = *std::max_element(width_length_ratios.begin(), width_length_ratios.end());
-    result[0][18] = getMean(width_length_ratios.begin(), width_length_ratios.end());
-    result[0][19] = getStd(width_length_ratios.begin(), width_length_ratios.end());
+    result[0][17] = *std::min_element(width_length_ratios.begin(), width_length_ratios.end());
+    result[0][18] = *std::max_element(width_length_ratios.begin(), width_length_ratios.end());
+    result[0][19] = getMean(width_length_ratios.begin(), width_length_ratios.end());
+    result[0][20] = getStd(width_length_ratios.begin(), width_length_ratios.end());
 
     // 'width_W_min', 'width_W_max', 'width_W_mean', 'width_W_std', 
-    result[0][20] = *std::min_element(width_W_ratios.begin(), width_W_ratios.end());
-    result[0][21] = *std::max_element(width_W_ratios.begin(), width_W_ratios.end());
-    result[0][22] = getMean(width_W_ratios.begin(), width_W_ratios.end());
-    result[0][23] = getStd(width_W_ratios.begin(), width_W_ratios.end());
+    result[0][21] = *std::min_element(width_W_ratios.begin(), width_W_ratios.end());
+    result[0][22] = *std::max_element(width_W_ratios.begin(), width_W_ratios.end());
+    result[0][23] = getMean(width_W_ratios.begin(), width_W_ratios.end());
+    result[0][24] = getStd(width_W_ratios.begin(), width_W_ratios.end());
     
     //'length_L_min', 'length_L_max', 'length_L_mean', 'length_L_std',
-    result[0][24] = *std::min_element(length_L_ratios.begin(), length_L_ratios.end());
-    result[0][25] = *std::max_element(length_L_ratios.begin(), length_L_ratios.end());
-    result[0][26] = getMean(length_L_ratios.begin(), length_L_ratios.end());
-    result[0][27] = getStd(length_L_ratios.begin(), length_L_ratios.end());
-    
+    result[0][25] = *std::min_element(length_L_ratios.begin(), length_L_ratios.end());
+    result[0][26] = *std::max_element(length_L_ratios.begin(), length_L_ratios.end());
+    result[0][27] = getMean(length_L_ratios.begin(), length_L_ratios.end());
+    result[0][28] = getStd(length_L_ratios.begin(), length_L_ratios.end());
+
     //'height_H_min', 'height_H_max', 'height_H_mean', 'height_H_std'
-    result[0][28] = *std::min_element(height_H_ratios.begin(), height_H_ratios.end());
-    result[0][29] = *std::max_element(height_H_ratios.begin(), height_H_ratios.end());
-    result[0][30] = getMean(height_H_ratios.begin(), height_H_ratios.end());
-    result[0][31] = getStd(height_H_ratios.begin(), height_H_ratios.end());
+    result[0][29] = *std::min_element(height_H_ratios.begin(), height_H_ratios.end());
+    result[0][30] = *std::max_element(height_H_ratios.begin(), height_H_ratios.end());
+    result[0][31] = getMean(height_H_ratios.begin(), height_H_ratios.end());
+    result[0][32] = getStd(height_H_ratios.begin(), height_H_ratios.end());
     
     //'volume_WLH_min', 'volume_WLH_max', 'volume_WLH_mean', 'volume_WLH_std'
-    result[0][32] = *std::min_element(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
-    result[0][33] = *std::max_element(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
-    result[0][34] = getMean(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
-    result[0][35] = getStd(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
+    result[0][33] = *std::min_element(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
+    result[0][34] = *std::max_element(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
+    result[0][35] = getMean(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
+    result[0][36] = getStd(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
 
     // Resize or pad to match model input if needed
     return result;
@@ -215,7 +218,7 @@ std::string Classifier::get_timestamp() {
 // Save a 1D or 2D tensor as CSV with timestamp
 void Classifier::save_tensor_to_csv(const torch::Tensor& tensor, const int status, const float output) {
     torch::Tensor cpu_tensor = tensor.detach().cpu();
-    std::string filename = "H:/Data/220725_TensorDataWithCPStatus/tensor_" + get_timestamp() + ".csv";
+    std::string filename = mClassifierParams.TensorDataFilePath + "/tensor_" + get_timestamp() + ".csv";
 
     std::ofstream file(filename);
     if (!file.is_open()) {
@@ -253,10 +256,12 @@ float Classifier::classify(const std::vector<Cuboid>& items,
 
     torch::Tensor input = extractFeatures(items, route, container);
     // Apply scaling before inference
+    //std::cout << input << std::endl;
     torch::Tensor input_scaled = applyStandardScaling(input);
+    //std::cout << input_scaled << std::endl;
     //TODO Change back to input scaled
     torch::Tensor output = model.forward({input_scaled}).toTensor();
-    save_tensor_to_csv(input_scaled, status, output.item<float>());
+    if(mClassifierParams.SaveTensorData) save_tensor_to_csv(input_scaled, status, output.item<float>());
     return output.item<float>();
 }
 

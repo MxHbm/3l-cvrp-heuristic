@@ -81,6 +81,8 @@ void from_json(const json& j, ClassifierParams& params)
     j.at("TracedModelPath").get_to(params.TracedModelPath);
     j.at("SerializeJson_MeanStd").get_to(params.SerializeJson_MeanStd);
     j.at("UseClassifier").get_to(params.UseClassifier);
+    j.at("SaveTensorData").get_to(params.SaveTensorData);
+    j.at("TensorDataFilePath").get_to(params.TensorDataFilePath);
     j.at("AcceptanceThreshold").get_to(params.AcceptanceThreshold);
 }
 
@@ -89,6 +91,8 @@ void to_json(json& j, const ClassifierParams& params)
     j = json{{"TracedModelPath", params.TracedModelPath},
              {"SerializeJson_MeanStd", params.SerializeJson_MeanStd},
              {"UseClassifier", params.UseClassifier},
+             {"SaveTensorData", params.SaveTensorData},
+             {"TensorDataFilePath", params.TensorDataFilePath},
              {"AcceptanceThreshold", params.AcceptanceThreshold}};
 }
 

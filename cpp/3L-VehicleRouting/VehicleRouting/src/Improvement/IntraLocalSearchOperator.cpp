@@ -81,16 +81,23 @@ std::optional<double> IntraLocalSearchOperator::GetBestMove(const Instance* inst
 
         if(inputParameters.ContainerLoading.classifierParams.UseClassifier){
 
-            auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route);
-            auto status = loadingChecker->HeuristicCompleteCheck(container, set, route, selectedItems, maxRuntime);
             auto y{0.0};
-            
-            if (status != LoadingStatus::FeasOpt)
-            {
-                y = classifier->classify(selectedItems, route, container, 0);
+
+            if(inputParameters.ContainerLoading.classifierParams.SaveTensorData){
+                auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route);
+                auto status = loadingChecker->HeuristicCompleteCheck(container, set, route, selectedItems, maxRuntime);
+                
+                if (status != LoadingStatus::FeasOpt)
+                {
+                    y = classifier->classify(selectedItems, route, container, 0);
+                }else{
+                    y = classifier->classify(selectedItems, route, container, 1);
+                }
+    
             }else{
-                y = classifier->classify(selectedItems, route, container, 1);
+                y = classifier->classify(selectedItems, route, container, 0);
             }
+
             //std::cout << "Output IntraLocalSearch: " << y << std::endl;
             if (y > inputParameters.ContainerLoading.classifierParams.AcceptanceThreshold)
             {

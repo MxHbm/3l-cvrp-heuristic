@@ -24,11 +24,8 @@ std::vector<IntraMove> IntraInsertion::DetermineMoves(const Instance* const inst
 
             if (savings < -1e-3)
             {
-                if(position_k > node_i){
-                    moves.emplace_back(savings, node_i, position_k-1);
-                }else{
-                    moves.emplace_back(savings, node_i, position_k);
-                }
+                //std::cout << "Found new savings: " << savings << std::endl; 
+                moves.emplace_back(savings, node_i, position_k);
             }
         }
     }
@@ -38,7 +35,9 @@ std::vector<IntraMove> IntraInsertion::DetermineMoves(const Instance* const inst
 
 void IntraInsertion::ChangeRoute(Collections::IdVector& route, const size_t i, const size_t k)
 {
+
     auto position_k = k;
+    if (position_k > i) --position_k; 
 
     // 1. Save the value at node_i
     auto value = route[i];
@@ -50,6 +49,14 @@ void IntraInsertion::ChangeRoute(Collections::IdVector& route, const size_t i, c
     route.insert(route.begin() + position_k, value);
 }
 
+void IntraInsertion::RevertRoute(Collections::IdVector& route, const size_t old_i, const size_t old_k)
+{
+    size_t new_i = (old_k > old_i) ? old_k - 1 : old_k;
+    size_t new_k = (old_k > old_i) ? old_i : old_i + 1;
+
+    ChangeRoute(route, new_i, new_k);
+}
+/*
 void IntraInsertion::RevertRoute(Collections::IdVector& route, const size_t original_i, const size_t inserted_at)
 {
     size_t to = inserted_at;
@@ -62,8 +69,14 @@ void IntraInsertion::RevertRoute(Collections::IdVector& route, const size_t orig
     if (from > to) from--;
     route.insert(route.begin() + from, value);
 
-}
+    std::cout << "Route after revert - i: " << original_i << " - k: " << inserted_at << ":";
+    for(const auto& elem: route){
+        std::cout << elem << " "; 
+    }
+    std::cout << std::endl;
 
+}
+*/
 
 
 
