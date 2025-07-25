@@ -76,16 +76,18 @@ torch::Tensor Classifier::extractFeatures(const std::vector<Cuboid>& items,
                                           const Collections::IdVector& route,
                                           const Container& container) const {
 
-    torch::Tensor result = torch::zeros({1,37});
+    torch::Tensor result = torch::zeros({1,46});
     //std::vector<float> features;
     //features.reserve(38);
     
     const auto containerWeightLimit = container.WeightLimit;
     const float containerVolume = container.Volume;
     const float noItems = items.size();
+    const float noCustomers = route.size();
     const float containerDx = container.Dx;
     const float containerDy = container.Dy;
     const float containerDz = container.Dz;
+    const float containerArea = container.Area;
 
     std::vector<int> pyramideValues(route.size());
     std::iota(pyramideValues.begin(), pyramideValues.end(), 1);
@@ -98,6 +100,8 @@ torch::Tensor Classifier::extractFeatures(const std::vector<Cuboid>& items,
     std::vector<float> width_W_ratios(noItems, 0.0f);
     std::vector<float> height_H_ratios(noItems, 0.0f);
     std::vector<float> volume_WLH_ratios(noItems, 0.0f);
+    std::vector<float> height_area_ratios(noItems, 0.0f);
+    std::vector<float> area_AREA_ratios(noItems, 0.0f);
 
     auto tot_volume = 0.0f;
     auto tot_weight = 0.0f;
@@ -132,68 +136,84 @@ torch::Tensor Classifier::extractFeatures(const std::vector<Cuboid>& items,
         width_W_ratios[it] = item.Dy / containerDy;
         height_H_ratios[it] = item.Dz / containerDz;
         volume_WLH_ratios[it] = item.Volume / containerVolume;
+        height_area_ratios[it] = item.Dz / item.Area;
+        area_AREA_ratios[it] = item.Area / containerArea;
         ++it;
     }
     //NoItems 
     result[0][0] = noItems;
+    //No Customers
+    result[0][1] = noCustomers;
 
     //'Rel Volume' and 'Rel Weight'
-    result[0][1] = tot_volume / containerVolume;
-    result[0][2] = tot_weight / containerWeightLimit;
+    result[0][2] = tot_volume / containerVolume;
+    result[0][3] = tot_weight / containerWeightLimit;
 
     //'Weight Distribution', 'Volume Distribution'
-    result[0][3] = weightDistribution / containerWeightLimit;
-    result[0][4] = volumeDistribution / containerVolume;
+    result[0][4] = weightDistribution / containerWeightLimit;
+    result[0][5] = volumeDistribution / containerVolume;
 
     //'Fragile Ratio'
-    result[0][5] = fragile_count / noItems;
+    result[0][6] = fragile_count / noItems;
 
     //Rel Total Length Items', 'Rel Total Width Items', 'Rel Total Height Items', 
-    result[0][6] = tot_length / containerDx;
-    result[0][7] = tot_width / containerDy;
-    result[0][8] = tot_height / containerDz;
+    result[0][7] = tot_length / containerDx;
+    result[0][8] = tot_width / containerDy;
+    result[0][9] = tot_height / containerDz;
 
     // 'width_height_min', 'width_height_max', 'width_height_mean', 'width_height_std',
-    result[0][9] = *std::min_element(width_height_ratios.begin(), width_height_ratios.end());
-    result[0][10] = *std::max_element(width_height_ratios.begin(), width_height_ratios.end());
-    result[0][11] = getMean(width_height_ratios.begin(), width_height_ratios.end());
-    result[0][12] = getStd(width_height_ratios.begin(), width_height_ratios.end());
+    result[0][10] = *std::min_element(width_height_ratios.begin(), width_height_ratios.end());
+    result[0][11] = *std::max_element(width_height_ratios.begin(), width_height_ratios.end());
+    result[0][12] = getMean(width_height_ratios.begin(), width_height_ratios.end());
+    result[0][13] = getStd(width_height_ratios.begin(), width_height_ratios.end());
     
     //'length_height_min', 'length_height_max', 'length_height_mean', 'length_height_std',
-    result[0][13] = *std::min_element(length_height_ratios.begin(), length_height_ratios.end());
-    result[0][14] = *std::max_element(length_height_ratios.begin(), length_height_ratios.end());
-    result[0][15] = getMean(length_height_ratios.begin(), length_height_ratios.end());
-    result[0][16] = getStd(length_height_ratios.begin(), length_height_ratios.end());
+    result[0][14] = *std::min_element(length_height_ratios.begin(), length_height_ratios.end());
+    result[0][15] = *std::max_element(length_height_ratios.begin(), length_height_ratios.end());
+    result[0][16] = getMean(length_height_ratios.begin(), length_height_ratios.end());
+    result[0][17] = getStd(length_height_ratios.begin(), length_height_ratios.end());
 
     // 'width_length_min', 'width_length_max', 'width_length_mean', 'width_length_std',
-    result[0][17] = *std::min_element(width_length_ratios.begin(), width_length_ratios.end());
-    result[0][18] = *std::max_element(width_length_ratios.begin(), width_length_ratios.end());
-    result[0][19] = getMean(width_length_ratios.begin(), width_length_ratios.end());
-    result[0][20] = getStd(width_length_ratios.begin(), width_length_ratios.end());
+    result[0][18] = *std::min_element(width_length_ratios.begin(), width_length_ratios.end());
+    result[0][19] = *std::max_element(width_length_ratios.begin(), width_length_ratios.end());
+    result[0][20] = getMean(width_length_ratios.begin(), width_length_ratios.end());
+    result[0][21] = getStd(width_length_ratios.begin(), width_length_ratios.end());
 
     // 'width_W_min', 'width_W_max', 'width_W_mean', 'width_W_std', 
-    result[0][21] = *std::min_element(width_W_ratios.begin(), width_W_ratios.end());
-    result[0][22] = *std::max_element(width_W_ratios.begin(), width_W_ratios.end());
-    result[0][23] = getMean(width_W_ratios.begin(), width_W_ratios.end());
-    result[0][24] = getStd(width_W_ratios.begin(), width_W_ratios.end());
+    result[0][22] = *std::min_element(width_W_ratios.begin(), width_W_ratios.end());
+    result[0][23] = *std::max_element(width_W_ratios.begin(), width_W_ratios.end());
+    result[0][24] = getMean(width_W_ratios.begin(), width_W_ratios.end());
+    result[0][25] = getStd(width_W_ratios.begin(), width_W_ratios.end());
     
     //'length_L_min', 'length_L_max', 'length_L_mean', 'length_L_std',
-    result[0][25] = *std::min_element(length_L_ratios.begin(), length_L_ratios.end());
-    result[0][26] = *std::max_element(length_L_ratios.begin(), length_L_ratios.end());
-    result[0][27] = getMean(length_L_ratios.begin(), length_L_ratios.end());
-    result[0][28] = getStd(length_L_ratios.begin(), length_L_ratios.end());
+    result[0][26] = *std::min_element(length_L_ratios.begin(), length_L_ratios.end());
+    result[0][27] = *std::max_element(length_L_ratios.begin(), length_L_ratios.end());
+    result[0][28] = getMean(length_L_ratios.begin(), length_L_ratios.end());
+    result[0][29] = getStd(length_L_ratios.begin(), length_L_ratios.end());
 
     //'height_H_min', 'height_H_max', 'height_H_mean', 'height_H_std'
-    result[0][29] = *std::min_element(height_H_ratios.begin(), height_H_ratios.end());
-    result[0][30] = *std::max_element(height_H_ratios.begin(), height_H_ratios.end());
-    result[0][31] = getMean(height_H_ratios.begin(), height_H_ratios.end());
-    result[0][32] = getStd(height_H_ratios.begin(), height_H_ratios.end());
+    result[0][30] = *std::min_element(height_H_ratios.begin(), height_H_ratios.end());
+    result[0][31] = *std::max_element(height_H_ratios.begin(), height_H_ratios.end());
+    result[0][32] = getMean(height_H_ratios.begin(), height_H_ratios.end());
+    result[0][33] = getStd(height_H_ratios.begin(), height_H_ratios.end());
     
     //'volume_WLH_min', 'volume_WLH_max', 'volume_WLH_mean', 'volume_WLH_std'
-    result[0][33] = *std::min_element(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
-    result[0][34] = *std::max_element(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
-    result[0][35] = getMean(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
-    result[0][36] = getStd(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
+    result[0][34] = *std::min_element(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
+    result[0][35] = *std::max_element(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
+    result[0][36] = getMean(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
+    result[0][37] = getStd(volume_WLH_ratios.begin(), volume_WLH_ratios.end());
+
+
+    result[0][38] = *std::min_element(height_area_ratios.begin(), height_area_ratios.end());
+    result[0][39] = *std::max_element(height_area_ratios.begin(), height_area_ratios.end());
+    result[0][40] = getMean(height_area_ratios.begin(), height_area_ratios.end());
+    result[0][41] = getStd(height_area_ratios.begin(), height_area_ratios.end());
+
+
+    result[0][42] = *std::min_element(area_AREA_ratios.begin(), area_AREA_ratios.end());
+    result[0][43] = *std::max_element(area_AREA_ratios.begin(), area_AREA_ratios.end());
+    result[0][44] = getMean(area_AREA_ratios.begin(), area_AREA_ratios.end());
+    result[0][45] = getStd(area_AREA_ratios.begin(), area_AREA_ratios.end());
 
     // Resize or pad to match model input if needed
     return result;
