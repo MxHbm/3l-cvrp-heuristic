@@ -21,7 +21,8 @@ enum class LocalSearchTypes
     IntraSwap,
     InterInsertion,
     IntraInsertion,
-    FullEnumeration
+    FullEnumeration,
+    DeleteEmptyRoutes
 };
 
 enum class PerturbationTypes
@@ -39,6 +40,7 @@ struct IteratedLocalSearchParams
     {
         None = 0,
         ModifiedSavings,
+        Savings,
         SPHeuristic
     };
 

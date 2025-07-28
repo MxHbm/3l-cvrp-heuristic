@@ -11,10 +11,10 @@ namespace Improvement
 using namespace ContainerLoading;
 
 void IntraLocalSearchOperator::Run(const Instance* instance,
-                const InputParameters& inputParameters,
-                LoadingChecker* loadingChecker,
-                Classifier* classifier,
-                Solution& currentSolution)
+        const InputParameters& inputParameters,
+        LoadingChecker* loadingChecker,
+        Classifier* classifier,
+        Solution& currentSolution)
 {
    for(auto& route : currentSolution.Routes){
 

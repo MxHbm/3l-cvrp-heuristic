@@ -159,38 +159,72 @@ void IteratedLocalSearch::StartSolutionProcedure()
 
     using enum IteratedLocalSearchParams::StartSolutionType;
 
-    std::chrono::time_point<std::chrono::system_clock> start{std::chrono::system_clock::now()};
-
     switch (mInputParameters.IteratedLocalSearch.StartSolution)
     {
         case None:
             return;
         case ModifiedSavings:
+            GenerateStartSolutionModifiedSavings();
+            break;
+        case Savings:
             GenerateStartSolutionSavings();
             break;
-        // TODO Decide what is here happening
-        //case SPHeuristic:
-        //    GenerateStartSolutionSPHeuristic();
-        //    break;
         default:
             throw std::runtime_error("Start solution type not implemented.");
     }
 
-    mTimer.StartSolution = std::chrono::system_clock::now() - start;
+    if (mCurrentSolution.Routes.size() > mInstance->Vehicles.size())
+    {
+        mLogFile << "Not enough vehicles for start solution, copying existing vehicle(s)...\n";
+
+        size_t deficit = mCurrentSolution.Routes.size() - mInstance->Vehicles.size();
+        const Vehicle& templateVehicle = mInstance->Vehicles.back();  // or Vehicles[0], your choice
+
+        for (size_t i = 0; i < deficit; ++i)
+        {
+            Vehicle newVehicle = templateVehicle;
+            newVehicle.InternId = static_cast<int>(mInstance->Vehicles.size());  // Ensure unique ID if needed
+            mInstance->Vehicles.push_back(std::move(newVehicle));
+        }
+
+        mLogFile << "Copied " << deficit << " vehicle(s). Total vehicles now: "
+                << mInstance->Vehicles.size() << "\n";
+    }
+
+
     mCurrentSolution.NumberOfRoutes = mCurrentSolution.Routes.size();
     mCurrentSolution.DetermineCosts(mInstance);
     //TODO Change in Repar Modified Saavings, that Totalvoluem and Totalweight is updated! 
     mCurrentSolution.DeterminWeightsVolumes(mInstance);
+    mBestSolution = mCurrentSolution;
+
+    //Initial Local Search
+    double maxRuntime_CPSolver = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
+    //Iterated Local Search
+    if(mInputParameters.IteratedLocalSearch.RunLS){
+
+       mLocalSearch->RunLocalSearch(mCurrentSolution, mLoadingChecker.get(), mClassifier.get());
+
+        if (mInputParameters.ContainerLoading.classifierParams.UseClassifier &&
+            !IsCurrentSolutionCPValid(mCurrentSolution, maxRuntime_CPSolver)) {
+            mCurrentSolution = mBestSolution;
+        }
+
+        //Wont be applied, when current = best solution
+        if(mCurrentSolution.Costs < mBestSolution.Costs){
+            mBestSolution = mCurrentSolution;
+        }
+    }
 
     // TODO change, here just for intializing
-    mBestSolution = mCurrentSolution;
-    mSolutionTracker.UpdateBothSolutions(-mTimer.StartSolution.count(), mBestSolution.Costs);
+    mTimer.calculateElapsedTime();  
+    mSolutionTracker.UpdateBothSolutions(mTimer.getElapsedTime(), mBestSolution.Costs);
 
     OutputSolution outputSolution(mCurrentSolution, mInstance);
 
     // Save values of start solution
     mLogFile << "Start solution with " << outputSolution.NumberOfRoutes << " Vehicles and total costs "
-             << outputSolution.Costs << " in " << mTimer.StartSolution.count() << " s.\n";
+             << outputSolution.Costs << " in " << mTimer.getElapsedTime() << " s.\n";
 
     std::string solutionString = "StartSolution-" + mInstance->Name;
     Serializer::WriteToJson(outputSolution, mOutputPath, solutionString);
@@ -198,10 +232,13 @@ void IteratedLocalSearch::StartSolutionProcedure()
     mLogFile << "### END PREPROCESSING ###\n";
 }
 
-void IteratedLocalSearch::GenerateStartSolutionSavings()
+void IteratedLocalSearch::GenerateStartSolutionModifiedSavings()
 {
     mCurrentSolution.Routes =
-        Constructive::ModifiedSavings(mInstance, &mInputParameters, mLoadingChecker.get(), &mRNG).Run();
+        Constructive::ModifiedSavings(mInstance,
+                                        &mInputParameters,
+                                        mLoadingChecker.get(),
+                                        &mRNG).Run();
 
     //TODO what should i do with these values? 
     
@@ -212,18 +249,24 @@ void IteratedLocalSearch::GenerateStartSolutionSavings()
         route.Id = id;
         ++id;
     }
-        
-    /*
-    for (const auto& route: mLoadingChecker->GetFeasibleRoutes())
-    {
-        if (route.size() < 2)
-        {
-            continue;
-        }
+}
 
-        LocalSearch::RunIntraImprovement(mInstance, mLoadingChecker.get(), &mInputParameters, route);
+void IteratedLocalSearch::GenerateStartSolutionSavings()
+{
+    mCurrentSolution.Routes =
+        Constructive::Savings(mInstance,
+                                &mInputParameters,
+                                mLoadingChecker.get()).Run();
+
+    //TODO what should i do with these values? 
+    
+    int id = 0;
+    //Label routes new
+    for (auto& route : mCurrentSolution.Routes)
+    {
+        route.Id = id;
+        ++id;
     }
-    */
 }
 
 /*
@@ -550,18 +593,22 @@ size_t IteratedLocalSearch::DetermineLowerBoundVehicles()
 
 bool IteratedLocalSearch::IsCurrentSolutionCPValid(const Solution& solution, double time_limit) {
     for(const auto& route : solution.Routes) {
-        auto items = InterfaceConversions::SelectItems(route.Sequence, mInstance->Nodes, false);
-        auto status =
-            mLoadingChecker->HeuristicCompleteCheck(mInstance->Vehicles.front().Containers.front(),
-                                                    mLoadingChecker->MakeBitset(mInstance->Nodes.size(), route.Sequence),
-                                                    route.Sequence,
-                                                    items,
-                                                    time_limit);
 
-        if(status != LoadingStatus::FeasOpt) {
-            std::cout << "Route was rejected by CPSolver" << std::endl;
-            ++mSolutionTracker.rejections;
-            return false;
+        if(route.Sequence.size() > 0){
+
+            auto items = InterfaceConversions::SelectItems(route.Sequence, mInstance->Nodes, false);
+            auto status =
+                mLoadingChecker->HeuristicCompleteCheck(mInstance->Vehicles.front().Containers.front(),
+                                                        mLoadingChecker->MakeBitset(mInstance->Nodes.size(), route.Sequence),
+                                                        route.Sequence,
+                                                        items,
+                                                        time_limit);
+
+            if(status != LoadingStatus::FeasOpt) {
+                //std::cout << "Route was rejected by CPSolver" << std::endl;
+                ++mSolutionTracker.rejections;
+                return false;
+            }
         }
     }
     return true;
@@ -570,7 +617,9 @@ bool IteratedLocalSearch::IsCurrentSolutionCPValid(const Solution& solution, dou
 
 void IteratedLocalSearch::Solve()
 {
-    mLogFile << "### START EXACT APPROACH ###\n";
+    mTimer.startOverallTime(); 
+
+    mLogFile << "### START HEURISTIC APPROACH APPROACH ###\n";
 
     //Write input parameters to json file
     std::string parameterString = "Parameters-" + mInstance->Name;
@@ -588,27 +637,10 @@ void IteratedLocalSearch::Solve()
     mInstance->LowerBoundVehicles = DetermineLowerBoundVehicles();
 
     StartSolutionProcedure();
-    double maxRuntime_CPSolver = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
-    //Iterated Local Search
-    mTimer.startMetaheuristicTime();
-    if(mInputParameters.IteratedLocalSearch.RunLS){
-
-       mLocalSearch->RunLocalSearch(mCurrentSolution, mLoadingChecker.get(), mClassifier.get());
-
-        if (mInputParameters.ContainerLoading.classifierParams.UseClassifier &&
-            !IsCurrentSolutionCPValid(mCurrentSolution, maxRuntime_CPSolver)) {
-            mCurrentSolution = mBestSolution;
-        }
-
-        //Wont be applied, when current = best solution
-        if(mCurrentSolution.Costs < mBestSolution.Costs){
-            mBestSolution = mCurrentSolution;
-            mSolutionTracker.UpdateBothSolutions(0.0, mBestSolution.Costs);
-        }
-    }
+    mTimer.calculateStartSolutionTime();
 
     Solution lastValidSolution = mCurrentSolution;
-
+    double maxRuntime_CPSolver = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
     double maxRuntime = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ILS);
     if(mInputParameters.IteratedLocalSearch.RunILS){
         while(mTimer.getElapsedTime() < maxRuntime){
@@ -640,6 +672,16 @@ void IteratedLocalSearch::Solve()
                 lastValidSolution = mCurrentSolution;
                 continue;
             }
+
+            if(mCurrentSolution.Costs == mBestSolution.Costs & mCurrentSolution.Routes.size() < mBestSolution.Routes.size()){
+                mSolutionTracker.UpdateBothSolutions(mTimer.getElapsedTime(), mCurrentSolution.Costs);
+                mBestSolution = mCurrentSolution;
+                mSolutionTracker.NoImpr = 0;
+                mSolutionTracker.RoundsWithNoImpr = 0;
+                lastValidSolution = mCurrentSolution;
+                continue;
+            }
+
 
             mSolutionTracker.UpdateCurrSolution(mTimer.getElapsedTime(), mCurrentSolution.Costs);
             if(mSolutionTracker.NoImpr >= mInputParameters.IteratedLocalSearch.NoImprLimit){

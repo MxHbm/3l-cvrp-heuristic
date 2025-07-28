@@ -13,6 +13,7 @@ namespace Algorithms
 NLOHMANN_JSON_SERIALIZE_ENUM(IteratedLocalSearchParams::StartSolutionType,
                              {{IteratedLocalSearchParams::StartSolutionType::None, "None"},
                               {IteratedLocalSearchParams::StartSolutionType::ModifiedSavings, "ModifiedSavings"},
+                              {IteratedLocalSearchParams::StartSolutionType::Savings, "Savings"},
                               {IteratedLocalSearchParams::StartSolutionType::SPHeuristic, "SPHeuristic"}});
 
 
@@ -29,7 +30,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(LocalSearchTypes,
     {LocalSearchTypes::InterSwap, "InterSwap"},
     {LocalSearchTypes::IntraSwap, "IntraSwap"},
     {LocalSearchTypes::InterInsertion, "InterInsertion"},
-    {LocalSearchTypes::IntraInsertion, "IntraInsertion"}
+    {LocalSearchTypes::IntraInsertion, "IntraInsertion"},
+    {LocalSearchTypes::DeleteEmptyRoutes, "DeleteEmptyRoutes"}
 });
 
 NLOHMANN_JSON_SERIALIZE_ENUM(PerturbationTypes,
@@ -265,6 +267,7 @@ void to_json(json& j, const SolverStatistics& statistics)
 {
     j = json{
         {"ILSIterations", statistics.ILSIterationCount},
+        {"CP_Rejections", statistics.rejectionCount},
         {"DeletedArcs", statistics.DeletedArcs},
         {"InfTailPath", statistics.InfeasibleTailPathStart},
         {"Timer", statistics.Timer},

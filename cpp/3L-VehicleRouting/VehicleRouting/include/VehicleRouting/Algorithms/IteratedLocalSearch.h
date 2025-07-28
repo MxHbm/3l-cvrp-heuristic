@@ -95,6 +95,7 @@ class IteratedLocalSearch
 
     void StartSolutionProcedure();
     void GenerateStartSolutionSavings();
+    void GenerateStartSolutionModifiedSavings();
     void GenerateStartSolutionSPHeuristic();
     bool IsCurrentSolutionCPValid(const Solution& solution, double time_limit);
 

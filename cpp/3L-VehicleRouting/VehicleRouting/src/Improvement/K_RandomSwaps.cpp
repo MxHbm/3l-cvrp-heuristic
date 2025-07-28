@@ -40,7 +40,7 @@ std::optional<PerturbationMove> K_RandomSwaps::DetermineMoves(const Instance* co
         int attempts = 0;
 
         //TODO check if this can be compared! 
-        while(attempts <= 0.1 * route_i.Sequence.size() * route_k.Sequence.size()){
+        while(attempts < 0.1 * route_i.Sequence.size() * route_k.Sequence.size()){
 
             const auto node_i = route_i_dist(RNG);
             const auto node_k = route_k_dist(RNG);

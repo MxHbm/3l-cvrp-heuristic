@@ -112,7 +112,8 @@ class SolutionTracker
 class SolverStatistics
 {
   public:
-    double ILSIterationCount = 0;
+    size_t ILSIterationCount = 0;
+    size_t rejectionCount = 0;
     size_t DeletedArcs = 0;
     size_t InfeasibleTailPathStart = 0;
     Helper::Timer Timer;
@@ -123,6 +124,7 @@ class SolverStatistics
                      size_t deletedArcs,
                      size_t infTailPathStart)
     : ILSIterationCount(solTracker.iterations),
+      rejectionCount (solTracker.rejections),
       DeletedArcs(deletedArcs),
       InfeasibleTailPathStart(infTailPathStart),
       Timer(timer),
@@ -186,10 +188,9 @@ class OutputSolution
     OutputSolution(const Solution& solution,Instance* instance)
     : Costs(solution.Costs), NumberOfRoutes(solution.Routes.size()), LowerBoundVehicles(instance->LowerBoundVehicles)
     {
-
+      
       Tours.reserve(NumberOfRoutes);
       int vehicleId = 0;
-      // TODO delete after debugging
 
       for (const auto& route: solution.Routes)
       { 
