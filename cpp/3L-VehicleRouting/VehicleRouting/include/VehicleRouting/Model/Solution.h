@@ -80,7 +80,11 @@ class SolutionTracker
   public:
     std::map<double, double> CurrentSolution;
     std::map<double, double> BestSolution;
+    std::map<double, double> NoImprStatistics;
     int iterations{0};
+    int rejections{0};
+    int NoImpr{0};
+    int RoundsWithNoImpr{0};
 
 
     //Default constructor
@@ -101,6 +105,8 @@ class SolutionTracker
         BestSolution.insert({runtime, bound});
         CurrentSolution.insert({runtime, bound});
     }
+
+
 };
 
 class SolverStatistics

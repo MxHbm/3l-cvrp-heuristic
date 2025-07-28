@@ -3,18 +3,18 @@
         "Run_ILS": true,
         "Run_LS" : true,
         "LimitNoImpr" : 5,
-        "K_RandomSwaps" : 5,
+        "K_RandomMoves" : 5,
         "ActivateIntraRouteImprovement": true,
         "ActivateSetPartHeur": true,						 
         "IntraRouteFullEnumThreshold": 6,
         "SetPartHeurThreshold": 20,
         "StartSolution": "ModifiedSavings",
-        "LocalSearchTypes": ["TwoOpt", "IntraSwap", "InterSwap"],
-        "PerturbationTypes": ["K_RandomSwaps"],
+        "LocalSearchTypes": ["TwoOpt","IntraSwap","IntraInsertion","InterSwap","InterInsertion"],
+        "PerturbationTypes": ["K_RandomInsertions","K_RandomSwaps"],
         "TimeLimit": [
             [
                 "ILS",
-                600
+                300
             ],
             [
                 "Constructive",
@@ -31,9 +31,12 @@
         ]
     },
     "ClassifierParams": {
-        "TracedModelPath": "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/mlp_cp_status_model_traced.pt",
-        "SerializeJson_MeanStd" : "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/mlp_input_scaling.json",
-        "UseClassifier": true
+        "TracedModelPath": "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/Gendreau_14440_inf_1_1/mb_complete_nodupl_mlp_cp_status_model_traced.pt",
+        "SerializeJson_MeanStd" : "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/Gendreau_14440_inf_1_1/mb_complete_nodupl_mlp_input_scaling.json",
+        "UseClassifier": true,
+        "SaveTensorData" : true,
+        "TensorDataFilePath": "H:/Data/TensorData/TensorData_Gendreau14440_inf_1_1_Complete_MB_NoDupl",
+        "AcceptanceThreshold": 0.5
     },
     "CPSolverParams": {
         "EnableCumulativeDimensions": false,

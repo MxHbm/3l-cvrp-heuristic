@@ -1,7 +1,8 @@
 #pragma once
 
 #include "ContainerLoading/LoadingChecker.h"
-#include "ContainerLoading/MLModelsContainer.h"
+#include "ContainerLoading/Classifier.h"
+#include "Improvement/LocalSearch.h"
 
 #include "Helper/Timer.h"
 #include "Model/Instance.h"
@@ -25,10 +26,11 @@ class IteratedLocalSearch
 {
   public:
   IteratedLocalSearch(Instance* instance,
-                       GRBEnv* env,
-                       const VehicleRouting::InputParameters& inputParameters,
-                       const std::string& startSolutionFolderPath,
-                       const std::string& outputPath)
+                      GRBEnv* env,
+                      const VehicleRouting::InputParameters& inputParameters,
+                      const std::string& startSolutionFolderPath,
+                      const std::string& outputPath,
+                      const int seedOffset)
     : mEnv(env),
       mInstance(instance),
       mInputParameters(inputParameters),
@@ -36,6 +38,15 @@ class IteratedLocalSearch
       mOutputPath(outputPath)
     {
         mLogFile.open(env->get(GRB_StringParam_LogFile), std::ios::out | std::ios::app);
+
+        //Initialize Classifier: 
+        mClassifier = std::make_unique<Classifier>(mInputParameters.ContainerLoading.classifierParams);
+
+        //Initialize Local Search
+        mLocalSearch = std::make_unique<Improvement::LocalSearch>(mInputParameters, mInstance);
+
+        //Initialize RNG 
+        mRNG.seed(42 + seedOffset);
     }
 
     void Solve();
@@ -61,7 +72,8 @@ class IteratedLocalSearch
     std::mt19937 mRNG;
 
     std::unique_ptr<LoadingChecker> mLoadingChecker;
-    std::unique_ptr<Classifier::MLModelsContainer> mClassifier;
+    std::unique_ptr<Classifier> mClassifier;
+    std::unique_ptr<Improvement::LocalSearch> mLocalSearch;
 
     void InfeasibleArcProcedure();
     void DetermineInfeasiblePaths();
@@ -84,7 +96,8 @@ class IteratedLocalSearch
     void StartSolutionProcedure();
     void GenerateStartSolutionSavings();
     void GenerateStartSolutionSPHeuristic();
-};
+    bool IsCurrentSolutionCPValid(const Solution& solution, double time_limit);
 
+};
 }
 }
