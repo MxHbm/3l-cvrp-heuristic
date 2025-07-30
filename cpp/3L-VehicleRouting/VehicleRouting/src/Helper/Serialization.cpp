@@ -269,6 +269,7 @@ void to_json(json& j, const SolverStatistics& statistics)
         {"ILSIterations", statistics.ILSIterationCount},
         {"CP_Rejections", statistics.rejectionCount},
         {"DeletedArcs", statistics.DeletedArcs},
+        {"SeedOffset", statistics.seedOffset},
         {"InfTailPath", statistics.InfeasibleTailPathStart},
         {"Timer", statistics.Timer},
         {"SolutionProgress", statistics.solutionTracker}

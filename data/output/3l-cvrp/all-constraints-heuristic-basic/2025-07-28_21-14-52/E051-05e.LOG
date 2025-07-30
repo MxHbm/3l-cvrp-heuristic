@@ -1,0 +1,20 @@
+
+Gurobi 11.0.0 (win64, C++) logging started Mon Jul 28 21:14:52 2025
+
+Set parameter TokenServer to value "141.76.38.119"
+### START HEURISTIC APPROACH APPROACH ###
+ProblemVariant: 1
+### START PREPROCESSING ###
+## Start start solution procedure ##
+Start solution with 10 Vehicles and total costs 778.27 in 40.2663 s.
+### END PREPROCESSING ###
+Route 0 0-1-32-11-0 : weight util 0.237500 | volume util 0.562644 | infeasible with packing heuristic | feasible with CP model
+Route 1 0-2-20-35-36-3-0 : weight util 0.606250 | volume util 0.584289 | infeasible with packing heuristic | feasible with CP model
+Route 2 0-16-50-9-49-38-5-0 : weight util 0.562500 | volume util 0.580044 | infeasible with packing heuristic | feasible with CP model
+Route 3 0-15-45-33-39-30-10-46-0 : weight util 0.537500 | volume util 0.684933 | infeasible with packing heuristic | feasible with CP model
+Route 4 0-22-28-31-26-8-27-0 : weight util 0.487500 | volume util 0.656378 | infeasible with packing heuristic | feasible with CP model
+Route 5 0-23-6-48-7-43-24-0 : weight util 0.550000 | volume util 0.764178 | infeasible with packing heuristic | feasible with CP model
+Route 6 0-29-21-34-0 : weight util 0.250000 | volume util 0.486267 | infeasible with packing heuristic | feasible with CP model
+Route 7 0-37-44-17-12-0 : weight util 0.356250 | volume util 0.669533 | infeasible with packing heuristic | feasible with CP model
+Route 8 0-42-19-40-41-0 : weight util 0.350000 | volume util 0.597644 | infeasible with packing heuristic | feasible with CP model
+Route 9 0-47-4-13-25-14-18-0 : weight util 0.918750 | volume util 0.513578 | infeasible with packing heuristic | feasible with CP model

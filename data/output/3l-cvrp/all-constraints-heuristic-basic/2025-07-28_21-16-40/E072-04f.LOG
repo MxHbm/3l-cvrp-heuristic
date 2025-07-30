@@ -1,0 +1,26 @@
+
+Gurobi 11.0.0 (win64, C++) logging started Mon Jul 28 21:16:40 2025
+
+Set parameter TokenServer to value "141.76.38.119"
+### START HEURISTIC APPROACH APPROACH ###
+ProblemVariant: 1
+### START PREPROCESSING ###
+## Start start solution procedure ##
+Start solution with 16 Vehicles and total costs 625.566 in 56.7688 s.
+### END PREPROCESSING ###
+Route 0 0-33-35-0 : weight util 0.437633 | volume util 0.459600 | infeasible with packing heuristic | feasible with CP model
+Route 1 0-18-71-5-7-9-0 : weight util 0.212067 | volume util 0.727089 | infeasible with packing heuristic | feasible with CP model
+Route 2 0-12-16-17-13-1-36-0 : weight util 0.271833 | volume util 0.754933 | infeasible with packing heuristic | feasible with CP model
+Route 3 0-11-19-2-15-14-0 : weight util 0.796867 | volume util 0.512378 | infeasible with packing heuristic | feasible with CP model
+Route 4 0-55-0 : weight util 0.004833 | volume util 0.240067 | infeasible with packing heuristic | feasible with CP model
+Route 5 0-23-26-29-0 : weight util 0.136067 | volume util 0.656911 | infeasible with packing heuristic | feasible with CP model
+Route 6 0-28-22-21-30-20-0 : weight util 0.240400 | volume util 0.604067 | infeasible with packing heuristic | feasible with CP model
+Route 7 0-6-10-3-8-4-0 : weight util 0.276000 | volume util 0.535867 | infeasible with packing heuristic | feasible with CP model
+Route 8 0-37-69-57-0 : weight util 0.115567 | volume util 0.509533 | infeasible with packing heuristic | feasible with CP model
+Route 9 0-25-42-43-53-46-27-0 : weight util 0.089333 | volume util 0.634422 | infeasible with packing heuristic | feasible with CP model
+Route 10 0-48-52-45-44-0 : weight util 0.053667 | volume util 0.698422 | infeasible with packing heuristic | feasible with CP model
+Route 11 0-47-49-50-70-51-41-0 : weight util 0.323967 | volume util 0.714489 | infeasible with packing heuristic | feasible with CP model
+Route 12 0-56-34-0 : weight util 0.239267 | volume util 0.514422 | infeasible with packing heuristic | feasible with CP model
+Route 13 0-32-61-63-60-31-0 : weight util 0.172300 | volume util 0.617533 | infeasible with packing heuristic | feasible with CP model
+Route 14 0-62-38-40-68-59-58-0 : weight util 0.231400 | volume util 0.754978 | infeasible with packing heuristic | feasible with CP model
+Route 15 0-54-64-65-66-67-39-24-0 : weight util 0.226767 | volume util 0.762822 | infeasible with packing heuristic | feasible with CP model
