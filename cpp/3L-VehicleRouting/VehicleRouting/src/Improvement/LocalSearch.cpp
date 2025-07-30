@@ -77,6 +77,8 @@ std::unique_ptr<LocalSearchOperatorBase> LocalSearch::CreateLocalSearchOperator(
             return std::make_unique<InterSwap>();
         case LocalSearchTypes::InterInsertion:       
             return std::make_unique<InterInsertion>();
+        case LocalSearchTypes::DeleteEmptyRoutes:       
+            return std::make_unique<DeleteEmptyRoutes>();
         //case LocalSearchTypes::FullEnumeration: 
         //    return std::make_unique<FullEnumerationSearch>();
         default:                                

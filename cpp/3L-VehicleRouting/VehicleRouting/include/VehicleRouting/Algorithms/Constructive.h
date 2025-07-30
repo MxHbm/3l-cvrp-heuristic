@@ -2,6 +2,7 @@
 
 #include "Algorithms/BCRoutingParams.h"
 #include "ContainerLoading/LoadingChecker.h"
+#include "ContainerLoading/Classifier.h"
 
 #include "Model/Instance.h"
 
@@ -25,6 +26,7 @@ class Savings
     Savings(const Instance* const instance,
             const InputParameters* const inputParameters,
             LoadingChecker* loadingChecker)
+
     : mInstance(instance), mInputParameters(inputParameters), mLoadingChecker(loadingChecker){};
 
     std::vector<Route> Run();
@@ -48,6 +50,7 @@ class ModifiedSavings
                     const InputParameters* const inputParameters,
                     LoadingChecker* loadingChecker,
                     std::mt19937* rng)
+
     : mInstance(instance), mInputParameters(inputParameters), mLoadingChecker(loadingChecker), mRNG(rng){};
 
     std::vector<Route> Run();

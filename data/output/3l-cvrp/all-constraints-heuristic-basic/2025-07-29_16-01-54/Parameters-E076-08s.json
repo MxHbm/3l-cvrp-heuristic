@@ -1,0 +1,62 @@
+{
+  "CPSolverParams": {
+    "EnableCumulativeDimensions": false,
+    "EnableNoOverlap2DFloor": false,
+    "LogFlag": false,
+    "Seed": 1000,
+    "Threads": 8
+  },
+  "ClassifierParams": {
+    "AcceptanceThreshold": 0.5,
+    "SaveTensorData": false,
+    "SerializeJson_MeanStd": "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/Gendreau_14440_inf_1_1/mb_complete_nodupl_mlp_input_scaling.json",
+    "TensorDataFilePath": "H:/Data/TensorData/TensorData_Gendreau14440_inf_1_1_Complete_MB_NoDupl",
+    "TracedModelPath": "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/Gendreau_14440_inf_1_1/mb_complete_nodupl_mlp_cp_status_model_traced.pt",
+    "UseClassifier": true
+  },
+  "IteratedLocalSearchParams": {
+    "ActivateIntraRouteImprovement": true,
+    "ActivateSetPartHeur": true,
+    "IntraRouteFullEnumThreshold": 6,
+    "K_RandomMoves": 5,
+    "LimitNoImpr": 5,
+    "LocalSearchTypes": [
+      "TwoOpt",
+      "IntraSwap",
+      "IntraInsertion",
+      "InterSwap",
+      "InterInsertion",
+      "DeleteEmptyRoutes"
+    ],
+    "PerturbationTypes": [
+      "K_RandomInsertions",
+      "K_RandomSwaps"
+    ],
+    "Run_ILS": true,
+    "Run_LS": true,
+    "SetPartHeurThreshold": 20,
+    "StartSolution": "Savings",
+    "TimeLimit": [
+      [
+        "ILS",
+        600.0
+      ],
+      [
+        "Constructive",
+        1.0
+      ],
+      [
+        "Exact",
+        600.0
+      ],
+      [
+        "ExactLimit",
+        60.0
+      ]
+    ]
+  },
+  "LoadingProblemParams": {
+    "ProblemVariant": "AllConstraints",
+    "SupportArea": 0.75
+  }
+}

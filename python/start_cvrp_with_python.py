@@ -8,10 +8,10 @@ env = os.environ.copy()
 # Define the directory path and command components
 directory_path = os.getcwd()
 command_base =  os.path.join(directory_path,"build/Release/bin/Release/3L-VehicleRoutingApplication.exe")
-output_folder = os.path.join(directory_path,"data/output/3l-cvrp/test/")
+output_folder = os.path.join(directory_path,"data/output/3l-cvrp/all-constraints-heuristic-basic/")
 input_folder = os.path.join(directory_path,"data/input/3l-cvrp/gendreau/")
 parameter_file = os.path.join(directory_path,"data/input/3l-cvrp/parameters/BenchmarkParameters_AllConstraints.json")
-number_of_processes = 1
+number_of_processes = 2
 
 # Navigate to the directorys
 
@@ -27,34 +27,32 @@ def add_tasks(task_queue, folder_path=input_folder):
 
     return task_queue
 
-def run_foster_exe(filename, counter, lock):
+def run_Heuristic_exe(filename, counter, lock):
+    for seed_offset in range(3):  # seeds 0, 1, 2
+        command = [
+            command_base,
+            "-i", input_folder,
+            "-f", filename,
+            "-o", output_folder,
+            "-p", parameter_file,
+            "-s", str(seed_offset)
+        ]
 
-    command = [
-    command_base,
-    "-i", input_folder,
-    "-f", filename,
-    "-o", output_folder,
-    "-p", parameter_file
-    ]
-    
-    try:
-        #subprocess.run(f"start cmd /c {command} & exit", shell=True, check=True, capture_output=True, cwd = directory_path)
-        print(f"Starting: {filename} \n")
-        print(f"Command: {command} \n")
+        try:
+            print(f"Starting: {filename} with seed {seed_offset}\n")
+            print(f"Command: {command}\n")
 
-        subprocess.run(command, check=True, capture_output=True, cwd = directory_path, env = env)
-        print(f"Finished: {filename} \n")
+            subprocess.run(command, check=True, capture_output=True, cwd=directory_path, env=env)
+            print(f"Finished: {filename} with seed {seed_offset}\n")
 
-        # Warten, bevor der nächste Task gestartet wird
-        time.sleep(5)
+            time.sleep(5)
 
-        # Safely increment the counter
-        with lock:
-            counter.value += 1
+            with lock:
+                counter.value += 1
 
-    except subprocess.CalledProcessError as e:
-        print(f"Failed: {filename}")
-        print(e)
+        except subprocess.CalledProcessError as e:
+            print(f"Failed: {filename} with seed {seed_offset}")
+            print(e)
 
 def process_tasks(task_queue, counter, lock):
     while not task_queue.empty():
@@ -62,7 +60,7 @@ def process_tasks(task_queue, counter, lock):
             filename = task_queue.get_nowait()
         except:
             break  # In case of race condition
-        run_foster_exe(filename, counter, lock)
+        run_Heuristic_exe(filename, counter, lock)
     return True
 
 def run():

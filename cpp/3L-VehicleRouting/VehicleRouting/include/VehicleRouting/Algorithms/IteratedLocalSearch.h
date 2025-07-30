@@ -35,7 +35,9 @@ class IteratedLocalSearch
       mInstance(instance),
       mInputParameters(inputParameters),
       mStartSolutionFolderPath(startSolutionFolderPath),
-      mOutputPath(outputPath)
+      mOutputPath(outputPath),
+      mSeedOffset(seedOffset),
+      mSolutionTracker(mSeedOffset)
     {
         mLogFile.open(env->get(GRB_StringParam_LogFile), std::ios::out | std::ios::app);
 
@@ -57,6 +59,7 @@ class IteratedLocalSearch
     InputParameters mInputParameters;
     std::string mStartSolutionFolderPath;
     std::string mOutputPath;
+    int mSeedOffset;
 
     std::ofstream mLogFile;
     std::vector<Arc> mInfeasibleArcs;
@@ -95,6 +98,7 @@ class IteratedLocalSearch
 
     void StartSolutionProcedure();
     void GenerateStartSolutionSavings();
+    void GenerateStartSolutionModifiedSavings();
     void GenerateStartSolutionSPHeuristic();
     bool IsCurrentSolutionCPValid(const Solution& solution, double time_limit);
 

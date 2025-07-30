@@ -1,0 +1,18 @@
+
+Gurobi 11.0.0 (win64, C++) logging started Wed Jul 30 00:16:48 2025
+
+Set parameter TokenServer to value "141.76.38.119"
+### START HEURISTIC APPROACH APPROACH ###
+ProblemVariant: 1
+### START PREPROCESSING ###
+## Start start solution procedure ##
+Not enough vehicles for start solution, copying existing vehicle(s)...
+Copied 1 vehicle(s). Total vehicles now: 7
+Start solution with 7 Vehicles and total costs 903.423 in 3.8676 s.
+### END PREPROCESSING ###
+Route 0 0-5-4-7-0 : weight util 0.255556 | volume util 0.447689 | infeasible with packing heuristic | feasible with CP model
+Route 1 0-18-19-0 : weight util 0.160000 | volume util 0.387000 | infeasible with packing heuristic | feasible with CP model
+Route 2 0-20-22-17-14-0 : weight util 0.294444 | volume util 0.601644 | infeasible with packing heuristic | feasible with CP model
+Route 3 0-10-8-21-0 : weight util 0.983333 | volume util 0.467044 | infeasible with packing heuristic | feasible with CP model
+Route 4 0-9-13-11-12-0 : weight util 0.416667 | volume util 0.430711 | infeasible with packing heuristic | feasible with CP model
+Route 5 0-16-15-3-2-1-6-0 : weight util 0.154222 | volume util 0.495778 | infeasible with packing heuristic | feasible with CP model

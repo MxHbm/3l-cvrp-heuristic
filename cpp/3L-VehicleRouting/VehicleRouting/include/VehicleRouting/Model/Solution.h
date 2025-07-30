@@ -85,10 +85,14 @@ class SolutionTracker
     int rejections{0};
     int NoImpr{0};
     int RoundsWithNoImpr{0};
+    int mSeedOffset{0};
 
 
     //Default constructor
-    SolutionTracker(){};
+    SolutionTracker(int seedOffset)
+        : mSeedOffset(seedOffset)
+    {}
+
 
     void UpdateCurrSolution(const double runtime, const double bound)
     {
@@ -112,18 +116,22 @@ class SolutionTracker
 class SolverStatistics
 {
   public:
-    double ILSIterationCount = 0;
+    size_t ILSIterationCount = 0;
+    size_t rejectionCount = 0;
     size_t DeletedArcs = 0;
+    size_t seedOffset = 0;
     size_t InfeasibleTailPathStart = 0;
     Helper::Timer Timer;
     SolutionTracker solutionTracker;
 
-    SolverStatistics(Helper::Timer& timer,
-                     SolutionTracker& solTracker,
+    SolverStatistics(const Helper::Timer& timer,
+                     const SolutionTracker& solTracker,
                      size_t deletedArcs,
                      size_t infTailPathStart)
     : ILSIterationCount(solTracker.iterations),
+      rejectionCount (solTracker.rejections),
       DeletedArcs(deletedArcs),
+      seedOffset(solTracker.mSeedOffset),
       InfeasibleTailPathStart(infTailPathStart),
       Timer(timer),
       solutionTracker(solTracker)
@@ -186,10 +194,9 @@ class OutputSolution
     OutputSolution(const Solution& solution,Instance* instance)
     : Costs(solution.Costs), NumberOfRoutes(solution.Routes.size()), LowerBoundVehicles(instance->LowerBoundVehicles)
     {
-
+      
       Tours.reserve(NumberOfRoutes);
       int vehicleId = 0;
-      // TODO delete after debugging
 
       for (const auto& route: solution.Routes)
       { 
