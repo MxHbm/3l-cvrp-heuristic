@@ -25,13 +25,44 @@ LocalSearch::LocalSearch(const InputParameters& params,
 }
 
 
+bool LocalSearch::IsCurrentSolutionCPValid(ContainerLoading::LoadingChecker* checker, const Solution& solution, double time_limit) {
+    for(const auto& route : solution.Routes) {
+
+        if(route.Sequence.size() > 0){
+
+            auto items = InterfaceConversions::SelectItems(route.Sequence, mInstance->Nodes, false);
+            auto status =
+                checker->HeuristicCompleteCheck(mInstance->Vehicles.front().Containers.front(),
+                                                        checker->MakeBitset(mInstance->Nodes.size(), route.Sequence),
+                                                        route.Sequence,
+                                                        items,
+                                                        time_limit);
+
+            if(status != LoadingStatus::FeasOpt) {
+                //std::cout << "Route was rejected by CPSolver" << std::endl;
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
 // Run all local‑search moves in order
 void LocalSearch::RunLocalSearch(Model::Solution& sol,
                                 ContainerLoading::LoadingChecker* checker,
                                 ContainerLoading::Classifier* classifier)
 {
+    Model::Solution lastValidsol = sol;
     for (auto& op : lsOperators){
         op->Run(mInstance, mInputParameters, checker,classifier, sol);
+
+        //TODO Still gets float manually
+        if (mInputParameters.ContainerLoading.classifierParams.UseClassifier && !IsCurrentSolutionCPValid(checker, sol, 600.0)) {
+            sol = lastValidsol;
+        }else{
+            lastValidsol = sol;
+        }
     }
 };
 
@@ -41,11 +72,19 @@ void LocalSearch::RunPerturbation(Model::Solution&                  sol,
                                   ContainerLoading::Classifier* classifier,
                                   std::mt19937&                     rng)
 {
+    Model::Solution lastValidsol = sol;
     for (auto& op : pertOperators){
         //TODO handles nullptr case! 
         if(op != nullptr){
             op->Run(mInstance, mInputParameters, checker, classifier, sol, rng);
         }
+        //TODO Still gets float manually
+        if (mInputParameters.ContainerLoading.classifierParams.UseClassifier && !IsCurrentSolutionCPValid(checker, sol, 600.0)) {
+            sol = lastValidsol;
+        }else{
+            lastValidsol = sol;
+        }
+
         break;
     }
 };
@@ -56,10 +95,17 @@ void LocalSearch::RunBigPerturbation(Model::Solution&                  sol,
                                   ContainerLoading::Classifier* classifier,
                                   std::mt19937&                     rng)
 {
+    Model::Solution lastValidsol = sol;
     for (auto& op : pertOperators)
         //TODO handles nullptr case! 
         if(op != nullptr){
             op->Run(mInstance, mInputParameters, checker, classifier, sol, rng);
+        }
+         //TODO Still gets float manually
+        if (mInputParameters.ContainerLoading.classifierParams.UseClassifier && !IsCurrentSolutionCPValid(checker, sol, 600.0)) {
+            sol = lastValidsol;
+        }else{
+            lastValidsol = sol;
         }
 };
 

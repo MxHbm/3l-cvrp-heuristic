@@ -49,6 +49,11 @@ private:
 
     std::unique_ptr<LocalSearchOperatorBase> CreateLocalSearchOperator(const LocalSearchTypes& t);
     std::unique_ptr<PerturbationOperatorBase> CreatePerturbationOperator(const PerturbationTypes& t);
+
+
+    
+    bool IsCurrentSolutionCPValid(ContainerLoading::LoadingChecker* checker, const Solution& solution, double time_limit);
+
 };
 
 }} // namespace VehicleRouting::Improvement
