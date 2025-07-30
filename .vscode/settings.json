@@ -19,7 +19,7 @@
             "-o",
             "${workspaceFolder}/data/output/3l-cvrp/test/",
             "-p",
-            "${workspaceFolder}/data/input/3l-cvrp/parameters/BenchmarkParameters_AllConstraints.json"
+            "${workspaceFolder}/data/input/3l-cvrp/parameters/BenchmarkParameters_AllConstraints_Test.json"
         ],
         "environment": [
             {

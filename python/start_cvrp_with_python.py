@@ -8,10 +8,10 @@ env = os.environ.copy()
 # Define the directory path and command components
 directory_path = os.getcwd()
 command_base =  os.path.join(directory_path,"build/Release/bin/Release/3L-VehicleRoutingApplication.exe")
-output_folder = os.path.join(directory_path,"data/output/3l-cvrp/all-constraints-heuristic-basic/")
+output_folder = r"H:\Data\Results_Heuristic\Heuristic_First_Results_10min_Mod.Savings/"
 input_folder = os.path.join(directory_path,"data/input/3l-cvrp/gendreau/")
 parameter_file = os.path.join(directory_path,"data/input/3l-cvrp/parameters/BenchmarkParameters_AllConstraints.json")
-number_of_processes = 2
+number_of_processes = 3
 
 # Navigate to the directorys
 

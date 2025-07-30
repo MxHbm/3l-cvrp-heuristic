@@ -1,7 +1,7 @@
 {
     "IteratedLocalSearchParams": {
-        "Run_ILS": true,
-        "Run_LS" : true,
+        "Run_ILS": false,
+        "Run_LS" : false,
         "LimitNoImpr" : 5,
         "K_RandomMoves" : 5,
         "ActivateIntraRouteImprovement": true,
@@ -14,7 +14,7 @@
         "TimeLimit": [
             [
                 "ILS",
-                600
+                20
             ],
             [
                 "Constructive",
