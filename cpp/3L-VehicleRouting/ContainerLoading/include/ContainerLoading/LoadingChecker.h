@@ -6,6 +6,7 @@
 
 #include "Algorithms/MultiContainer/BP_MIP_1D.h"
 #include "Model/ContainerLoadingInstance.h"
+#include "Classifier.h"
 
 #include <boost/dynamic_bitset.hpp>
 #include <boost/functional/hash.hpp>
@@ -21,7 +22,7 @@ class LoadingChecker
   public:
     const ContainerLoadingParams Parameters;
 
-    explicit LoadingChecker(const ContainerLoadingParams& parameters) : Parameters(parameters)
+    explicit LoadingChecker(const ContainerLoadingParams& parameters, const double maxruntime) : Parameters(parameters), maxRunTime_CPSolver(maxruntime)
     {
         using enum LoadingFlag;
 
@@ -40,23 +41,22 @@ class LoadingChecker
         }
 
         mStartTime = std::chrono::high_resolution_clock::now();
+
+         //Initialize Classifier: 
+        if(Parameters.classifierParams.UseClassifier){
+            mClassifier = std::make_unique<Classifier>(Parameters.classifierParams);
+        }
     }
 
     [[nodiscard]] std::vector<Cuboid>
         SelectItems(const Collections::IdVector& nodeIds, std::vector<Group>& nodes, bool reversedDirection) const;
-
-    [[nodiscard]] LoadingStatus PackingHeuristic(PackingType packingType,
-                                                 const Container& container,
-                                                 const Collections::IdVector& stopIds,
-                                                 const std::vector<Cuboid>& items);
 
     [[nodiscard]] LoadingStatus ConstraintProgrammingSolver(PackingType packingType,
                                                             const Container& container,
                                                             const boost::dynamic_bitset<>& set,
                                                             const Collections::IdVector& stopIds,
                                                             const std::vector<Cuboid>& items,
-                                                            bool isCallTypeExact,
-                                                            double maxRuntime = std::numeric_limits<double>::max());
+                                                            bool isCallTypeExact);
 
     [[nodiscard]] LoadingStatus ConstraintProgrammingSolverGetPacking(PackingType packingType,
                                                                       const Container& container,
@@ -64,11 +64,10 @@ class LoadingChecker
                                                                       std::vector<Cuboid>& items,
                                                                       double maxRuntime) const;
 
-    [[nodiscard]] LoadingStatus HeuristicCompleteCheck(const Container& container,
-                                                       const boost::dynamic_bitset<>& set,
-                                                       const Collections::IdVector& stopIds,
-                                                       const std::vector<Cuboid>& items,
-                                                       double maxRuntime = std::numeric_limits<double>::max());
+    [[nodiscard]] bool CompleteCheck(const Container& container,
+                                    const boost::dynamic_bitset<>& set,
+                                    const Collections::IdVector& stopIds,
+                                    const std::vector<Cuboid>& items);
 
     void SetBinPackingModel(GRBEnv* env,
                             std::vector<Container>& containers,
@@ -96,38 +95,17 @@ class LoadingChecker
 
     [[nodiscard]] bool RouteIsInFeasSequences(const Collections::IdVector& route) const;
 
-    void AddSequenceCheckedTwoOpt(const Collections::IdVector& sequence);
-
-    [[nodiscard]] bool SequenceIsCheckedTwoOpt(const Collections::IdVector& sequence) const;
+    [[nodiscard]] bool RouteIsInInfeasSequences(const Collections::IdVector& route) const;
 
     [[nodiscard]] boost::dynamic_bitset<> MakeBitset(size_t size, const Collections::IdVector& sequence) const;
-
-    [[nodiscard]] std::unordered_map<double, Collections::IdVector> GetFeasibleRoutesWithTimeStamps()
-    {
-        return mCompleteFeasSeqWithTimeStamps;
-    };
-
-    void AddTailTournamentConstraint(const Collections::IdVector& sequence)
-    {
-        auto elapsed = GetElapsedTime();
-        mTailTournamentConstraintsWithTimeStamps.insert({elapsed, sequence});
-    }
-    [[nodiscard]] std::unordered_map<double, Collections::IdVector> GetTailTournamentConstraints() const
-    {
-        return mTailTournamentConstraintsWithTimeStamps;
-    }
 
   private:
     std::chrono::high_resolution_clock::time_point mStartTime;
     std::unique_ptr<BinPacking1D> mBinPacking1D;
+    std::unique_ptr<Classifier> mClassifier;
+    const double maxRunTime_CPSolver;
 
-    Collections::SequenceSet mTwoOptCheckedSequences;
-
-    Collections::SequenceSet mEPHeurInfSequences;
     Collections::SequenceVector mCompleteFeasSeq;
-    std::unordered_map<double, Collections::IdVector> mCompleteFeasSeqWithTimeStamps;
-    std::unordered_map<double, Collections::IdVector> mTailTournamentConstraintsWithTimeStamps;
-
     /// Set of customer combinations that are infeasible.
     /// -> There is no path in combination C that respects all constraints
     /// -> At least 2 vehicles are needed to serve all customers in C
@@ -141,9 +119,6 @@ class LoadingChecker
 
     std::unordered_map<LoadingFlag, std::vector<boost::dynamic_bitset<>>> mUnknownSets;
     std::unordered_map<LoadingFlag, Collections::SequenceSet> mUnkSequences;
-
-    [[nodiscard]] bool SequenceIsHeuristicallyInfeasibleEP(const Collections::IdVector& sequence) const;
-    void AddInfeasibleSequenceEP(const Collections::IdVector& sequence);
 
     void AddFeasibleRoute(const Collections::IdVector& route);
 
@@ -167,11 +142,6 @@ class LoadingChecker
                    LoadingFlag mask,
                    LoadingStatus status);
 
-    [[nodiscard]] LoadingStatus RunLoadingHeuristic(PackingType packingType,
-                                                    const Container& container [[maybe_unused]],
-                                                    const Collections::IdVector& stopIds [[maybe_unused]],
-                                                    const std::vector<Cuboid>& items [[maybe_unused]]);
-
     [[nodiscard]] int DetermineMinVehiclesBinPacking(bool enableLifting,
                                                      double liftingThreshold,
                                                      const boost::dynamic_bitset<>& nodes,
@@ -180,5 +150,4 @@ class LoadingChecker
 
     [[nodiscard]] int ReSolveBinPackingApproximation(const boost::dynamic_bitset<>& selectedGroups) const;
 };
-
 }

@@ -6,7 +6,6 @@ namespace Improvement {
 void PerturbationOperatorBase::Run(const Model::Instance*            instance,
         const InputParameters&            params,
         ContainerLoading::LoadingChecker* loadingChecker,
-        ContainerLoading::Classifier*    classifier,
         Model::Solution&                  solution,
         std::mt19937&                     rng)
 {
@@ -20,7 +19,6 @@ void PerturbationOperatorBase::Run(const Model::Instance*            instance,
     }
 
     //Preinitialize values
-    const double maxRuntime = params.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
     const auto& container = instance->Vehicles.front().Containers.front();
 
     // Implement unordered_set as tabu list
@@ -52,55 +50,25 @@ void PerturbationOperatorBase::Run(const Model::Instance*            instance,
         for(const auto& route_index : {std::get<1>(*move), std::get<2>(*move)})
         {
             auto& route = routes[route_index];
+
             if(route.Sequence.empty()){
                 continue;
             }
-            
-            auto selectedItems = Algorithms::InterfaceConversions::SelectItems(route.Sequence, instance->Nodes, false);
             // If lifo is disabled, feasibility of route is independent from actual sequence
             // -> move is always feasible if route is feasible
+            
             if (!loadingChecker->Parameters.LoadingProblem.EnableLifo && loadingChecker->RouteIsInFeasSequences(route.Sequence))
             {
                 continue;
             }
-
-            if(params.ContainerLoading.classifierParams.UseClassifier){
-
-                auto y{0.0};
-
-                if(params.ContainerLoading.classifierParams.SaveTensorData){
-                    auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
-                    auto status = loadingChecker->HeuristicCompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
-                    
-                    if (status != LoadingStatus::FeasOpt)
-                    {
-                        y = classifier->classify(selectedItems, route.Sequence, container, 0);
-                    }else{
-                        y = classifier->classify(selectedItems, route.Sequence, container, 1);
-                    }
-        
-                }else{
-                    y = classifier->classify(selectedItems, route.Sequence, container, 0);
-                }
-
-                //std::cout << "Output Perturbation: " << y << std::endl;
-                if (y <= params.ContainerLoading.classifierParams.AcceptanceThreshold)
-                {
-                    controlFlag = false;
-                    break;
-                }
-                continue;
-
-            }else{
-
-                auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
-                auto status = loadingChecker->HeuristicCompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
-                if (status != LoadingStatus::FeasOpt)
-                {
-                    controlFlag = false;
-                    break;
-                }
-                continue;
+            
+            auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
+            auto selectedItems = Algorithms::InterfaceConversions::SelectItems(route.Sequence, instance->Nodes, false);
+            
+            if (!loadingChecker->CompleteCheck(container, set, route.Sequence, selectedItems))
+            {
+                controlFlag = false;
+                break;
             }
 
         }

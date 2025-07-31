@@ -12,7 +12,6 @@ using namespace ContainerLoading;
 void InterLocalSearchOperator::Run(const Instance* instance,
                     const InputParameters& inputParameters,
                     LoadingChecker* loadingChecker,
-                    Classifier* classifier,
                     Solution& currentSolution){
 
   std::vector<Route>& routes = currentSolution.Routes;
@@ -25,7 +24,7 @@ void InterLocalSearchOperator::Run(const Instance* instance,
   while(true){
 
       auto moves = DetermineMoves(instance, routes);
-      auto savings = GetBestMove(instance, inputParameters, loadingChecker,classifier, routes, moves);
+      auto savings = GetBestMove(instance, inputParameters, loadingChecker, routes, moves);
 
       if(!savings){
           break;
@@ -41,7 +40,6 @@ void InterLocalSearchOperator::Run(const Instance* instance,
 std::optional<double> InterLocalSearchOperator::GetBestMove(const Instance* instance,
                                 const InputParameters& inputParameters,
                                 LoadingChecker* loadingChecker,
-                                ContainerLoading::Classifier* classifier,
                                 std::vector<Route>& routes,
                                 std::vector<InterMove>& moves){
   if (moves.size() == 0)
@@ -57,7 +55,6 @@ std::optional<double> InterLocalSearchOperator::GetBestMove(const Instance* inst
   //auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route);
 
   //Initiate variables before loop
-  const double maxRuntime = inputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
   const auto& container = instance->Vehicles.front().Containers.front();
 
   for (const auto& move: moves)
@@ -81,51 +78,20 @@ std::optional<double> InterLocalSearchOperator::GetBestMove(const Instance* inst
             continue;
         }
 
-        auto selectedItems = Algorithms::InterfaceConversions::SelectItems(route.Sequence, instance->Nodes, false);
         // If lifo is disabled, feasibility of route is independent from actual sequence
         // -> move is always feasible if route is feasible
+        
         if (!loadingChecker->Parameters.LoadingProblem.EnableLifo && loadingChecker->RouteIsInFeasSequences(route.Sequence))
         {
             continue;
         }
-
-        if(inputParameters.ContainerLoading.classifierParams.UseClassifier){
-
-           auto y{0.0};
-
-            if(inputParameters.ContainerLoading.classifierParams.SaveTensorData){
-
-                auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
-                auto status = loadingChecker->HeuristicCompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
-                
-                if (status != LoadingStatus::FeasOpt)
-                {
-                    y = classifier->classify(selectedItems, route.Sequence, container, 0);
-                }else{
-                    y = classifier->classify(selectedItems, route.Sequence, container, 1);
-                }
         
-            }else{
-                y = classifier->classify(selectedItems, route.Sequence, container, 0);
-            }
+        auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
+        auto selectedItems = Algorithms::InterfaceConversions::SelectItems(route.Sequence, instance->Nodes, false);
 
-            //std::cout << "Output InterLocalSearch: " << y << std::endl;
-            if (y <= inputParameters.ContainerLoading.classifierParams.AcceptanceThreshold)
-            {
-                controlFlag = false;
-                break;
-            }
-
-        }else{
-
-            auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
-            auto status = loadingChecker->HeuristicCompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
-
-            if (status != LoadingStatus::FeasOpt)
-            {
+        if (!loadingChecker->CompleteCheck(container,  set, route.Sequence, selectedItems)){
             controlFlag = false;
             break;
-            }
         }
 
       }

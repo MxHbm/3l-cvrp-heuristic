@@ -27,17 +27,23 @@ public:
 
     Classifier(const ClassifierParams& classifierParams);
 
-    // Output: classification probability (0–1)
-    float classify(const std::vector<Cuboid>& items,
+    // Output: classification probability (0–1) - O Infeasible - 1 Feasible
+    bool classify(const std::vector<Cuboid>& items,
                    const Collections::IdVector& route,
                    const Container& container,
                    const int status);
+
+    // Output: classification probability (0–1) - O Infeasible - 1 Feasible
+    bool classify(const std::vector<Cuboid>& items,
+                   const Collections::IdVector& route,
+                   const Container& container);
 
 private:
     
     torch::Tensor mean_tensor;
     torch::Tensor std_tensor;
     ClassifierParams mClassifierParams;
+    torch::jit::script::Module model;
 
     void loadStandardScalingFromJson(const std::string& scaler_path);
     
@@ -47,7 +53,6 @@ private:
 
     torch::Tensor applyStandardScaling(const torch::Tensor& input) const;
 
-    torch::jit::script::Module model;
     torch::Tensor extractFeatures(const std::vector<Cuboid>& items,
                                   const Collections::IdVector& route,
                                   const Container& container) const;

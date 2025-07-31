@@ -41,9 +41,6 @@ class IteratedLocalSearch
     {
         mLogFile.open(env->get(GRB_StringParam_LogFile), std::ios::out | std::ios::app);
 
-        //Initialize Classifier: 
-        mClassifier = std::make_unique<Classifier>(mInputParameters.ContainerLoading.classifierParams);
-
         //Initialize Local Search
         mLocalSearch = std::make_unique<Improvement::LocalSearch>(mInputParameters, mInstance);
 
@@ -75,7 +72,6 @@ class IteratedLocalSearch
     std::mt19937 mRNG;
 
     std::unique_ptr<LoadingChecker> mLoadingChecker;
-    std::unique_ptr<Classifier> mClassifier;
     std::unique_ptr<Improvement::LocalSearch> mLocalSearch;
 
     void InfeasibleArcProcedure();
@@ -100,7 +96,33 @@ class IteratedLocalSearch
     void GenerateStartSolutionSavings();
     void GenerateStartSolutionModifiedSavings();
     void GenerateStartSolutionSPHeuristic();
+      /*
     bool IsCurrentSolutionCPValid(const Solution& solution, double time_limit);
+
+    bool IteratedLocalSearch::IsCurrentSolutionCPValid(const Solution& solution, double time_limit) {
+        for(const auto& route : solution.Routes) {
+
+            if(route.Sequence.size() > 0){
+
+                auto items = InterfaceConversions::SelectItems(route.Sequence, mInstance->Nodes, false);
+                auto status =
+                    mLoadingChecker->HeuristicCompleteCheck(mInstance->Vehicles.front().Containers.front(),
+                                                            mLoadingChecker->MakeBitset(mInstance->Nodes.size(), route.Sequence),
+                                                            route.Sequence,
+                                                            items,
+                                                            time_limit);
+
+                if(status != LoadingStatus::FeasOpt) {
+                    //std::cout << "Route was rejected by CPSolver" << std::endl;
+                    ++mSolutionTracker.rejections;
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+    */
+
 
 };
 }
