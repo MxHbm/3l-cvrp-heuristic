@@ -27,24 +27,22 @@ LocalSearch::LocalSearch(const InputParameters& params,
 
 // Run all local‑search moves in order
 void LocalSearch::RunLocalSearch(Model::Solution& sol,
-                                ContainerLoading::LoadingChecker* checker,
-                                ContainerLoading::Classifier* classifier)
+                                ContainerLoading::LoadingChecker* checker)
 {
     for (auto& op : lsOperators){
-        op->Run(mInstance, mInputParameters, checker,classifier, sol);
+        op->Run(mInstance, mInputParameters, checker, sol);
     }
 };
 
 // Run all perturbations in order
 void LocalSearch::RunPerturbation(Model::Solution&                  sol,
                                   ContainerLoading::LoadingChecker* checker,
-                                  ContainerLoading::Classifier* classifier,
                                   std::mt19937&                     rng)
 {
     for (auto& op : pertOperators){
         //TODO handles nullptr case! 
         if(op != nullptr){
-            op->Run(mInstance, mInputParameters, checker, classifier, sol, rng);
+            op->Run(mInstance, mInputParameters, checker, sol, rng);
         }
         break;
     }
@@ -53,13 +51,12 @@ void LocalSearch::RunPerturbation(Model::Solution&                  sol,
 // Run all perturbations in order
 void LocalSearch::RunBigPerturbation(Model::Solution&                  sol,
                                   ContainerLoading::LoadingChecker* checker,
-                                  ContainerLoading::Classifier* classifier,
                                   std::mt19937&                     rng)
 {
     for (auto& op : pertOperators)
         //TODO handles nullptr case! 
         if(op != nullptr){
-            op->Run(mInstance, mInputParameters, checker, classifier, sol, rng);
+            op->Run(mInstance, mInputParameters, checker, sol, rng);
         }
 };
 

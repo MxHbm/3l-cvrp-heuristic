@@ -65,7 +65,7 @@ void FullEnumerationSearch::Run(const Instance* const instance,
             }
 
             auto selectedItems = InterfaceConversions::SelectItems(sequence, instance->Nodes, false);
-            auto status = loadingChecker->HeuristicCompleteCheck(container, set, sequence, selectedItems, maxRuntime);
+            auto status = loadingChecker->CompleteCheck(container, set, sequence, selectedItems, maxRuntime);
 
             if (status == LoadingStatus::FeasOpt)
             {

@@ -128,7 +128,7 @@ bool Savings::ConcatRoutes(Collections::IdVector& frontSequence,
 
     double maxRuntime = mInputParameters->DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
     auto status =
-        mLoadingChecker->HeuristicCompleteCheck(container,
+        mLoadingChecker->CompleteCheck(container,
                                                 mLoadingChecker->MakeBitset(mInstance->Nodes.size(), frontSequence),
                                                 frontSequence,
                                                 selectedItems,
@@ -354,11 +354,11 @@ bool ModifiedSavings::InsertionFeasible(Route& route, size_t nodeToInsert, size_
 
     double maxRuntime = mInputParameters->DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
     auto status =
-        mLoadingChecker->HeuristicCompleteCheck(container,
-                                                mLoadingChecker->MakeBitset(mInstance->Nodes.size(), tmpSequence),
-                                                tmpSequence,
-                                                selectedItems,
-                                                maxRuntime);
+        mLoadingChecker->CompleteCheck(container,
+                            mLoadingChecker->MakeBitset(mInstance->Nodes.size(), tmpSequence),
+                            tmpSequence,
+                            selectedItems,
+                            maxRuntime);
 
     if (status != LoadingStatus::FeasOpt)
     {

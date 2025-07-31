@@ -64,13 +64,6 @@ void IteratedLocalSearch::Initialize()
 
         auto items = InterfaceConversions::SelectItems(route, mInstance->Nodes, false);
 
-        auto heurStatus = mLoadingChecker->PackingHeuristic(PackingType::Complete, containers[0], route, items);
-
-        if (heurStatus == LoadingStatus::FeasOpt)
-        {
-            continue;
-        }
-
         auto exactStatus =
             mLoadingChecker->ConstraintProgrammingSolver(PackingType::Complete,
                                                          containers[0],
@@ -198,17 +191,10 @@ void IteratedLocalSearch::StartSolutionProcedure()
     mCurrentSolution.DeterminWeightsVolumes(mInstance);
     mBestSolution = mCurrentSolution;
 
-    //Initial Local Search
-    double maxRuntime_CPSolver = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
-    //Iterated Local Search
+    //Initital Local Search
     if(mInputParameters.IteratedLocalSearch.RunLS){
 
-       mLocalSearch->RunLocalSearch(mCurrentSolution, mLoadingChecker.get(), mClassifier.get());
-
-        if (mInputParameters.ContainerLoading.classifierParams.UseClassifier &&
-            !IsCurrentSolutionCPValid(mCurrentSolution, maxRuntime_CPSolver)) {
-            mCurrentSolution = mBestSolution;
-        }
+       mLocalSearch->RunLocalSearch(mCurrentSolution, mLoadingChecker.get());
 
         //Wont be applied, when current = best solution
         if(mCurrentSolution.Costs < mBestSolution.Costs){
@@ -519,33 +505,26 @@ void IteratedLocalSearch::DetermineInfeasibleCustomerCombinations()
                 Collections::IdVector path = {iNode, jNode, kNode};
 
                 auto selectedItems = InterfaceConversions::SelectItems(path, mInstance->Nodes, false);
+                
+                boost::dynamic_bitset<> nodesInSet(nodes.size());
+                nodesInSet.set(iNode);
+                nodesInSet.set(jNode);
+                nodesInSet.set(kNode);
 
-                // Relaxed stability: supportAreaRequirement = 0.0.
-                auto heuristicStatus =
-                    mLoadingChecker->PackingHeuristic(PackingType::Complete, container, path, selectedItems);
+                double maxRuntime = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::Exact);
+                auto status = mLoadingChecker->ConstraintProgrammingSolver(
+                    PackingType::NoSupportNoSequence,
+                    container,
+                    nodesInSet,
+                    path,
+                    selectedItems,
+                    mInputParameters.IsExact(IteratedLocalSearchParams::CallType::Exact),
+                    maxRuntime);
 
-                if (heuristicStatus == LoadingStatus::Infeasible)
+                if (status == LoadingStatus::Infeasible)
                 {
-                    boost::dynamic_bitset<> nodesInSet(nodes.size());
-                    nodesInSet.set(iNode);
-                    nodesInSet.set(jNode);
-                    nodesInSet.set(kNode);
-
-                    double maxRuntime = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::Exact);
-                    auto status = mLoadingChecker->ConstraintProgrammingSolver(
-                        PackingType::NoSupportNoSequence,
-                        container,
-                        nodesInSet,
-                        path,
-                        selectedItems,
-                        mInputParameters.IsExact(IteratedLocalSearchParams::CallType::Exact),
-                        maxRuntime);
-
-                    if (status == LoadingStatus::Infeasible)
-                    {
-                        mLoadingChecker->AddInfeasibleCombination(nodesInSet);
-                        mInfeasibleCombinations.insert(path);
-                    }
+                    mLoadingChecker->AddInfeasibleCombination(nodesInSet);
+                    mInfeasibleCombinations.insert(path);
                 }
             }
         }
@@ -590,7 +569,7 @@ size_t IteratedLocalSearch::DetermineLowerBoundVehicles()
 
     return lowerBound1D;
 }
-
+/*
 bool IteratedLocalSearch::IsCurrentSolutionCPValid(const Solution& solution, double time_limit) {
     for(const auto& route : solution.Routes) {
 
@@ -613,6 +592,7 @@ bool IteratedLocalSearch::IsCurrentSolutionCPValid(const Solution& solution, dou
     }
     return true;
 }
+*/
 
 
 void IteratedLocalSearch::Solve()
@@ -639,7 +619,6 @@ void IteratedLocalSearch::Solve()
     StartSolutionProcedure();
     mTimer.calculateStartSolutionTime();
 
-    Solution lastValidSolution = mCurrentSolution;
     double maxRuntime_CPSolver = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
     double maxRuntime = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ILS);
     if(mInputParameters.IteratedLocalSearch.RunILS){
@@ -648,19 +627,14 @@ void IteratedLocalSearch::Solve()
             std::cout << "Run: " << mSolutionTracker.iterations << " - CurrentCosts: " << mCurrentSolution.Costs << " - BestCosts:" << mBestSolution.Costs << std::endl;
             
             if(mSolutionTracker.RoundsWithNoImpr > 2){
-                mLocalSearch->RunBigPerturbation(mCurrentSolution, mLoadingChecker.get(), mClassifier.get(), mRNG);
+                mLocalSearch->RunBigPerturbation(mCurrentSolution, mLoadingChecker.get(), mRNG);
                 mSolutionTracker.RoundsWithNoImpr = 0;
             }else{
-                mLocalSearch->RunPerturbation(mCurrentSolution, mLoadingChecker.get(), mClassifier.get(), mRNG);
+                mLocalSearch->RunPerturbation(mCurrentSolution, mLoadingChecker.get(), mRNG);
             }
-            mLocalSearch->RunLocalSearch(mCurrentSolution, mLoadingChecker.get(), mClassifier.get());
+            mLocalSearch->RunLocalSearch(mCurrentSolution, mLoadingChecker.get());
 
             ++mSolutionTracker.iterations;
-
-            if (mInputParameters.ContainerLoading.classifierParams.UseClassifier && !IsCurrentSolutionCPValid(mCurrentSolution,maxRuntime_CPSolver)) {
-                mCurrentSolution = lastValidSolution;
-                --mSolutionTracker.NoImpr;
-            }
 
             mTimer.calculateElapsedTime();
     
@@ -669,7 +643,6 @@ void IteratedLocalSearch::Solve()
                 mBestSolution = mCurrentSolution;
                 mSolutionTracker.NoImpr = 0;
                 mSolutionTracker.RoundsWithNoImpr = 0;
-                lastValidSolution = mCurrentSolution;
                 continue;
             }
 
@@ -678,7 +651,6 @@ void IteratedLocalSearch::Solve()
                 mBestSolution = mCurrentSolution;
                 mSolutionTracker.NoImpr = 0;
                 mSolutionTracker.RoundsWithNoImpr = 0;
-                lastValidSolution = mCurrentSolution;
                 continue;
             }
 
@@ -691,7 +663,6 @@ void IteratedLocalSearch::Solve()
             }
 
             ++mSolutionTracker.NoImpr;
-            lastValidSolution = mCurrentSolution;
 
         }
     }

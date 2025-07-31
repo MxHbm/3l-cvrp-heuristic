@@ -6,7 +6,6 @@ namespace Improvement {
 void PerturbationOperatorBase::Run(const Model::Instance*            instance,
         const InputParameters&            params,
         ContainerLoading::LoadingChecker* loadingChecker,
-        ContainerLoading::Classifier*    classifier,
         Model::Solution&                  solution,
         std::mt19937&                     rng)
 {
@@ -64,43 +63,12 @@ void PerturbationOperatorBase::Run(const Model::Instance*            instance,
                 continue;
             }
 
-            if(params.ContainerLoading.classifierParams.UseClassifier){
-
-                auto y{0.0};
-
-                if(params.ContainerLoading.classifierParams.SaveTensorData){
-                    auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
-                    auto status = loadingChecker->HeuristicCompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
-                    
-                    if (status != LoadingStatus::FeasOpt)
-                    {
-                        y = classifier->classify(selectedItems, route.Sequence, container, 0);
-                    }else{
-                        y = classifier->classify(selectedItems, route.Sequence, container, 1);
-                    }
-        
-                }else{
-                    y = classifier->classify(selectedItems, route.Sequence, container, 0);
-                }
-
-                //std::cout << "Output Perturbation: " << y << std::endl;
-                if (y <= params.ContainerLoading.classifierParams.AcceptanceThreshold)
-                {
-                    controlFlag = false;
-                    break;
-                }
-                continue;
-
-            }else{
-
-                auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
-                auto status = loadingChecker->HeuristicCompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
-                if (status != LoadingStatus::FeasOpt)
-                {
-                    controlFlag = false;
-                    break;
-                }
-                continue;
+            auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
+            auto status = loadingChecker->CompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
+            if (status != LoadingStatus::FeasOpt)
+            {
+                controlFlag = false;
+                break;
             }
 
         }

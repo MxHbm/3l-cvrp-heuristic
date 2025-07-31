@@ -26,19 +26,16 @@ public:
 
     // Run all local‑search moves in order
     void RunLocalSearch(Solution& sol,
-                        ContainerLoading::LoadingChecker* checker,
-                        ContainerLoading::Classifier* classifier);
+                        ContainerLoading::LoadingChecker* checker);
 
     // Run all perturbations in order
     void RunPerturbation(Solution& sol,
                         ContainerLoading::LoadingChecker* checker,
-                        ContainerLoading::Classifier* classifier,
                          std::mt19937& rng);
 
         // Run all perturbations in order
     void RunBigPerturbation(Solution& sol,
                         ContainerLoading::LoadingChecker* checker,
-                        ContainerLoading::Classifier* classifier,
                          std::mt19937& rng);
 
 private:

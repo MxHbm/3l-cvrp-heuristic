@@ -26,7 +26,6 @@ public:
     void Run(const Model::Instance*            instance,
             const InputParameters&            params,
             ContainerLoading::LoadingChecker* loadingChecker,
-            ContainerLoading::Classifier*    classifier,
             Model::Solution&                  solution,
             std::mt19937&                     rng);
 

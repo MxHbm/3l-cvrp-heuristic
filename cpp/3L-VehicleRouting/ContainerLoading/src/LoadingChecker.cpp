@@ -39,24 +39,6 @@ std::vector<Cuboid> LoadingChecker::SelectItems(const Collections::IdVector& nod
     return selectedItems;
 }
 
-LoadingStatus LoadingChecker::PackingHeuristic(PackingType packingType,
-                                               const Container& container,
-                                               const Collections::IdVector& stopIds,
-                                               const std::vector<Cuboid>& items)
-{
-    if (SequenceIsHeuristicallyInfeasibleEP(stopIds))
-    {
-        return LoadingStatus::Infeasible;
-    }
-
-    if (RouteIsInFeasSequences(stopIds))
-    {
-        return LoadingStatus::FeasOpt;
-    }
-
-    return RunLoadingHeuristic(packingType, container, stopIds, items);
-}
-
 LoadingStatus LoadingChecker::ConstraintProgrammingSolver(PackingType packingType,
                                                           const Container& container,
                                                           const boost::dynamic_bitset<>& set,
@@ -142,23 +124,50 @@ LoadingStatus LoadingChecker::ConstraintProgrammingSolverGetPacking(PackingType 
     return status;
 }
 
-LoadingStatus LoadingChecker::HeuristicCompleteCheck(const Container& container,
-                                                     const boost::dynamic_bitset<>& set,
-                                                     const Collections::IdVector& stopIds,
-                                                     const std::vector<Cuboid>& items,
-                                                     double maxRuntime)
+LoadingStatus LoadingChecker::CompleteCheck(const Container& container,
+                                            const boost::dynamic_bitset<>& set,
+                                            const Collections::IdVector& stopIds,
+                                            const std::vector<Cuboid>& items,
+                                            double maxRuntime)
 {
-    auto heuristicStatus = PackingHeuristic(PackingType::Complete, container, stopIds, items);
-
-    if (heuristicStatus == LoadingStatus::FeasOpt)
+    if (RouteIsInFeasSequences(stopIds))
     {
         return LoadingStatus::FeasOpt;
     }
 
-    auto cpStatus =
-        ConstraintProgrammingSolver(PackingType::Complete, container, set, stopIds, items, false, maxRuntime);
+    if (RouteIsInInfeasSequences(stopIds))
+    {
+        return LoadingStatus::Infeasible;
+    }
 
-    return cpStatus;
+    if(Parameters.classifierParams.UseClassifier){
+        
+         if(mClassifier->classify(items,stopIds,container)){
+
+        auto cpStatus = ConstraintProgrammingSolver(PackingType::Complete,
+                                                    container,
+                                                    set,
+                                                    stopIds,
+                                                    items,
+                                                    false,
+                                                    maxRuntime);
+
+            return cpStatus;
+        }else{
+            return LoadingStatus::Infeasible;
+        }
+    }else{
+        
+        auto cpStatus = ConstraintProgrammingSolver(PackingType::Complete,
+                                                    container,
+                                                    set,
+                                                    stopIds,
+                                                    items,
+                                                    false,
+                                                    maxRuntime);
+
+        return cpStatus;
+    }
 }
 
 void LoadingChecker::SetBinPackingModel(GRBEnv* env,
@@ -167,15 +176,6 @@ void LoadingChecker::SetBinPackingModel(GRBEnv* env,
                                         const std::string& outputPath)
 {
     mBinPacking1D = std::make_unique<BinPacking1D>(env, containers, nodes, outputPath);
-}
-
-LoadingStatus LoadingChecker::RunLoadingHeuristic(PackingType packingType [[maybe_unused]],
-                                                  const Container& container [[maybe_unused]],
-                                                  const Collections::IdVector& stopIds [[maybe_unused]],
-                                                  const std::vector<Cuboid>& items [[maybe_unused]])
-{
-    // Implement heuristic here.
-    return LoadingStatus::Invalid;
 }
 
 int LoadingChecker::SolveBinPackingApproximation() const { return mBinPacking1D->Solve(); }
@@ -239,10 +239,6 @@ bool LoadingChecker::CustomerCombinationInfeasible(const boost::dynamic_bitset<>
     return false;
 }
 
-bool LoadingChecker::SequenceIsHeuristicallyInfeasibleEP(const Collections::IdVector& sequence) const
-{
-    return mEPHeurInfSequences.contains(sequence);
-}
 
 void LoadingChecker::AddInfeasibleCombination(const boost::dynamic_bitset<>& customersInRoute)
 {
@@ -260,6 +256,11 @@ void LoadingChecker::AddFeasibleSequenceFromOutside(const Collections::IdVector&
 bool LoadingChecker::RouteIsInFeasSequences(const Collections::IdVector& route) const
 {
     return mFeasSequences.at(Parameters.LoadingProblem.LoadingFlags).contains(route);
+}
+
+bool LoadingChecker::RouteIsInInfeasSequences(const Collections::IdVector& route) const
+{
+    return mInfSequences.at(Parameters.LoadingProblem.LoadingFlags).contains(route);
 }
 
 void LoadingChecker::AddSequenceCheckedTwoOpt(const Collections::IdVector& sequence)
@@ -296,11 +297,6 @@ void LoadingChecker::AddFeasibleRoute(const Collections::IdVector& route)
     mCompleteFeasSeq.push_back(route);
     double elapsedAsDouble = GetElapsedTime();
     mCompleteFeasSeqWithTimeStamps.insert({elapsedAsDouble, route});
-}
-
-void LoadingChecker::AddInfeasibleSequenceEP(const Collections::IdVector& sequence)
-{
-    mEPHeurInfSequences.insert(sequence);
 }
 
 bool LoadingChecker::SequenceIsInfeasibleCP(const Collections::IdVector& sequence, const LoadingFlag mask) const

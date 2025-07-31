@@ -12,7 +12,6 @@ using namespace ContainerLoading;
 void InterLocalSearchOperator::Run(const Instance* instance,
                     const InputParameters& inputParameters,
                     LoadingChecker* loadingChecker,
-                    Classifier* classifier,
                     Solution& currentSolution){
 
   std::vector<Route>& routes = currentSolution.Routes;
@@ -25,7 +24,7 @@ void InterLocalSearchOperator::Run(const Instance* instance,
   while(true){
 
       auto moves = DetermineMoves(instance, routes);
-      auto savings = GetBestMove(instance, inputParameters, loadingChecker,classifier, routes, moves);
+      auto savings = GetBestMove(instance, inputParameters, loadingChecker, routes, moves);
 
       if(!savings){
           break;
@@ -41,7 +40,6 @@ void InterLocalSearchOperator::Run(const Instance* instance,
 std::optional<double> InterLocalSearchOperator::GetBestMove(const Instance* instance,
                                 const InputParameters& inputParameters,
                                 LoadingChecker* loadingChecker,
-                                ContainerLoading::Classifier* classifier,
                                 std::vector<Route>& routes,
                                 std::vector<InterMove>& moves){
   if (moves.size() == 0)
@@ -88,44 +86,14 @@ std::optional<double> InterLocalSearchOperator::GetBestMove(const Instance* inst
         {
             continue;
         }
-
-        if(inputParameters.ContainerLoading.classifierParams.UseClassifier){
-
-           auto y{0.0};
-
-            if(inputParameters.ContainerLoading.classifierParams.SaveTensorData){
-
-                auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
-                auto status = loadingChecker->HeuristicCompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
-                
-                if (status != LoadingStatus::FeasOpt)
-                {
-                    y = classifier->classify(selectedItems, route.Sequence, container, 0);
-                }else{
-                    y = classifier->classify(selectedItems, route.Sequence, container, 1);
-                }
         
-            }else{
-                y = classifier->classify(selectedItems, route.Sequence, container, 0);
-            }
 
-            //std::cout << "Output InterLocalSearch: " << y << std::endl;
-            if (y <= inputParameters.ContainerLoading.classifierParams.AcceptanceThreshold)
-            {
-                controlFlag = false;
-                break;
-            }
+        auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
+        auto status = loadingChecker->CompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
 
-        }else{
-
-            auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
-            auto status = loadingChecker->HeuristicCompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
-
-            if (status != LoadingStatus::FeasOpt)
-            {
+        if (status != LoadingStatus::FeasOpt){
             controlFlag = false;
             break;
-            }
         }
 
       }
