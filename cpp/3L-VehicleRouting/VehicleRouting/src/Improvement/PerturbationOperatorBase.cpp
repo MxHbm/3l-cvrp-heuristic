@@ -19,7 +19,6 @@ void PerturbationOperatorBase::Run(const Model::Instance*            instance,
     }
 
     //Preinitialize values
-    const double maxRuntime = params.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
     const auto& container = instance->Vehicles.front().Containers.front();
 
     // Implement unordered_set as tabu list
@@ -66,7 +65,7 @@ void PerturbationOperatorBase::Run(const Model::Instance*            instance,
             auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
             auto selectedItems = Algorithms::InterfaceConversions::SelectItems(route.Sequence, instance->Nodes, false);
             
-            if (!loadingChecker->CompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime))
+            if (!loadingChecker->CompleteCheck(container, set, route.Sequence, selectedItems))
             {
                 controlFlag = false;
                 break;

@@ -54,7 +54,7 @@ void IteratedLocalSearch::Initialize()
                                    node.Items);
     }
 
-    mLoadingChecker = std::make_unique<LoadingChecker>(mInputParameters.ContainerLoading);
+    mLoadingChecker = std::make_unique<LoadingChecker>(mInputParameters.ContainerLoading, mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit));
     mLoadingChecker->SetBinPackingModel(mEnv, containers, customerNodes, mOutputPath);
 
 
@@ -161,31 +161,26 @@ void IteratedLocalSearch::StartSolutionProcedure()
             break;
         case Savings:
             GenerateStartSolutionSavings();
+            if (mCurrentSolution.Routes.size() > mInstance->Vehicles.size()){
+                mLogFile << "Not enough vehicles for start solution, copying existing vehicle(s)...\n";
+
+                size_t deficit = mCurrentSolution.Routes.size() - mInstance->Vehicles.size();
+                const Vehicle& templateVehicle = mInstance->Vehicles.back();  // or Vehicles[0], your choice
+
+                for (size_t i = 0; i < deficit; ++i)
+                {
+                    Vehicle newVehicle = templateVehicle;
+                    newVehicle.InternId = static_cast<int>(mInstance->Vehicles.size());  // Ensure unique ID if needed
+                    mInstance->Vehicles.push_back(std::move(newVehicle));
+                }
+
+                mLogFile << "Copied " << deficit << " vehicle(s). Total vehicles now: "
+                        << mInstance->Vehicles.size() << "\n";
+            }
             break;
         default:
             throw std::runtime_error("Start solution type not implemented.");
     }
-
-    // For Savings Implementation
-    /*
-    if (mCurrentSolution.Routes.size() > mInstance->Vehicles.size())
-    {
-        mLogFile << "Not enough vehicles for start solution, copying existing vehicle(s)...\n";
-
-        size_t deficit = mCurrentSolution.Routes.size() - mInstance->Vehicles.size();
-        const Vehicle& templateVehicle = mInstance->Vehicles.back();  // or Vehicles[0], your choice
-
-        for (size_t i = 0; i < deficit; ++i)
-        {
-            Vehicle newVehicle = templateVehicle;
-            newVehicle.InternId = static_cast<int>(mInstance->Vehicles.size());  // Ensure unique ID if needed
-            mInstance->Vehicles.push_back(std::move(newVehicle));
-        }
-
-        mLogFile << "Copied " << deficit << " vehicle(s). Total vehicles now: "
-                << mInstance->Vehicles.size() << "\n";
-    }
-    */
 
     mCurrentSolution.NumberOfRoutes = mCurrentSolution.Routes.size();
     mCurrentSolution.DetermineCosts(mInstance);
@@ -348,16 +343,7 @@ void IteratedLocalSearch::DetermineInfeasiblePaths()
 
 bool IteratedLocalSearch::CheckPath(const Collections::IdVector& path, Container& container, std::vector<Cuboid>& items)
 {   
-    /*
-    if (mInputParameters.IteratedLocalSearch.ActivateHeuristic)
-    {
-        auto heuristicStatus = mLoadingChecker->PackingHeuristic(PackingType::Complete, container, path, items);
-        if (heuristicStatus == LoadingStatus::FeasOpt)
-        {
-            return true;
-        }
-    }
-    */
+
     auto statusSupportRelaxation =
         mLoadingChecker->ConstraintProgrammingSolver(PackingType::NoSupport,
                                                      container,
@@ -383,9 +369,6 @@ bool IteratedLocalSearch::CheckPath(const Collections::IdVector& path, Container
     if (statusComplete == LoadingStatus::Infeasible)
     {
         mInfeasibleTailPaths.emplace_back(0, path.front(), path.back());
-
-        Collections::IdVector sequence = {path.front(), path.back()};
-        mLoadingChecker->AddTailTournamentConstraint(sequence);
     }
 
     return true;
@@ -430,30 +413,17 @@ void IteratedLocalSearch::DetermineExtendedInfeasiblePath()
 
             auto selectedItems = InterfaceConversions::SelectItems(path, mInstance->Nodes, false);
 
-            auto heuristicStatus = LoadingStatus::Infeasible;
+            auto statusSupportRelaxation = mLoadingChecker->ConstraintProgrammingSolver(
+                PackingType::NoSupport,
+                container,
+                mLoadingChecker->MakeBitset(mInstance->Nodes.size(), path),
+                path,
+                selectedItems,
+                mInputParameters.IsExact(IteratedLocalSearchParams::CallType::Exact));
 
-            /*
-            if (mInputParameters.IteratedLocalSearch.ActivateHeuristic)
+            if (statusSupportRelaxation == LoadingStatus::Infeasible)
             {
-                heuristicStatus =
-                    mLoadingChecker->PackingHeuristic(PackingType::Complete, container, path, selectedItems);
-            }
-            */
-
-            if (heuristicStatus == LoadingStatus::Infeasible)
-            {
-                auto statusSupportRelaxation = mLoadingChecker->ConstraintProgrammingSolver(
-                    PackingType::NoSupport,
-                    container,
-                    mLoadingChecker->MakeBitset(mInstance->Nodes.size(), path),
-                    path,
-                    selectedItems,
-                    mInputParameters.IsExact(IteratedLocalSearchParams::CallType::Exact));
-
-                if (statusSupportRelaxation == LoadingStatus::Infeasible)
-                {
-                    continue;
-                }
+                continue;
             }
 
             extraNodeFeasible = true;
@@ -513,15 +483,13 @@ void IteratedLocalSearch::DetermineInfeasibleCustomerCombinations()
                 nodesInSet.set(jNode);
                 nodesInSet.set(kNode);
 
-                double maxRuntime = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::Exact);
                 auto status = mLoadingChecker->ConstraintProgrammingSolver(
                     PackingType::NoSupportNoSequence,
                     container,
                     nodesInSet,
                     path,
                     selectedItems,
-                    mInputParameters.IsExact(IteratedLocalSearchParams::CallType::Exact),
-                    maxRuntime);
+                    mInputParameters.IsExact(IteratedLocalSearchParams::CallType::Exact));
 
                 if (status == LoadingStatus::Infeasible)
                 {
@@ -579,7 +547,7 @@ bool IteratedLocalSearch::IsCurrentSolutionCPValid(const Solution& solution, dou
 
             auto items = InterfaceConversions::SelectItems(route.Sequence, mInstance->Nodes, false);
             auto status =
-                mLoadingChecker->HeuristicCompleteCheck(mInstance->Vehicles.front().Containers.front(),
+                mLoadingChecker->CompleteCheck(mInstance->Vehicles.front().Containers.front(),
                                                         mLoadingChecker->MakeBitset(mInstance->Nodes.size(), route.Sequence),
                                                         route.Sequence,
                                                         items,
@@ -621,8 +589,7 @@ void IteratedLocalSearch::Solve()
     StartSolutionProcedure();
     mTimer.calculateStartSolutionTime();
 
-    double maxRuntime_CPSolver = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
-    double maxRuntime = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ILS);
+    double maxRuntime = mInputParameters.IteratedLocalSearch.TimeLimits[IteratedLocalSearchParams::CallType::ILS];
     if(mInputParameters.IteratedLocalSearch.RunILS){
         while(mTimer.getElapsedTime() < maxRuntime){
 
@@ -647,15 +614,6 @@ void IteratedLocalSearch::Solve()
                 mSolutionTracker.RoundsWithNoImpr = 0;
                 continue;
             }
-
-            if(mCurrentSolution.Costs == mBestSolution.Costs & mCurrentSolution.Routes.size() < mBestSolution.Routes.size()){
-                mSolutionTracker.UpdateBothSolutions(mTimer.getElapsedTime(), mCurrentSolution.Costs);
-                mBestSolution = mCurrentSolution;
-                mSolutionTracker.NoImpr = 0;
-                mSolutionTracker.RoundsWithNoImpr = 0;
-                continue;
-            }
-
 
             mSolutionTracker.UpdateCurrSolution(mTimer.getElapsedTime(), mCurrentSolution.Costs);
             if(mSolutionTracker.NoImpr >= mInputParameters.IteratedLocalSearch.NoImprLimit){
@@ -754,20 +712,11 @@ void IteratedLocalSearch::DeterminePackingSolution(OutputSolution& outputSolutio
             continue;
         }
 
-        auto heuristicStatus = LoadingStatus::Infeasible;
-        /*
-        if (mInputParameters.IteratedLocalSearch.ActivateHeuristic)
-        {
-            heuristicStatus =
-                mLoadingChecker->PackingHeuristic(PackingType::Complete, container, stopIds, selectedItems);
-        }
-        */
-        std::string feasStatusHeur = heuristicStatus == LoadingStatus::FeasOpt ? "feasible" : "infeasible";
-        mLogFile << feasStatusHeur << " with packing heuristic | ";
-
-        double maxRuntime = mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::Exact);
-        auto exactStatus = mLoadingChecker->ConstraintProgrammingSolverGetPacking(
-            PackingType::Complete, container, stopIds, selectedItems, maxRuntime);
+        auto exactStatus = mLoadingChecker->ConstraintProgrammingSolverGetPacking(PackingType::Complete,
+                                                                                container,
+                                                                                stopIds,
+                                                                                selectedItems,
+                                                                                mInputParameters.IteratedLocalSearch.TimeLimits[IteratedLocalSearchParams::CallType::ExactLimit]);
 
         std::string feasStatusCP = exactStatus == LoadingStatus::FeasOpt ? "feasible" : "infeasible";
         mLogFile << feasStatusCP << " with CP model"

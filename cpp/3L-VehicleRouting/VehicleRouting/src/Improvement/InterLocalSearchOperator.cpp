@@ -55,7 +55,6 @@ std::optional<double> InterLocalSearchOperator::GetBestMove(const Instance* inst
   //auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route);
 
   //Initiate variables before loop
-  const double maxRuntime = inputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
   const auto& container = instance->Vehicles.front().Containers.front();
 
   for (const auto& move: moves)
@@ -90,7 +89,7 @@ std::optional<double> InterLocalSearchOperator::GetBestMove(const Instance* inst
         auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
         auto selectedItems = Algorithms::InterfaceConversions::SelectItems(route.Sequence, instance->Nodes, false);
 
-        if (!loadingChecker->CompleteCheck(container,  set, route.Sequence, selectedItems, maxRuntime)){
+        if (!loadingChecker->CompleteCheck(container,  set, route.Sequence, selectedItems)){
             controlFlag = false;
             break;
         }

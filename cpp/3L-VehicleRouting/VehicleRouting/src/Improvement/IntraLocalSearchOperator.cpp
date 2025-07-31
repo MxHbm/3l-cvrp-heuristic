@@ -52,11 +52,9 @@ std::optional<double> IntraLocalSearchOperator::GetBestMove(const Instance* inst
         return std::get<0>(a) < std::get<0>(b);  // sort by savings ascending
     });
 
-    auto selectedItems = InterfaceConversions::SelectItems(route, instance->Nodes, false);
     auto set =  loadingChecker->MakeBitset(instance->Nodes.size(), route);
 
     const auto& container = instance->Vehicles.front().Containers.front();
-    double maxRuntime = inputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
 
     for (const auto& move: moves)
     {
@@ -76,8 +74,8 @@ std::optional<double> IntraLocalSearchOperator::GetBestMove(const Instance* inst
             return std::get<0>(move);
         }
         
-
-        if (loadingChecker->CompleteCheck(container, set, route, selectedItems, maxRuntime))
+        auto selectedItems = InterfaceConversions::SelectItems(route, instance->Nodes, false);
+        if (loadingChecker->CompleteCheck(container, set, route, selectedItems))
         {
             return std::get<0>(move);
         }

@@ -126,11 +126,7 @@ void from_json(const json& j, IteratedLocalSearchParams& params)
     j.at("Run_LS").get_to(params.RunLS);
     j.at("LimitNoImpr").get_to(params.NoImprLimit);
     j.at("K_RandomMoves").get_to(params.K_RandomMoves);
-    j.at("SetPartHeurThreshold").get_to(params.SetPartitioningHeuristicThreshold);
     j.at("StartSolution").get_to(params.StartSolution);
-    j.at("ActivateSetPartHeur").get_to(params.ActivateSetPartitioningHeuristic);
-    j.at("ActivateIntraRouteImprovement").get_to(params.ActivateIntraRouteImprovement);
-    j.at("IntraRouteFullEnumThreshold").get_to(params.IntraRouteFullEnumThreshold);
     j.at("TimeLimit").get_to(params.TimeLimits);
     j.at("LocalSearchTypes").get_to(params.localSearchTypes);
     j.at("PerturbationTypes").get_to(params.perturbationTypes);
@@ -144,11 +140,7 @@ void to_json(json& j, const IteratedLocalSearchParams& params)
              {"K_RandomMoves", params.K_RandomMoves},
              {"LocalSearchTypes",params.localSearchTypes},
              {"PerturbationTypes",params.perturbationTypes},
-             {"SetPartHeurThreshold", params.SetPartitioningHeuristicThreshold},
              {"StartSolution", params.StartSolution},
-             {"ActivateSetPartHeur", params.ActivateSetPartitioningHeuristic},
-             {"ActivateIntraRouteImprovement", params.ActivateIntraRouteImprovement},
-             {"IntraRouteFullEnumThreshold", params.IntraRouteFullEnumThreshold},
              {"TimeLimit", params.TimeLimits}};
 }
 

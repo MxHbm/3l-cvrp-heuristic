@@ -22,7 +22,7 @@ class LoadingChecker
   public:
     const ContainerLoadingParams Parameters;
 
-    explicit LoadingChecker(const ContainerLoadingParams& parameters) : Parameters(parameters)
+    explicit LoadingChecker(const ContainerLoadingParams& parameters, const double maxruntime) : Parameters(parameters), maxRunTime_CPSolver(maxruntime)
     {
         using enum LoadingFlag;
 
@@ -56,8 +56,7 @@ class LoadingChecker
                                                             const boost::dynamic_bitset<>& set,
                                                             const Collections::IdVector& stopIds,
                                                             const std::vector<Cuboid>& items,
-                                                            bool isCallTypeExact,
-                                                            double maxRuntime = std::numeric_limits<double>::max());
+                                                            bool isCallTypeExact);
 
     [[nodiscard]] LoadingStatus ConstraintProgrammingSolverGetPacking(PackingType packingType,
                                                                       const Container& container,
@@ -68,8 +67,7 @@ class LoadingChecker
     [[nodiscard]] bool CompleteCheck(const Container& container,
                                     const boost::dynamic_bitset<>& set,
                                     const Collections::IdVector& stopIds,
-                                    const std::vector<Cuboid>& items,
-                                    double maxRuntime = std::numeric_limits<double>::max());
+                                    const std::vector<Cuboid>& items);
 
     void SetBinPackingModel(GRBEnv* env,
                             std::vector<Container>& containers,
@@ -99,38 +97,15 @@ class LoadingChecker
 
     [[nodiscard]] bool RouteIsInInfeasSequences(const Collections::IdVector& route) const;
 
-    void AddSequenceCheckedTwoOpt(const Collections::IdVector& sequence);
-
-    [[nodiscard]] bool SequenceIsCheckedTwoOpt(const Collections::IdVector& sequence) const;
-
     [[nodiscard]] boost::dynamic_bitset<> MakeBitset(size_t size, const Collections::IdVector& sequence) const;
-
-    [[nodiscard]] std::unordered_map<double, Collections::IdVector> GetFeasibleRoutesWithTimeStamps()
-    {
-        return mCompleteFeasSeqWithTimeStamps;
-    };
-
-    void AddTailTournamentConstraint(const Collections::IdVector& sequence)
-    {
-        auto elapsed = GetElapsedTime();
-        mTailTournamentConstraintsWithTimeStamps.insert({elapsed, sequence});
-    }
-    [[nodiscard]] std::unordered_map<double, Collections::IdVector> GetTailTournamentConstraints() const
-    {
-        return mTailTournamentConstraintsWithTimeStamps;
-    }
 
   private:
     std::chrono::high_resolution_clock::time_point mStartTime;
     std::unique_ptr<BinPacking1D> mBinPacking1D;
     std::unique_ptr<Classifier> mClassifier;
-
-    Collections::SequenceSet mTwoOptCheckedSequences;
+    const double maxRunTime_CPSolver;
 
     Collections::SequenceVector mCompleteFeasSeq;
-    std::unordered_map<double, Collections::IdVector> mCompleteFeasSeqWithTimeStamps;
-    std::unordered_map<double, Collections::IdVector> mTailTournamentConstraintsWithTimeStamps;
-
     /// Set of customer combinations that are infeasible.
     /// -> There is no path in combination C that respects all constraints
     /// -> At least 2 vehicles are needed to serve all customers in C

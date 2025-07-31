@@ -44,14 +44,8 @@ LoadingStatus LoadingChecker::ConstraintProgrammingSolver(PackingType packingTyp
                                                           const boost::dynamic_bitset<>& set,
                                                           const Collections::IdVector& stopIds,
                                                           const std::vector<Cuboid>& items,
-                                                          bool isCallTypeExact,
-                                                          double maxRuntime)
+                                                          bool isCallTypeExact)
 {
-    if (maxRuntime < 0.0 + 1e-5)
-    {
-        return LoadingStatus::Invalid;
-    }
-
     auto loadingMask = BuildMask(packingType);
 
     auto precheckStatus = GetPrecheckStatusCP(stopIds, set, loadingMask, isCallTypeExact);
@@ -67,7 +61,7 @@ LoadingStatus LoadingChecker::ConstraintProgrammingSolver(PackingType packingTyp
                                                  numberStops,
                                                  loadingMask,
                                                  Parameters.LoadingProblem.SupportArea,
-                                                 maxRuntime);
+                                                 maxRunTime_CPSolver);
 
     auto status = containerLoadingCP.Solve();
 
@@ -127,19 +121,19 @@ LoadingStatus LoadingChecker::ConstraintProgrammingSolverGetPacking(PackingType 
 bool LoadingChecker::CompleteCheck(const Container& container,
                                     const boost::dynamic_bitset<>& set,
                                     const Collections::IdVector& stopIds,
-                                    const std::vector<Cuboid>& items,
-                                    double maxRuntime)
+                                    const std::vector<Cuboid>& items
+                                    )
 {
     if (RouteIsInFeasSequences(stopIds))
     {
         return true;
     }
-    /*
+
     if (RouteIsInInfeasSequences(stopIds))
     {
         return false;
     }
-    */
+    
     if(Parameters.classifierParams.UseClassifier){
         
          if(mClassifier->classify(items,stopIds,container)){
@@ -149,8 +143,7 @@ bool LoadingChecker::CompleteCheck(const Container& container,
                                                     set,
                                                     stopIds,
                                                     items,
-                                                    false,
-                                                    maxRuntime);
+                                                    false);
 
             return cpStatus == LoadingStatus::FeasOpt;
 
@@ -164,8 +157,7 @@ bool LoadingChecker::CompleteCheck(const Container& container,
                                                     set,
                                                     stopIds,
                                                     items,
-                                                    false,
-                                                    maxRuntime);
+                                                    false);
 
         return cpStatus == LoadingStatus::FeasOpt;
     }
@@ -264,16 +256,6 @@ bool LoadingChecker::RouteIsInInfeasSequences(const Collections::IdVector& route
     return mInfSequences.at(Parameters.LoadingProblem.LoadingFlags).contains(route);
 }
 
-void LoadingChecker::AddSequenceCheckedTwoOpt(const Collections::IdVector& sequence)
-{
-    mTwoOptCheckedSequences.insert(sequence);
-}
-
-bool LoadingChecker::SequenceIsCheckedTwoOpt(const Collections::IdVector& sequence) const
-{
-    return mTwoOptCheckedSequences.contains(sequence);
-}
-
 boost::dynamic_bitset<> LoadingChecker::MakeBitset(size_t size, const Collections::IdVector& sequence) const
 {
     boost::dynamic_bitset<> set(size);
@@ -285,19 +267,10 @@ boost::dynamic_bitset<> LoadingChecker::MakeBitset(size_t size, const Collection
     return set;
 };
 
-double LoadingChecker::GetElapsedTime()
-{
-    auto end = std::chrono::high_resolution_clock::now();
-    std::chrono::duration<double> elapsed = end - mStartTime;
-    return elapsed.count();
-}
-
 void LoadingChecker::AddFeasibleRoute(const Collections::IdVector& route)
 {
     mFeasSequences[Parameters.LoadingProblem.LoadingFlags].insert(route);
     mCompleteFeasSeq.push_back(route);
-    double elapsedAsDouble = GetElapsedTime();
-    mCompleteFeasSeqWithTimeStamps.insert({elapsedAsDouble, route});
 }
 
 bool LoadingChecker::SequenceIsInfeasibleCP(const Collections::IdVector& sequence, const LoadingFlag mask) const

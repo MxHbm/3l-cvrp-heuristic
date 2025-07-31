@@ -43,7 +43,6 @@ void FullEnumerationSearch::Run(const Instance* const instance,
         std::ranges::sort(moves);
 
         const auto& container = instance->Vehicles.front().Containers.front();
-        double maxRuntime = inputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
 
         for (auto& move: moves)
         {
@@ -66,7 +65,7 @@ void FullEnumerationSearch::Run(const Instance* const instance,
 
             auto selectedItems = InterfaceConversions::SelectItems(sequence, instance->Nodes, false);
 
-            if (loadingChecker->CompleteCheck(container, set, sequence, selectedItems, maxRuntime))
+            if (loadingChecker->CompleteCheck(container, set, sequence, selectedItems))
             {
                 route.Sequence = std::move(sequence);
                 currentSolution.Costs += move.first;
