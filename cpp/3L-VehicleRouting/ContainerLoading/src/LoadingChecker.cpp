@@ -124,27 +124,27 @@ LoadingStatus LoadingChecker::ConstraintProgrammingSolverGetPacking(PackingType 
     return status;
 }
 
-LoadingStatus LoadingChecker::CompleteCheck(const Container& container,
-                                            const boost::dynamic_bitset<>& set,
-                                            const Collections::IdVector& stopIds,
-                                            const std::vector<Cuboid>& items,
-                                            double maxRuntime)
+bool LoadingChecker::CompleteCheck(const Container& container,
+                                    const boost::dynamic_bitset<>& set,
+                                    const Collections::IdVector& stopIds,
+                                    const std::vector<Cuboid>& items,
+                                    double maxRuntime)
 {
     if (RouteIsInFeasSequences(stopIds))
     {
-        return LoadingStatus::FeasOpt;
+        return true;
     }
-
+    /*
     if (RouteIsInInfeasSequences(stopIds))
     {
-        return LoadingStatus::Infeasible;
+        return false;
     }
-
+    */
     if(Parameters.classifierParams.UseClassifier){
         
          if(mClassifier->classify(items,stopIds,container)){
 
-        auto cpStatus = ConstraintProgrammingSolver(PackingType::Complete,
+            auto cpStatus = ConstraintProgrammingSolver(PackingType::Complete,
                                                     container,
                                                     set,
                                                     stopIds,
@@ -152,9 +152,10 @@ LoadingStatus LoadingChecker::CompleteCheck(const Container& container,
                                                     false,
                                                     maxRuntime);
 
-            return cpStatus;
+            return cpStatus == LoadingStatus::FeasOpt;
+
         }else{
-            return LoadingStatus::Infeasible;
+            return false;
         }
     }else{
         
@@ -166,7 +167,7 @@ LoadingStatus LoadingChecker::CompleteCheck(const Container& container,
                                                     false,
                                                     maxRuntime);
 
-        return cpStatus;
+        return cpStatus == LoadingStatus::FeasOpt;
     }
 }
 

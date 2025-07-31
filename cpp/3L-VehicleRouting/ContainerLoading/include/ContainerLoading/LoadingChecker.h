@@ -65,11 +65,11 @@ class LoadingChecker
                                                                       std::vector<Cuboid>& items,
                                                                       double maxRuntime) const;
 
-    [[nodiscard]] LoadingStatus CompleteCheck(const Container& container,
-                                                const boost::dynamic_bitset<>& set,
-                                                const Collections::IdVector& stopIds,
-                                                const std::vector<Cuboid>& items,
-                                                double maxRuntime = std::numeric_limits<double>::max());
+    [[nodiscard]] bool CompleteCheck(const Container& container,
+                                    const boost::dynamic_bitset<>& set,
+                                    const Collections::IdVector& stopIds,
+                                    const std::vector<Cuboid>& items,
+                                    double maxRuntime = std::numeric_limits<double>::max());
 
     void SetBinPackingModel(GRBEnv* env,
                             std::vector<Container>& containers,

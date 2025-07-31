@@ -65,9 +65,8 @@ void FullEnumerationSearch::Run(const Instance* const instance,
             }
 
             auto selectedItems = InterfaceConversions::SelectItems(sequence, instance->Nodes, false);
-            auto status = loadingChecker->CompleteCheck(container, set, sequence, selectedItems, maxRuntime);
 
-            if (status == LoadingStatus::FeasOpt)
+            if (loadingChecker->CompleteCheck(container, set, sequence, selectedItems, maxRuntime))
             {
                 route.Sequence = std::move(sequence);
                 currentSolution.Costs += move.first;

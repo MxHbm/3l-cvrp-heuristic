@@ -52,7 +52,8 @@ std::optional<double> IntraLocalSearchOperator::GetBestMove(const Instance* inst
         return std::get<0>(a) < std::get<0>(b);  // sort by savings ascending
     });
 
-    auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route);
+    auto selectedItems = InterfaceConversions::SelectItems(route, instance->Nodes, false);
+    auto set =  loadingChecker->MakeBitset(instance->Nodes.size(), route);
 
     const auto& container = instance->Vehicles.front().Containers.front();
     double maxRuntime = inputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit);
@@ -69,15 +70,14 @@ std::optional<double> IntraLocalSearchOperator::GetBestMove(const Instance* inst
 
         // If lifo is disabled, feasibility of route is independent from actual sequence
         // -> move is always feasible if route is feasible
+        
         if (!loadingChecker->Parameters.LoadingProblem.EnableLifo && loadingChecker->RouteIsInFeasSequences(route))
         {
             return std::get<0>(move);
         }
+        
 
-        auto selectedItems = InterfaceConversions::SelectItems(route, instance->Nodes, false);
-
-        auto status = loadingChecker->CompleteCheck(container, set, route, selectedItems, maxRuntime);
-        if (status == LoadingStatus::FeasOpt)
+        if (loadingChecker->CompleteCheck(container, set, route, selectedItems, maxRuntime))
         {
             return std::get<0>(move);
         }

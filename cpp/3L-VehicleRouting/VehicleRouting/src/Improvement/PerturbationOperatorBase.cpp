@@ -51,21 +51,22 @@ void PerturbationOperatorBase::Run(const Model::Instance*            instance,
         for(const auto& route_index : {std::get<1>(*move), std::get<2>(*move)})
         {
             auto& route = routes[route_index];
+
             if(route.Sequence.empty()){
                 continue;
             }
-            
-            auto selectedItems = Algorithms::InterfaceConversions::SelectItems(route.Sequence, instance->Nodes, false);
             // If lifo is disabled, feasibility of route is independent from actual sequence
             // -> move is always feasible if route is feasible
+            
             if (!loadingChecker->Parameters.LoadingProblem.EnableLifo && loadingChecker->RouteIsInFeasSequences(route.Sequence))
             {
                 continue;
             }
-
+            
             auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
-            auto status = loadingChecker->CompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
-            if (status != LoadingStatus::FeasOpt)
+            auto selectedItems = Algorithms::InterfaceConversions::SelectItems(route.Sequence, instance->Nodes, false);
+            
+            if (!loadingChecker->CompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime))
             {
                 controlFlag = false;
                 break;

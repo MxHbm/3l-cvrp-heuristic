@@ -166,6 +166,8 @@ void IteratedLocalSearch::StartSolutionProcedure()
             throw std::runtime_error("Start solution type not implemented.");
     }
 
+    // For Savings Implementation
+    /*
     if (mCurrentSolution.Routes.size() > mInstance->Vehicles.size())
     {
         mLogFile << "Not enough vehicles for start solution, copying existing vehicle(s)...\n";
@@ -183,7 +185,7 @@ void IteratedLocalSearch::StartSolutionProcedure()
         mLogFile << "Copied " << deficit << " vehicle(s). Total vehicles now: "
                 << mInstance->Vehicles.size() << "\n";
     }
-
+    */
 
     mCurrentSolution.NumberOfRoutes = mCurrentSolution.Routes.size();
     mCurrentSolution.DetermineCosts(mInstance);

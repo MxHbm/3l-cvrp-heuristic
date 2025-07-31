@@ -79,19 +79,18 @@ std::optional<double> InterLocalSearchOperator::GetBestMove(const Instance* inst
             continue;
         }
 
-        auto selectedItems = Algorithms::InterfaceConversions::SelectItems(route.Sequence, instance->Nodes, false);
         // If lifo is disabled, feasibility of route is independent from actual sequence
         // -> move is always feasible if route is feasible
+        
         if (!loadingChecker->Parameters.LoadingProblem.EnableLifo && loadingChecker->RouteIsInFeasSequences(route.Sequence))
         {
             continue;
         }
         
-
         auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
-        auto status = loadingChecker->CompleteCheck(container, set, route.Sequence, selectedItems, maxRuntime);
+        auto selectedItems = Algorithms::InterfaceConversions::SelectItems(route.Sequence, instance->Nodes, false);
 
-        if (status != LoadingStatus::FeasOpt){
+        if (!loadingChecker->CompleteCheck(container,  set, route.Sequence, selectedItems, maxRuntime)){
             controlFlag = false;
             break;
         }
