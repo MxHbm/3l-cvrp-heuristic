@@ -20,6 +20,27 @@ namespace Constructive
 using namespace ContainerLoading;
 using namespace ContainerLoading::Model;
 
+class RandomStart
+{
+  public:
+    RandomStart(const Instance* const instance,
+            const InputParameters* const inputParameters,
+            LoadingChecker* loadingChecker,
+            Classifier* classifier,
+            std::mt19937& rng)
+
+    : mInstance(instance), mInputParameters(inputParameters), mLoadingChecker(loadingChecker),mClassifier(classifier), mRNG(rng){};
+
+    std::vector<Route> Run();
+
+  private:
+    const Instance* const mInstance;
+    const InputParameters* const mInputParameters;
+    LoadingChecker* mLoadingChecker;
+    Classifier* mClassifier;
+    std::mt19937& mRNG;
+};
+
 class Savings
 {
   public:

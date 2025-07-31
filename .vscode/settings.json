@@ -19,7 +19,7 @@
             "-o",
             "${workspaceFolder}/data/output/3l-cvrp/test/",
             "-p",
-            "${workspaceFolder}/data/input/3l-cvrp/parameters/BenchmarkParameters_AllConstraints_Test.json"
+            "${workspaceFolder}/data/input/3l-cvrp/parameters/BenchmarkParameters_AllConstraionts_Test.json"
         ],
         "environment": [
             {
@@ -146,7 +146,8 @@
         "print": "cpp",
         "spanstream": "cpp",
         "stacktrace": "cpp",
-        "syncstream": "cpp"
+        "syncstream": "cpp",
+        "resumable": "cpp"
     },
     "clangd.arguments": [
         "--compile-commands-dir=build/Release"

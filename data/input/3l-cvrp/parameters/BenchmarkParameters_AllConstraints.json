@@ -31,8 +31,8 @@
         ]
     },
     "ClassifierParams": {
-        "TracedModelPath": "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/Gendreau_Rand_Tours/mb_complete_nodupl_mlp_cp_status_model_traced.pt",
-        "SerializeJson_MeanStd" : "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/Gendreau_Rand_Tours/mb_complete_nodupl_mlp_input_scaling.json",
+        "TracedModelPath": "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/Gendreau_14440_inf_1_1/mb_complete_nodupl_mlp_cp_status_model_traced.pt",
+        "SerializeJson_MeanStd" : "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/Gendreau_14440_inf_1_1/mb_complete_nodupl_mlp_input_scaling.json",
         "UseClassifier": true,
         "SaveTensorData" : false,
         "TensorDataFilePath": "H:/Data/TensorData/TensorData_Gendreau14440_inf_1_1_Complete_MB_NoDupl",

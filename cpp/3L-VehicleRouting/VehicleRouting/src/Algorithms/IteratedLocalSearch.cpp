@@ -169,6 +169,9 @@ void IteratedLocalSearch::StartSolutionProcedure()
         case Savings:
             GenerateStartSolutionSavings();
             break;
+        case RandomStart:
+            GenerateRandomStart();
+            break;
         default:
             throw std::runtime_error("Start solution type not implemented.");
     }
@@ -257,6 +260,26 @@ void IteratedLocalSearch::GenerateStartSolutionSavings()
         Constructive::Savings(mInstance,
                                 &mInputParameters,
                                 mLoadingChecker.get()).Run();
+
+    //TODO what should i do with these values? 
+    
+    int id = 0;
+    //Label routes new
+    for (auto& route : mCurrentSolution.Routes)
+    {
+        route.Id = id;
+        ++id;
+    }
+}
+
+void IteratedLocalSearch::GenerateRandomStart()
+{
+    mCurrentSolution.Routes =
+        Constructive::RandomStart(mInstance,
+                                &mInputParameters,
+                                mLoadingChecker.get(),
+                                mClassifier.get(),
+                                mRNG).Run();
 
     //TODO what should i do with these values? 
     

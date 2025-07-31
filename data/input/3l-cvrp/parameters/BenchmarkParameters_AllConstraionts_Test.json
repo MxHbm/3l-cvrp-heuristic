@@ -8,7 +8,7 @@
         "ActivateSetPartHeur": true,						 
         "IntraRouteFullEnumThreshold": 6,
         "SetPartHeurThreshold": 20,
-        "StartSolution": "ModifiedSavings",
+        "StartSolution": "RandomStart",
         "LocalSearchTypes": ["TwoOpt","IntraSwap","IntraInsertion","InterSwap","InterInsertion","DeleteEmptyRoutes"],
         "PerturbationTypes": ["K_RandomInsertions","K_RandomSwaps"],
         "TimeLimit": [

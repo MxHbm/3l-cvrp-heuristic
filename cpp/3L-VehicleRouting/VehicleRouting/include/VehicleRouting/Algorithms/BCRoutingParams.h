@@ -41,6 +41,7 @@ struct IteratedLocalSearchParams
         None = 0,
         ModifiedSavings,
         Savings,
+        RandomStart,
         SPHeuristic
     };
 

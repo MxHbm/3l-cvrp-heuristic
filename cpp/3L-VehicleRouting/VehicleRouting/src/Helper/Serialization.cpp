@@ -14,6 +14,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(IteratedLocalSearchParams::StartSolutionType,
                              {{IteratedLocalSearchParams::StartSolutionType::None, "None"},
                               {IteratedLocalSearchParams::StartSolutionType::ModifiedSavings, "ModifiedSavings"},
                               {IteratedLocalSearchParams::StartSolutionType::Savings, "Savings"},
+                              {IteratedLocalSearchParams::StartSolutionType::RandomStart, "RandomStart"},
                               {IteratedLocalSearchParams::StartSolutionType::SPHeuristic, "SPHeuristic"}});
 
 

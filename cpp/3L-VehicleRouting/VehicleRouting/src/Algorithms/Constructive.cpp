@@ -12,6 +12,118 @@ namespace Algorithms
 {
 namespace Constructive
 {
+
+std::vector<Route> RandomStart::Run(){
+
+    std::vector<Route> routes;
+    const size_t NoVehicles = mInstance->Vehicles.size();
+    const auto& container = mInstance->Vehicles[0].Containers[0];
+
+    const std::span<const Node> customers = mInstance->GetCustomers();
+    const size_t numCustomers = customers.size();
+
+    // Pool of customer indices (1 to N), assuming index 0 is depot
+    std::vector<size_t> customerPool(numCustomers); 
+    std::iota(customerPool.begin(), customerPool.end(), 1); // 1 to N
+
+    const std::vector<size_t> originalPool = customerPool;
+
+    const size_t avgRouteSize = static_cast<size_t>(
+        std::ceil(static_cast<double>(numCustomers) / NoVehicles)
+    );
+
+    while (true) {
+        bool route_checked = true;
+        bool last_draw = false;
+        if (customerPool.empty()) {
+            std::cout << "Check all routes with CP Model" << std::endl;
+            // Try CP Solver on current routes
+            for(const auto& route : routes) {
+
+                if(route.Sequence.size() > 0){
+
+                    auto items = InterfaceConversions::SelectItems(route.Sequence, mInstance->Nodes, false);
+                    auto status =
+                        mLoadingChecker->HeuristicCompleteCheck(container,
+                                                                mLoadingChecker->MakeBitset(mInstance->Nodes.size(), route.Sequence),
+                                                                route.Sequence,
+                                                                items,
+                                                                600.0);
+
+                    if(status != LoadingStatus::FeasOpt) {
+                        //std::cout << "Route was rejected by CPSolver" << std::endl;
+                        route_checked = false;
+                        break;
+                    }
+                }
+            }
+
+
+            if(route_checked){
+                break;
+            } else {
+                // Refill pool and restart
+                customerPool = originalPool;
+                routes.clear();
+                continue;
+            }
+        }
+
+        // Shuffle indices
+        std::shuffle(customerPool.begin(), customerPool.end(), mRNG);
+        size_t drawSize = std::min(avgRouteSize, customerPool.size());
+        std::vector<size_t> subTourIndices(customerPool.begin(), customerPool.begin() + drawSize);
+
+        //TODO: Need to be fixed when last draw size == average tour size
+        if(subTourIndices.size() == drawSize){
+            last_draw = true;
+        }
+
+        int totalVolume{0};
+        int totalWeight{0};
+
+        for(const auto& node : subTourIndices){
+            totalVolume += mInstance->Nodes[node].TotalVolume;
+            totalWeight += mInstance->Nodes[node].TotalWeight;
+        }
+        if (totalVolume <= container.Volume
+                && totalWeight <= container.WeightLimit){
+            
+            auto items = InterfaceConversions::SelectItems(subTourIndices, mInstance->Nodes, false);
+            // Classifier feasibility check
+            auto y = mClassifier->classify(items, subTourIndices, container, 0);
+            if (y > mInputParameters->ContainerLoading.classifierParams.AcceptanceThreshold) {
+                // Construct and store Route
+                routes.emplace_back(routes.size(), subTourIndices);
+
+                // Remove used indices from pool
+                customerPool.erase(customerPool.begin(), customerPool.begin() + drawSize);
+            } else {
+                // Discard and try again
+                if(last_draw){
+                    // Refill pool and restart
+                    customerPool = originalPool;
+                    routes.clear();
+                    continue;
+                }else{
+                    continue;
+                }
+            }
+        }else{
+            if(last_draw){
+                // Refill pool and restart
+                customerPool = originalPool;
+                routes.clear();
+                continue;
+            }else{
+                continue;
+            }
+        }
+    }
+
+    return routes;
+}
+
 std::vector<Route> Savings::Run()
 {
     const auto& container = mInstance->Vehicles[0].Containers[0];
