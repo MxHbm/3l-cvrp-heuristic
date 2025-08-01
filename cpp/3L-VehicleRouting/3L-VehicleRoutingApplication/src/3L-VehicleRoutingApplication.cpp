@@ -10,7 +10,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-
+#include <chrono>
 
 #include <ctime>
 #include <filesystem>
@@ -45,11 +45,17 @@ void Run(std::string& inputFilePath,
     ////std::ifstream ifs("data/3LVRP/ConvertedInstances/E016-05m.json");
 
     // https://stackoverflow.com/questions/16357999/current-date-and-time-as-string/16358111
-    auto t = std::time(nullptr);
-    auto tm = *std::localtime(&t);
+    
+    auto now = std::chrono::system_clock::now();
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+    std::time_t t = std::chrono::system_clock::to_time_t(now);
+    std::tm tm = *std::localtime(&t);
 
     std::ostringstream oss;
-    oss << std::put_time(&tm, "%Y-%m-%d_%H-%M-%S");
+    oss << std::put_time(&tm, "%Y-%m-%d_%H-%M-%S") << "_"
+        << std::setw(3) << std::setfill('0') << ms.count()
+        << "_" << filename << "_seed" << seedOffset;
+
     std::string dateTimeString = oss.str();
 
     std::string outputPath = outdir + "/";

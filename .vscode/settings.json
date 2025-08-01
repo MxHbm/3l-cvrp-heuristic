@@ -15,11 +15,13 @@
             "-i",
             "${workspaceFolder}/data/input/3l-cvrp/gendreau/",
             "-f",
-            "E016-03m.json",
+            "E076-07s.json",
             "-o",
             "${workspaceFolder}/data/output/3l-cvrp/test/",
             "-p",
-            "${workspaceFolder}/data/input/3l-cvrp/parameters/BenchmarkParameters_AllConstraints.json"
+            "${workspaceFolder}/data/input/3l-cvrp/parameters/BenchmarkParameters_AllConstraints_Run3.json",
+            "-s",
+            "0"
         ],
         "environment": [
             {
