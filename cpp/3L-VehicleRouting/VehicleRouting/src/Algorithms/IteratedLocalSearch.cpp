@@ -588,10 +588,11 @@ void IteratedLocalSearch::Solve()
 
     StartSolutionProcedure();
     mTimer.calculateStartSolutionTime();
+    int iterations_without_improvement{0};
 
     double maxRuntime = mInputParameters.IteratedLocalSearch.TimeLimits[IteratedLocalSearchParams::CallType::ILS];
     if(mInputParameters.IteratedLocalSearch.RunILS){
-        while(mTimer.getElapsedTime() < maxRuntime){
+        while(mTimer.getElapsedTime() < maxRuntime && iterations_without_improvement < 1000){
 
             std::cout << "Run: " << mSolutionTracker.iterations << " - CurrentCosts: " << mCurrentSolution.Costs << " - BestCosts:" << mBestSolution.Costs << std::endl;
             
@@ -611,6 +612,7 @@ void IteratedLocalSearch::Solve()
                 mSolutionTracker.UpdateBothSolutions(mTimer.getElapsedTime(), mCurrentSolution.Costs);
                 mBestSolution = mCurrentSolution;
                 mSolutionTracker.NoImpr = 0;
+                iterations_without_improvement = 0;
                 mSolutionTracker.RoundsWithNoImpr = 0;
                 continue;
             }
@@ -623,6 +625,7 @@ void IteratedLocalSearch::Solve()
             }
 
             ++mSolutionTracker.NoImpr;
+            ++iterations_without_improvement;
 
         }
     }

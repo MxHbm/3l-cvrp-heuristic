@@ -54,7 +54,7 @@ void Run(std::string& inputFilePath,
     std::ostringstream oss;
     oss << std::put_time(&tm, "%Y-%m-%d_%H-%M-%S") << "_"
         << std::setw(3) << std::setfill('0') << ms.count()
-        << "_" << filename << "_seed" << seedOffset;
+        << "_s" << seedOffset;
 
     std::string dateTimeString = oss.str();
 

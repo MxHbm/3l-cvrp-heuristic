@@ -20,13 +20,13 @@ number_of_processes = 6
 def add_tasks(task_queue, folder_path=input_folder):
     # List all files in the folder
     file_list = os.listdir(folder_path)
-    for file_name in file_list:
-        full_path = os.path.join(folder_path, file_name)
-        if not os.path.isfile(full_path):
-            continue
-        for parameter_file in parameter_files:
+    for parameter_file in parameter_files:
 
-            for seed_offset in range(3):  # seeds 0, 1, 2
+        for seed_offset in range(3):  # seeds 0, 1, 2
+            for file_name in file_list:
+                full_path = os.path.join(folder_path, file_name)
+                if not os.path.isfile(full_path):
+                    continue
                 task_queue.put((file_name, parameter_file, seed_offset))
 
     return task_queue

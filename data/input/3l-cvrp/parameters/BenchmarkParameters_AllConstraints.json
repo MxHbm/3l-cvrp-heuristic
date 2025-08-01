@@ -5,7 +5,7 @@
         "LimitNoImpr" : 5,
         "K_RandomMoves" : 5,
         "StartSolution": "ModifiedSavings",
-        "LocalSearchTypes": ["TwoOpt","IntraSwap","IntraInsertion","InterSwap","InterInsertion"],
+        "LocalSearchTypes": ["TwoOpt","IntraSwap","IntraInsertion","InterSwap","InterInsertion","DeleteEmptyRoutes"],
         "PerturbationTypes": ["K_RandomInsertions","K_RandomSwaps"],
         "TimeLimit": [
             [
