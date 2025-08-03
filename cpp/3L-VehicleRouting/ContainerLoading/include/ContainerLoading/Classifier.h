@@ -28,15 +28,21 @@ public:
     Classifier(const ClassifierParams& classifierParams);
 
     // Output: classification probability (0–1) - O Infeasible - 1 Feasible
-    bool classify(const std::vector<Cuboid>& items,
-                   const Collections::IdVector& route,
-                   const Container& container,
-                   const int status);
+    void saveClassifierResults(const std::vector<Cuboid>& items,
+                                const Collections::IdVector& route,
+                                const Container& container,
+                                const float output,
+                                const int status);
 
     // Output: classification probability (0–1) - O Infeasible - 1 Feasible
     bool classify(const std::vector<Cuboid>& items,
                    const Collections::IdVector& route,
                    const Container& container);
+
+    // Output: classification probability (0–1) - O Infeasible - 1 Feasible
+    float classifyReturnOutput(const std::vector<Cuboid>& items,
+                                const Collections::IdVector& route,
+                                const Container& container);
 
 private:
     

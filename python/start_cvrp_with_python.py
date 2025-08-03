@@ -8,25 +8,23 @@ env = os.environ.copy()
 # Define the directory path and command components
 directory_path = os.getcwd()
 command_base =  os.path.join(directory_path,"build/Release/bin/Release/3L-VehicleRoutingApplication.exe")
-output_folder = r"H:\Data\Results_Heuristic\Heuristic_Classifier_AdaptedUsage/"
+output_folder = r"C:\Users\mahu123a\Documents\3l-cvrp-heuristic\data\output\3l-cvrp\test/"
 input_folder = os.path.join(directory_path,"data/input/3l-cvrp/gendreau/")
-parameter_files = [os.path.join(directory_path,"data/input/3l-cvrp/parameters/BenchmarkParameters_AllConstraints.json"),
-                   os.path.join(directory_path,"data/input/3l-cvrp/parameters/BenchmarkParameters_AllConstraints_Run2.json"),
+parameter_files = [os.path.join(directory_path,"data/input/3l-cvrp/parameters/BenchmarkParameters_AllConstraints_Run2.json"),
                    os.path.join(directory_path,"data/input/3l-cvrp/parameters/BenchmarkParameters_AllConstraints_Run3.json")]
-number_of_processes = 6
+number_of_processes = 2
 
 # Navigate to the directorys
 
 def add_tasks(task_queue, folder_path=input_folder):
     # List all files in the folder
     file_list = os.listdir(folder_path)
-    for parameter_file in parameter_files:
-
-        for seed_offset in range(3):  # seeds 0, 1, 2
-            for file_name in file_list:
-                full_path = os.path.join(folder_path, file_name)
-                if not os.path.isfile(full_path):
-                    continue
+    for seed_offset in range(1):  # seeds 0, 1, 2
+        for file_name in file_list:
+            full_path = os.path.join(folder_path, file_name)
+            if not os.path.isfile(full_path):
+                continue
+            for parameter_file in parameter_files:
                 task_queue.put((file_name, parameter_file, seed_offset))
 
     return task_queue

@@ -4,6 +4,7 @@
 #include <cmath>
 #include <fstream>
 #include "nlohmann/json.hpp"
+#include <filesystem>
 
 namespace ContainerLoading {
 
@@ -268,18 +269,27 @@ void Classifier::save_tensor_to_csv(const torch::Tensor& tensor, const int statu
 }
 
 
-bool Classifier::classify(const std::vector<Cuboid>& items,
-                           const Collections::IdVector& route,
-                           const Container& container,
-                           const int status) {
+void Classifier::saveClassifierResults(const std::vector<Cuboid>& items,
+                                                const Collections::IdVector& route,
+                                                const Container& container,
+                                                const float output,
+                                                const int status) {
+
+    torch::Tensor input = extractFeatures(items, route, container);
+    torch::Tensor input_scaled = applyStandardScaling(input);
+
+    save_tensor_to_csv(input_scaled, status, output);
+}
+
+float Classifier::classifyReturnOutput(const std::vector<Cuboid>& items,
+                            const Collections::IdVector& route,
+                            const Container& container){
 
     torch::Tensor input = extractFeatures(items, route, container);
     torch::Tensor input_scaled = applyStandardScaling(input);
     torch::Tensor output = model.forward({input_scaled}).toTensor();
 
-    if(mClassifierParams.SaveTensorData) save_tensor_to_csv(input_scaled, status, output.item<float>());
-
-    return output.item<float>() > mClassifierParams.AcceptanceThreshold;
+    return output.item<float>();
 }
 
 bool Classifier::classify(const std::vector<Cuboid>& items,
