@@ -303,4 +303,18 @@ bool Classifier::classify(const std::vector<Cuboid>& items,
     return output.item<float>() > mClassifierParams.AcceptanceThreshold;
 }
 
+bool Classifier::classifyWriteTensorData(const std::vector<Cuboid>& items,
+                                        const Collections::IdVector& route,
+                                        const Container& container,
+                                        const int status) {
+
+    torch::Tensor input = extractFeatures(items, route, container);
+    torch::Tensor input_scaled = applyStandardScaling(input);
+    torch::Tensor output = model.forward({input_scaled}).toTensor();
+
+    save_tensor_to_csv(input_scaled, status, output.item<float>());
+
+    return output.item<float>() > mClassifierParams.AcceptanceThreshold;
+}
+
 }  // namespace ContainerLoading

@@ -64,12 +64,48 @@ void PerturbationOperatorBase::Run(const Model::Instance*            instance,
             
             auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
             auto selectedItems = Algorithms::InterfaceConversions::SelectItems(route.Sequence, instance->Nodes, false);
-            
-            if (!loadingChecker->CompleteCheck(container, set, route.Sequence, selectedItems))
-            {
-                controlFlag = false;
-                break;
-            }
+
+            if(params.ContainerLoading.classifierParams.UseClassifier){    
+                if(params.ContainerLoading.classifierParams.SaveTensorData){
+
+                    auto cpStatus = loadingChecker->ConstraintProgrammingSolver(PackingType::Complete,
+                                                                        container,
+                                                                        set,
+                                                                        route.Sequence,
+                                                                        selectedItems,
+                                                                        false);
+
+                    if(cpStatus == LoadingStatus::FeasOpt){
+
+                        if(!loadingChecker->classifyWriteTensorData(selectedItems,route.Sequence,container,1)){
+                            controlFlag = false;
+                            break;
+                        }
+
+                    }else{
+
+                        if(!loadingChecker->classifyWriteTensorData(selectedItems,route.Sequence,container,0)){
+                            controlFlag = false;
+                            break;
+                        }
+                    }
+                
+                }else{
+                    if(!loadingChecker->classify(selectedItems,route.Sequence,container)) {
+                        controlFlag = false;
+                        break;
+                    }
+                }
+            }else{
+                if(!loadingChecker->CompleteCheck(container,
+                                                    set,
+                                                    route.Sequence,
+                                                    selectedItems))                                            
+                {
+                    controlFlag = false;
+                    break;
+                }
+        }
 
         }
         // Change routes back if not feasible!

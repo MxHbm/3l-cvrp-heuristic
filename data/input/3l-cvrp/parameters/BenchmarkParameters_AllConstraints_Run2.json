@@ -30,8 +30,8 @@
         "TracedModelPath": "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/Gendreau_Rand_Tours/mb_complete_nodupl_mlp_cp_status_model_traced.pt",
         "SerializeJson_MeanStd" : "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/Gendreau_Rand_Tours/mb_complete_nodupl_mlp_input_scaling.json",
         "UseClassifier": true,
-        "SaveTensorData" : true,
-        "TensorDataFilePath": "C:/Users/mahu123a/Documents/Data/TensorData/Collection10min_AllGendreauInstances2/RandomRoutes",
+        "SaveTensorData" : false,
+        "TensorDataFilePath": "C:/Users/mahu123a/Documents/Data/TensorData/Collection10min_AllGendreauInstances_Approach1/RandomRoutes",
         "AcceptanceThreshold": 0.5
     },
     "CPSolverParams": {

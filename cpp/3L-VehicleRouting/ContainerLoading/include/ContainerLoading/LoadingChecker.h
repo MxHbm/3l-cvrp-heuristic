@@ -87,6 +87,9 @@ class LoadingChecker
     void AddInfeasibleCombination(const boost::dynamic_bitset<>& customersInRoute);
     [[nodiscard]] double GetElapsedTime();
 
+    bool classify(const std::vector<Cuboid>& items, const Collections::IdVector& route, const Container& container);
+    bool classifyWriteTensorData(const std::vector<Cuboid>& items, const Collections::IdVector& route, const Container& container, const int status_int);
+
     [[nodiscard]] Collections::SequenceVector GetFeasibleRoutes() const;
     [[nodiscard]] size_t GetNumberOfFeasibleRoutes() const;
     [[nodiscard]] size_t GetSizeInfeasibleCombinations() const;

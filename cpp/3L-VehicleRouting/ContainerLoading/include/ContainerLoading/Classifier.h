@@ -44,6 +44,13 @@ public:
                                 const Collections::IdVector& route,
                                 const Container& container);
 
+    
+    //Return bool value and write tensor data! 
+    bool classifyWriteTensorData(const std::vector<Cuboid>& items,
+                                        const Collections::IdVector& route,
+                                        const Container& container,
+                                        const int status);
+
 private:
     
     torch::Tensor mean_tensor;

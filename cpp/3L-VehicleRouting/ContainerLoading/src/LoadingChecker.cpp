@@ -134,33 +134,14 @@ bool LoadingChecker::CompleteCheck(const Container& container,
         return false;
     }
     
-    if(Parameters.classifierParams.UseClassifier){
-        
-         if(mClassifier->classify(items,stopIds,container)){
-
-            auto cpStatus = ConstraintProgrammingSolver(PackingType::Complete,
+    auto cpStatus = ConstraintProgrammingSolver(PackingType::Complete,
                                                     container,
                                                     set,
                                                     stopIds,
                                                     items,
                                                     false);
 
-            return cpStatus == LoadingStatus::FeasOpt;
-
-        }else{
-            return false;
-        }
-    }else{
-        
-        auto cpStatus = ConstraintProgrammingSolver(PackingType::Complete,
-                                                    container,
-                                                    set,
-                                                    stopIds,
-                                                    items,
-                                                    false);
-
-        return cpStatus == LoadingStatus::FeasOpt;
-    }
+    return cpStatus == LoadingStatus::FeasOpt;
 }
 
 void LoadingChecker::SetBinPackingModel(GRBEnv* env,
@@ -496,6 +477,18 @@ void LoadingChecker::AddStatus(const Collections::IdVector& sequence,
                 throw std::runtime_error("LoadingStatus invalid!");
         }
     }
+}
+
+bool LoadingChecker::classify(const std::vector<Cuboid>& items, const Collections::IdVector& route, const Container& container) {
+    
+    return mClassifier->classify(items, route, container);
+    
+}
+
+bool LoadingChecker::classifyWriteTensorData(const std::vector<Cuboid>& items, const Collections::IdVector& route, const Container& container, const int status_int){
+    
+    return mClassifier->classifyWriteTensorData(items, route, container, status_int);
+    
 }
 
 }

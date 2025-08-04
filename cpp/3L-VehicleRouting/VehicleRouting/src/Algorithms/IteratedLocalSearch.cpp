@@ -193,6 +193,9 @@ void IteratedLocalSearch::StartSolutionProcedure()
 
        mLocalSearch->RunLocalSearch(mCurrentSolution, mLoadingChecker.get());
 
+        if((mInputParameters.ContainerLoading.classifierParams.UseClassifier) && !(IsCurrentSolutionCPValid(mCurrentSolution))){
+                mCurrentSolution = mBestSolution; 
+            }
         //Wont be applied, when current = best solution
         if(mCurrentSolution.Costs < mBestSolution.Costs){
             mBestSolution = mCurrentSolution;
@@ -539,21 +542,18 @@ size_t IteratedLocalSearch::DetermineLowerBoundVehicles()
 
     return lowerBound1D;
 }
-/*
-bool IteratedLocalSearch::IsCurrentSolutionCPValid(const Solution& solution, double time_limit) {
+
+bool IteratedLocalSearch::IsCurrentSolutionCPValid(const Solution& solution) {
     for(const auto& route : solution.Routes) {
 
         if(route.Sequence.size() > 0){
 
             auto items = InterfaceConversions::SelectItems(route.Sequence, mInstance->Nodes, false);
-            auto status =
-                mLoadingChecker->CompleteCheck(mInstance->Vehicles.front().Containers.front(),
-                                                        mLoadingChecker->MakeBitset(mInstance->Nodes.size(), route.Sequence),
-                                                        route.Sequence,
-                                                        items,
-                                                        time_limit);
-
-            if(status != LoadingStatus::FeasOpt) {
+            if(!mLoadingChecker->CompleteCheck(mInstance->Vehicles.front().Containers.front(),
+                                                mLoadingChecker->MakeBitset(mInstance->Nodes.size(), route.Sequence),
+                                                route.Sequence,
+                                                items))                                            
+            {
                 //std::cout << "Route was rejected by CPSolver" << std::endl;
                 ++mSolutionTracker.rejections;
                 return false;
@@ -562,7 +562,7 @@ bool IteratedLocalSearch::IsCurrentSolutionCPValid(const Solution& solution, dou
     }
     return true;
 }
-*/
+
 
 
 void IteratedLocalSearch::Solve()
@@ -590,9 +590,11 @@ void IteratedLocalSearch::Solve()
     mTimer.calculateStartSolutionTime();
     int iterations_without_improvement{0};
 
+    Solution lastValidSolution = mCurrentSolution;
+
     double maxRuntime = mInputParameters.IteratedLocalSearch.TimeLimits[IteratedLocalSearchParams::CallType::ILS];
     if(mInputParameters.IteratedLocalSearch.RunILS){
-        while(mTimer.getElapsedTime() < maxRuntime && iterations_without_improvement < 1000){
+        while(mTimer.getElapsedTime() < maxRuntime && iterations_without_improvement < 10000){
 
             std::cout << "Run: " << mSolutionTracker.iterations << " - CurrentCosts: " << mCurrentSolution.Costs << " - BestCosts:" << mBestSolution.Costs << std::endl;
             
@@ -605,15 +607,20 @@ void IteratedLocalSearch::Solve()
             mLocalSearch->RunLocalSearch(mCurrentSolution, mLoadingChecker.get());
 
             ++mSolutionTracker.iterations;
-
             mTimer.calculateElapsedTime();
+
+            if((mInputParameters.ContainerLoading.classifierParams.UseClassifier) && !(IsCurrentSolutionCPValid(mCurrentSolution))){
+                mCurrentSolution = lastValidSolution; 
+            }
     
             if(mCurrentSolution.Costs < mBestSolution.Costs - 1e-2){
                 mSolutionTracker.UpdateBothSolutions(mTimer.getElapsedTime(), mCurrentSolution.Costs);
                 mBestSolution = mCurrentSolution;
+                lastValidSolution = mCurrentSolution;
                 mSolutionTracker.NoImpr = 0;
                 iterations_without_improvement = 0;
                 mSolutionTracker.RoundsWithNoImpr = 0;
+
                 continue;
             }
 
@@ -626,6 +633,7 @@ void IteratedLocalSearch::Solve()
 
             ++mSolutionTracker.NoImpr;
             ++iterations_without_improvement;
+            lastValidSolution = mCurrentSolution;
 
         }
     }

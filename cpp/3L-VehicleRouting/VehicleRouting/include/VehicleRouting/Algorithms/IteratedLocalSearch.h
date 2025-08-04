@@ -96,9 +96,9 @@ class IteratedLocalSearch
     void GenerateStartSolutionSavings();
     void GenerateStartSolutionModifiedSavings();
     void GenerateStartSolutionSPHeuristic();
-      /*
-    bool IsCurrentSolutionCPValid(const Solution& solution, double time_limit);
+    bool IsCurrentSolutionCPValid(const Solution& solution);
 
+    /*
     bool IteratedLocalSearch::IsCurrentSolutionCPValid(const Solution& solution, double time_limit) {
         for(const auto& route : solution.Routes) {
 
