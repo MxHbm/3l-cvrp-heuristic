@@ -592,7 +592,7 @@ void IteratedLocalSearch::Solve()
 
     double maxRuntime = mInputParameters.IteratedLocalSearch.TimeLimits[IteratedLocalSearchParams::CallType::ILS];
     if(mInputParameters.IteratedLocalSearch.RunILS){
-        while(mTimer.getElapsedTime() < maxRuntime && iterations_without_improvement < 1000){
+        while(mTimer.getElapsedTime() < maxRuntime && iterations_without_improvement < 10000){
 
             std::cout << "Run: " << mSolutionTracker.iterations << " - CurrentCosts: " << mCurrentSolution.Costs << " - BestCosts:" << mBestSolution.Costs << std::endl;
             
