@@ -21,6 +21,9 @@ class InterLocalSearchOperator : public LocalSearchOperatorBase
                     LoadingChecker* loadingChecker,
                     Solution& currentSolution) override;
 
+  private:
+    ImprovementTypes mType = ImprovementTypes::Inter;
+
   protected:
     std::optional<double> GetBestMove(const Instance* instance,
                                 const InputParameters& inputParameters,

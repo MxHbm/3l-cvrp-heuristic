@@ -29,6 +29,10 @@ public:
             Model::Solution&                  solution,
             std::mt19937&                     rng);
 
+
+  private:
+    ImprovementTypes mType = ImprovementTypes::Perturbation;
+
   protected:
     virtual std::optional<PerturbationMove> DetermineMoves(const Instance* instance,
                                                     const std::vector<Route>& routes,

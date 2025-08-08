@@ -7,6 +7,17 @@
 
 namespace VehicleRouting
 {
+
+namespace Improvement{
+
+    enum class ImprovementTypes
+    {
+        Intra,
+        Inter,
+        Perturbation
+    };
+}
+
 namespace Algorithms
 {
 using namespace ContainerLoading;
@@ -57,6 +68,14 @@ struct IteratedLocalSearchParams
     bool RunLS = true;
     int NoImprLimit = 100;
     int K_RandomMoves = 1;
+    int MaxIterationsWithoutImprovement = 10000;
+    int RoundsWithNoImprovement = 3;
+    bool CPCheck = false;
+    std::unordered_map<Improvement::ImprovementTypes, bool> UseClassifier = {
+            {Improvement::ImprovementTypes::Intra, true},
+            {Improvement::ImprovementTypes::Perturbation, true},
+            {Improvement::ImprovementTypes::Inter, false}
+        };
     StartSolutionType StartSolution = StartSolutionType::ModifiedSavings;
 
     std::vector<PerturbationTypes> perturbationTypes = {PerturbationTypes::None};

@@ -39,6 +39,15 @@ NLOHMANN_JSON_SERIALIZE_ENUM(PerturbationTypes,
     {PerturbationTypes::K_RandomSwaps, "K_RandomSwaps"},
     {PerturbationTypes::K_RandomInsertions, "K_RandomInsertions"}});
 }
+
+namespace Improvement{
+
+    NLOHMANN_JSON_SERIALIZE_ENUM(ImprovementTypes,
+        {{ImprovementTypes::Intra, "Intra"},
+        {ImprovementTypes::Inter, "Inter"},
+        {ImprovementTypes::Perturbation, "Pertubation"}});
+}
+
 }
 
 namespace ContainerLoading
@@ -128,8 +137,12 @@ void from_json(const json& j, IteratedLocalSearchParams& params)
     j.at("K_RandomMoves").get_to(params.K_RandomMoves);
     j.at("StartSolution").get_to(params.StartSolution);
     j.at("TimeLimit").get_to(params.TimeLimits);
+    j.at("CPCheck").get_to(params.CPCheck);
+    j.at("UseClassifier").get_to(params.UseClassifier);
     j.at("LocalSearchTypes").get_to(params.localSearchTypes);
     j.at("PerturbationTypes").get_to(params.perturbationTypes);
+    j.at("MaxIterationsWithoutImprovement").get_to(params.MaxIterationsWithoutImprovement);
+    j.at("RoundsWithNoImprovement").get_to(params.RoundsWithNoImprovement);
 }
 
 void to_json(json& j, const IteratedLocalSearchParams& params)
@@ -138,6 +151,10 @@ void to_json(json& j, const IteratedLocalSearchParams& params)
              {"Run_LS", params.RunLS},
              {"LimitNoImpr", params.NoImprLimit},
              {"K_RandomMoves", params.K_RandomMoves},
+             {"MaxIterationsWithoutImprovement", params.MaxIterationsWithoutImprovement},
+             {"RoundsWithNoImprovement", params.RoundsWithNoImprovement},
+             {"CPCheck", params.CPCheck},
+             {"UseClassifier", params.UseClassifier},
              {"LocalSearchTypes",params.localSearchTypes},
              {"PerturbationTypes",params.perturbationTypes},
              {"StartSolution", params.StartSolution},
