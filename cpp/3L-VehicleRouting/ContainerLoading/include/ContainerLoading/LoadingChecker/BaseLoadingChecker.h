@@ -42,9 +42,15 @@ class BaseLoadingChecker
     }
 
     virtual bool CompleteCheck(const Container& container,
-                                    const boost::dynamic_bitset<>& set,
-                                    const Collections::IdVector& stopIds,
-                                    const std::vector<Cuboid>& items) = 0;
+                                const boost::dynamic_bitset<>& set,
+                                const Collections::IdVector& stopIds,
+                                const std::vector<Cuboid>& items,
+                                const VehicleRouting::Improvement::ImprovementTypes& localsearchtype) = 0;
+
+    virtual bool CompleteCheckStartSolution(const Container& container,
+                            const boost::dynamic_bitset<>& set,
+                            const Collections::IdVector& stopIds,
+                            const std::vector<Cuboid>& items) = 0;
 
     [[nodiscard]] std::vector<Cuboid>
         SelectItems(const Collections::IdVector& nodeIds, std::vector<Group>& nodes, bool reversedDirection) const;

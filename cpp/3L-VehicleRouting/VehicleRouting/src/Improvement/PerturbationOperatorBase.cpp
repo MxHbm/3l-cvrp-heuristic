@@ -52,7 +52,7 @@ void PerturbationOperatorBase::Run(const Model::Instance*            instance,
             auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
             auto selectedItems = Algorithms::InterfaceConversions::SelectItems(route.Sequence, instance->Nodes, false);
             
-            if (!loadingChecker->CompleteCheck(container, set, route.Sequence, selectedItems))
+            if (!loadingChecker->CompleteCheck(container, set, route.Sequence, selectedItems, mType))
             {
                 controlFlag = false;
                 break;

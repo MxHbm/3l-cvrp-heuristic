@@ -62,7 +62,7 @@ std::optional<double> IntraLocalSearchOperator::GetBestMove(const Instance* inst
         ChangeRoute(route, std::get<1>(move), std::get<2>(move));
         
         auto selectedItems = InterfaceConversions::SelectItems(route, instance->Nodes, false);
-        if (loadingChecker->CompleteCheck(container, set, route, selectedItems))
+        if (loadingChecker->CompleteCheck(container, set, route, selectedItems, mType))
         {
             return std::get<0>(move);
         }

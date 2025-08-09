@@ -30,6 +30,7 @@
         "Threads": 8,
         "ProblemVariant": "AllConstraints",
         "SupportArea": 0.75,
+        "UseFilterStartSolution" : false,
         "UseClassifierLocalSearch":[
             ["Intra", false],
             ["Perturbation", false],

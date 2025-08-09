@@ -89,6 +89,7 @@ void from_json(const json& j, ContainerLoadingParams& params)
     j.at("Seed").get_to(params.Seed);
     j.at("ProblemVariant").get_to(params.Variant);
     j.at("SupportArea").get_to(params.SupportArea);
+    j.at("UseFilterStartSolution").get_to(params.UseFilterStartSolution);
     j.at("UseClassifierLocalSearch").get_to(params.UseClassifierLocalSearch);
 }
 
@@ -106,6 +107,7 @@ void to_json(json& j, const ContainerLoadingParams& params)
              {"AcceptanceThreshold", params.AcceptanceThreshold},
              {"ProblemVariant", params.Variant},
              {"SupportArea", params.SupportArea},
+             {"UseFilterStartSolution", params.UseFilterStartSolution},
              {"UseClassifierLocalSearch", params.UseClassifierLocalSearch}};
 }
 }

@@ -4,11 +4,20 @@ namespace ContainerLoading
 {
 using namespace Algorithms;
 
+
+ bool FilterLoadingChecker::CompleteCheckStartSolution(const Container& container,
+                const boost::dynamic_bitset<>& set,
+                const Collections::IdVector& stopIds,
+                const std::vector<Cuboid>& items)
+{    
+    return true;   
+}
+
 bool FilterLoadingChecker::CompleteCheck(const Container& container,
                                     const boost::dynamic_bitset<>& set,
                                     const Collections::IdVector& stopIds,
-                                    const std::vector<Cuboid>& items
-                                    )
+                                    const std::vector<Cuboid>& items,
+                                    const VehicleRouting::Improvement::ImprovementTypes& localsearchtype)
 {
     if (RouteIsInFeasSequences(stopIds))
     {
@@ -20,8 +29,8 @@ bool FilterLoadingChecker::CompleteCheck(const Container& container,
         return false;
     }
     
-        
-        if(mClassifier->classify(items,stopIds,container)){
+    
+    if(mClassifier->classify(items,stopIds,container)){
 
         auto cpStatus = ConstraintProgrammingSolver(PackingType::Complete,
                                                 container,

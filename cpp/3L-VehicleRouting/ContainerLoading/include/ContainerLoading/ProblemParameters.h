@@ -73,6 +73,7 @@ struct ContainerLoadingParams
         {IT::Perturbation, true},
         {IT::Inter, false}
     };
+    bool UseFilterStartSolution = false;
     
     [[nodiscard]] std::string GetVariantString() const {
         switch (Variant) {

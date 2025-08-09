@@ -126,10 +126,10 @@ bool Savings::ConcatRoutes(Collections::IdVector& frontSequence,
 
     auto selectedItems = InterfaceConversions::SelectItems(frontSequence, mInstance->Nodes, false);
 
-    return mLoadingChecker->CompleteCheck(container,
-                                            mLoadingChecker->MakeBitset(mInstance->Nodes.size(), frontSequence),
-                                            frontSequence,
-                                            selectedItems);
+    return mLoadingChecker->CompleteCheckStartSolution(container,
+                                                        mLoadingChecker->MakeBitset(mInstance->Nodes.size(), frontSequence),
+                                                        frontSequence,
+                                                        selectedItems);
 }
 
 void Savings::DeleteSavings(std::vector<std::tuple<double, size_t, size_t>>& savingsValues,
@@ -347,7 +347,7 @@ bool ModifiedSavings::InsertionFeasible(Route& route, size_t nodeToInsert, size_
 
     auto selectedItems = InterfaceConversions::SelectItems(tmpSequence, mInstance->Nodes, false);
 
-    if (!mLoadingChecker->CompleteCheck(container, mLoadingChecker->MakeBitset(mInstance->Nodes.size(), tmpSequence), tmpSequence, selectedItems))
+    if (!mLoadingChecker->CompleteCheckStartSolution(container, mLoadingChecker->MakeBitset(mInstance->Nodes.size(), tmpSequence), tmpSequence, selectedItems))
     {
         return false;
     }

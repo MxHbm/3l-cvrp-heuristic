@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Improvement/FullEnumerationSearch.h"
 #include "Improvement/TwoOpt.h"
 #include "Improvement/InterSwap.h"
 #include "Improvement/IntraSwap.h"
