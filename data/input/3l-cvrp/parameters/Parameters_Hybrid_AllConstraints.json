@@ -10,46 +10,30 @@
         "MaxIterationsWithoutImprovement" : 10000,
         "RoundsWithNoImprovement" : 3,
         "LoadingCheckerType": "Hybrid",
-        "UseClassifier":[
-            ["Intra", true],
-            ["Perturbation", true],
-            ["Inter", false]
-        ],
         "TimeLimit": [
-            [
-                "ILS",
-                15
-            ],
-            [
-                "Constructive",
-                1
-            ],
-            [
-                "Exact",
-                600
-            ],
-            [
-                "ExactLimit",
-                60
-            ]
+            ["ILS", 15],
+            ["Constructive",1],
+            ["Exact", 600],
+            ["ExactLimit", 60]
         ]
     },
-    "ClassifierParams": {
-        "TracedModelPath": "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/Gendreau_14440_inf_1_1/mb_complete_nodupl_mlp_cp_status_model_traced.pt",
+    "ContainerLoadingParams": {
+       "TracedModelPath": "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/Gendreau_14440_inf_1_1/mb_complete_nodupl_mlp_cp_status_model_traced.pt",
         "SerializeJson_MeanStd" : "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/Gendreau_14440_inf_1_1/mb_complete_nodupl_mlp_input_scaling.json",
         "SaveTensorData" : false,
-        "TensorDataFilePath": "C:/Users/mahu123a/Documents/Data/TensorData/Collection10min_AllGendreauInstances2/BCRoutes",
-        "AcceptanceThreshold": 0.5
-    },
-    "CPSolverParams": {
+        "TensorDataFilePath": "",
+        "AcceptanceThreshold": 0.5,
         "EnableCumulativeDimensions": false,
         "EnableNoOverlap2DFloor": false,
         "LogFlag": false,
         "Seed": 1000,
-        "Threads": 8
-    },
-    "LoadingProblemParams":{
-    "ProblemVariant": "AllConstraints",
-    "SupportArea": 0.75
-  }
+        "Threads": 8,
+        "ProblemVariant": "AllConstraints",
+        "SupportArea": 0.75,
+        "UseClassifierLocalSearch":[
+            ["Intra", true],
+            ["Perturbation", true],
+            ["Inter", false]
+        ]
+    }
 }

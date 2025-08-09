@@ -12,7 +12,7 @@ class SpeedUpLoadingChecker : public BaseLoadingChecker
   public:
 
     explicit SpeedUpLoadingChecker(const ContainerLoadingParams& parameters, const double maxruntime)
-    : BaseLoadingChecker(parameters,maxruntime), mClassifier(std::make_unique<Classifier>(Parameters.classifierParams))
+    : BaseLoadingChecker(parameters,maxruntime), mClassifier(std::make_unique<Classifier>(Parameters))
     {}
 
     [[nodiscard]] bool CompleteCheck(const Container& container,

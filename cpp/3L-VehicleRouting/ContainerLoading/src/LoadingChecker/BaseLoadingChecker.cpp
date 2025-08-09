@@ -55,12 +55,12 @@ LoadingStatus BaseLoadingChecker::ConstraintProgrammingSolver(PackingType packin
     }
 
     auto numberStops = stopIds.size();
-    auto containerLoadingCP = ContainerLoadingCP(Parameters.CPSolver,
+    auto containerLoadingCP = ContainerLoadingCP(Parameters,
                                                  container,
                                                  items,
                                                  numberStops,
                                                  loadingMask,
-                                                 Parameters.LoadingProblem.SupportArea,
+                                                 Parameters.SupportArea,
                                                  maxRunTime_CPSolver);
 
     auto status = containerLoadingCP.Solve();
@@ -95,12 +95,12 @@ LoadingStatus BaseLoadingChecker::ConstraintProgrammingSolverGetPacking(PackingT
 
     auto numberStops = stopIds.size();
 
-    auto containerLoadingCP = ContainerLoadingCP(Parameters.CPSolver,
+    auto containerLoadingCP = ContainerLoadingCP(Parameters,
                                                  container,
                                                  items,
                                                  numberStops,
                                                  loadingMask,
-                                                 Parameters.LoadingProblem.SupportArea,
+                                                 Parameters.SupportArea,
                                                  maxRuntime);
 
     auto status = containerLoadingCP.Solve();
@@ -203,12 +203,12 @@ void BaseLoadingChecker::AddFeasibleSequenceFromOutside(const Collections::IdVec
 
 bool BaseLoadingChecker::RouteIsInFeasSequences(const Collections::IdVector& route) const
 {
-    return mFeasSequences.at(Parameters.LoadingProblem.LoadingFlags).contains(route);
+    return mFeasSequences.at(Parameters.LoadingFlags).contains(route);
 }
 
 bool BaseLoadingChecker::RouteIsInInfeasSequences(const Collections::IdVector& route) const
 {
-    return mInfSequences.at(Parameters.LoadingProblem.LoadingFlags).contains(route);
+    return mInfSequences.at(Parameters.LoadingFlags).contains(route);
 }
 
 boost::dynamic_bitset<> BaseLoadingChecker::MakeBitset(size_t size, const Collections::IdVector& sequence) const
@@ -224,7 +224,7 @@ boost::dynamic_bitset<> BaseLoadingChecker::MakeBitset(size_t size, const Collec
 
 void BaseLoadingChecker::AddFeasibleRoute(const Collections::IdVector& route)
 {
-    mFeasSequences[Parameters.LoadingProblem.LoadingFlags].insert(route);
+    mFeasSequences[Parameters.LoadingFlags].insert(route);
     mCompleteFeasSeq.push_back(route);
 }
 
@@ -320,11 +320,11 @@ LoadingFlag BaseLoadingChecker::BuildMask(PackingType type) const
     switch (type)
     {
         case PackingType::Complete:
-            return LoadingFlag::Complete & Parameters.LoadingProblem.LoadingFlags;
+            return LoadingFlag::Complete &Parameters.LoadingFlags;
         case PackingType::NoSupport:
-            return LoadingFlag::NoSupport & Parameters.LoadingProblem.LoadingFlags;
+            return LoadingFlag::NoSupport &Parameters.LoadingFlags;
         case PackingType::LifoNoSequence:
-            return LoadingFlag::LifoNoSequence & Parameters.LoadingProblem.LoadingFlags;
+            return LoadingFlag::LifoNoSequence &Parameters.LoadingFlags;
         default:
             throw std::runtime_error("PackingType not implemented in mask builder.");
     }
@@ -368,7 +368,7 @@ LoadingStatus BaseLoadingChecker::GetPrecheckStatusCP(const Collections::IdVecto
         if (SetIsFeasibleCP(set, mask))
         {
             ////std::cout << "Set already stored as feasible (CP)." << "\n";
-            if (mask == Parameters.LoadingProblem.LoadingFlags && !SequenceIsFeasible(sequence, mask))
+            if (mask ==Parameters.LoadingFlags && !SequenceIsFeasible(sequence, mask))
             {
                 AddFeasibleRoute(sequence);
             }
@@ -392,7 +392,7 @@ void BaseLoadingChecker::AddStatus(const Collections::IdVector& sequence,
                                const LoadingStatus status)
 {
     // Add to feasible sequences although lifo might be disabled; needed for SP heuristic.
-    if (status == LoadingStatus::FeasOpt && mask == Parameters.LoadingProblem.LoadingFlags)
+    if (status == LoadingStatus::FeasOpt && mask ==Parameters.LoadingFlags)
     {
         AddFeasibleRoute(sequence);
         if (!IsSet(mask, LoadingFlag::Lifo))

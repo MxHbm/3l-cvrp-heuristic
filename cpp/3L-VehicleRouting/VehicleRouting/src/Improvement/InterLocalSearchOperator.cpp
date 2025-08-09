@@ -62,7 +62,7 @@ std::optional<double> InterLocalSearchOperator::GetBestMove(const Instance* inst
       bool controlFlag = true;
       
 
-      if (loadingChecker->Parameters.LoadingProblem.LoadingFlags == LoadingFlag::NoneSet)
+      if (loadingChecker->Parameters.LoadingFlags == LoadingFlag::NoneSet)
       {
           UpdateRouteVolumeWeight(routes, move);
           return std::get<0>(move);

@@ -12,7 +12,7 @@ class FilterLoadingChecker : public BaseLoadingChecker
   public:
 
     explicit FilterLoadingChecker(const ContainerLoadingParams& parameters, const double maxruntime)
-    : BaseLoadingChecker(parameters,maxruntime), mClassifier(std::make_unique<Classifier>(Parameters.classifierParams))
+    : BaseLoadingChecker(parameters,maxruntime), mClassifier(std::make_unique<Classifier>(Parameters))
     {}
 
     [[nodiscard]] bool CompleteCheck(const Container& container,

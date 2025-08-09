@@ -1,10 +1,8 @@
 #pragma once
 
 #include "CommonBasics/Helper/CPServices.h"
-
+#include "ProblemParameters.h"
 #include "Model/Container.h"
-
-#include "Algorithms/CPSolverParameters.h"
 #include "Algorithms/LoadingStatus.h"
 #include "Algorithms/PlacementPoints.h"
 
@@ -26,7 +24,7 @@ class ContainerLoadingCP
     [[nodiscard]] LoadingStatus Solve();
     [[nodiscard]] double GetRuntime() const { return mResponse.wall_time(); };
 
-    ContainerLoadingCP(const CPSolverParams& params,
+    ContainerLoadingCP(const ContainerLoadingParams& params,
                        const Container& container,
                        const std::vector<Cuboid>& items,
                        const size_t numberCustomers,
@@ -52,7 +50,7 @@ class ContainerLoadingCP
     }
 
   private:
-    const CPSolverParams& mParams;
+    const ContainerLoadingParams& mParams;
     const Container& mContainer;
     const std::vector<Cuboid>& mItems;
     size_t mNumberCustomers;

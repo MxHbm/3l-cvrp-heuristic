@@ -10,46 +10,30 @@
         "MaxIterationsWithoutImprovement" : 10000,
         "RoundsWithNoImprovement" : 3,
         "LoadingCheckerType": "NoClassifier",
-        "UseClassifier":[
-            ["Intra", false],
-            ["Perturbation", false],
-            ["Inter", false]
-        ],
         "TimeLimit": [
-            [
-                "ILS",
-                15
-            ],
-            [
-                "Constructive",
-                1
-            ],
-            [
-                "Exact",
-                600
-            ],
-            [
-                "ExactLimit",
-                60
-            ]
+            ["ILS", 15],
+            ["Constructive",1],
+            ["Exact", 600],
+            ["ExactLimit", 60]
         ]
     },
-    "ClassifierParams": {
-        "TracedModelPath": "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/Gendreau_Rand_Tours/mb_complete_nodupl_mlp_cp_status_model_traced.pt",
-        "SerializeJson_MeanStd" : "C:/Users/mahu123a/Documents/3l-cvrp-heuristic/data/input/model/Gendreau_Rand_Tours/mb_complete_nodupl_mlp_input_scaling.json",
+    "ContainerLoadingParams": {
+       "TracedModelPath": "",
+        "SerializeJson_MeanStd" : "",
         "SaveTensorData" : false,
-        "TensorDataFilePath": "H:/Data/TensorData/TensorData_Gendreau14440_inf_1_1_Complete_MB_NoDupl",
-        "AcceptanceThreshold": 0.5
-    },
-    "CPSolverParams": {
+        "TensorDataFilePath": "",
+        "AcceptanceThreshold": 0.5,
         "EnableCumulativeDimensions": false,
         "EnableNoOverlap2DFloor": false,
         "LogFlag": false,
         "Seed": 1000,
-        "Threads": 8
-    },
-    "LoadingProblemParams":{
-    "ProblemVariant": "AllConstraints",
-    "SupportArea": 0.75
-  }
+        "Threads": 8,
+        "ProblemVariant": "AllConstraints",
+        "SupportArea": 0.75,
+        "UseClassifierLocalSearch":[
+            ["Intra", false],
+            ["Perturbation", false],
+            ["Inter", false]
+        ]
+    }
 }

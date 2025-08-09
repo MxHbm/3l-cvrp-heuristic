@@ -5,7 +5,6 @@
 #include "ContainerLoading/LoadingChecker/HybridLoadingChecker.h"
 #include "ContainerLoading/LoadingChecker/NoClassifierLoadingChecker.h"
 #include "ContainerLoading/LoadingChecker/SpeedUpLoadingChecker.h"
-#include "ContainerLoading/Algorithms/CPSolverParameters.h"
 #include "ContainerLoading/Algorithms/LoadingStatus.h"
 #include "ContainerLoading/Helper/HelperIO.h"
 #include "Improvement/LocalSearch.h"

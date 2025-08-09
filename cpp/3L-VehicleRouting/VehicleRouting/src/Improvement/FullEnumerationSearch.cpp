@@ -55,7 +55,7 @@ void FullEnumerationSearch::Run(const Instance* const instance,
                 break;
             }
 
-            if (!loadingChecker->Parameters.LoadingProblem.EnableLifo && loadingChecker->RouteIsInFeasSequences(route.Sequence))
+            if (!loadingChecker->Parameters.EnableLifo && loadingChecker->RouteIsInFeasSequences(route.Sequence))
             {
                 loadingChecker->AddFeasibleSequenceFromOutside(sequence);
                 route.Sequence = std::move(sequence);
@@ -72,7 +72,7 @@ void FullEnumerationSearch::Run(const Instance* const instance,
                 break;
             }
 
-            if (!loadingChecker->Parameters.LoadingProblem.EnableLifo)
+            if (!loadingChecker->Parameters.EnableLifo)
             {
                 route.Sequence = std::move(sequence);
                 currentSolution.Costs += move.first;

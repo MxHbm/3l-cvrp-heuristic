@@ -31,13 +31,13 @@ class BaseLoadingChecker
         constexpr size_t reservedSize = 1000;
         for (const auto flag: usedLoadingFlags)
         {
-            mFeasSequences[flag & Parameters.LoadingProblem.LoadingFlags].reserve(reservedSize);
-            mInfSequences[flag & Parameters.LoadingProblem.LoadingFlags].reserve(reservedSize);
-            mUnkSequences[flag & Parameters.LoadingProblem.LoadingFlags].reserve(reservedSize);
+            mFeasSequences[flag & Parameters.LoadingFlags].reserve(reservedSize);
+            mInfSequences[flag & Parameters.LoadingFlags].reserve(reservedSize);
+            mUnkSequences[flag & Parameters.LoadingFlags].reserve(reservedSize);
 
-            mFeasibleSets[flag & Parameters.LoadingProblem.LoadingFlags].reserve(reservedSize);
-            mInfSets[flag & Parameters.LoadingProblem.LoadingFlags].reserve(reservedSize);
-            mUnknownSets[flag & Parameters.LoadingProblem.LoadingFlags].reserve(reservedSize);
+            mFeasibleSets[flag & Parameters.LoadingFlags].reserve(reservedSize);
+            mInfSets[flag & Parameters.LoadingFlags].reserve(reservedSize);
+            mUnknownSets[flag & Parameters.LoadingFlags].reserve(reservedSize);
         }
     }
 

@@ -7,22 +7,10 @@
 
 namespace VehicleRouting
 {
-
-namespace Improvement{
-
-    enum class ImprovementTypes
-    {
-        Intra,
-        Inter,
-        Perturbation
-    };
-}
-
 namespace Algorithms
 {
 using namespace ContainerLoading;
 using namespace ContainerLoading::Algorithms;
-
 
 enum class LocalSearchTypes
 {
@@ -78,11 +66,6 @@ struct IteratedLocalSearchParams
     int MaxIterationsWithoutImprovement = 10000;
     int RoundsWithNoImprovement = 3;
     LoadingCheckerTypes LoadingCheckerType = LoadingCheckerTypes::NoClassifier;
-    std::unordered_map<Improvement::ImprovementTypes, bool> UseClassifier = {
-            {Improvement::ImprovementTypes::Intra, true},
-            {Improvement::ImprovementTypes::Perturbation, true},
-            {Improvement::ImprovementTypes::Inter, false}
-        };
     StartSolutionType StartSolution = StartSolutionType::ModifiedSavings;
 
     std::vector<PerturbationTypes> perturbationTypes = {PerturbationTypes::None};
@@ -103,7 +86,7 @@ class InputParameters
     IteratedLocalSearchParams IteratedLocalSearch;
     ContainerLoadingParams ContainerLoading;
 
-    void SetLoadingFlags() { ContainerLoading.LoadingProblem.SetFlags(); };
+    void SetLoadingFlags() { ContainerLoading.SetFlags(); };
 
     [[nodiscard]] double DetermineMaxRuntime(IteratedLocalSearchParams::CallType callType,
                                              double residualTime = std::numeric_limits<double>::max()) const

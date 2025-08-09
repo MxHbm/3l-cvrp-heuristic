@@ -26,13 +26,15 @@ void Classifier::loadStandardScalingFromJson(const std::string& scaler_path){
 
 }
 
-Classifier::Classifier(const ClassifierParams& classifierParams) : mClassifierParams(classifierParams)
+Classifier::Classifier(const ContainerLoadingParams& containerLoadingParams) : 
+    mAcceptanceThreshold(containerLoadingParams.AcceptanceThreshold),
+    mSaveTensorPath(containerLoadingParams.TensorDataFilePath)
 {
 
-    model = torch::jit::load(classifierParams.TracedModelPath);
+    model = torch::jit::load(containerLoadingParams.TracedModelPath);
     model.eval();
 
-    loadStandardScalingFromJson(classifierParams.SerializeJson_MeanStd);
+    loadStandardScalingFromJson(containerLoadingParams.SerializeJson_MeanStd);
 
 }
 
@@ -239,7 +241,7 @@ std::string Classifier::get_timestamp() {
 // Save a 1D or 2D tensor as CSV with timestamp
 void Classifier::save_tensor_to_csv(const torch::Tensor& tensor, const int status, const float output) {
     torch::Tensor cpu_tensor = tensor.detach().cpu();
-    std::string filename = mClassifierParams.TensorDataFilePath + "/tensor_" + get_timestamp() + ".csv";
+    std::string filename = mSaveTensorPath + "/tensor_" + get_timestamp() + ".csv";
 
     std::ofstream file(filename);
     if (!file.is_open()) {
@@ -300,7 +302,7 @@ bool Classifier::classify(const std::vector<Cuboid>& items,
     torch::Tensor input_scaled = applyStandardScaling(input);
     torch::Tensor output = model.forward({input_scaled}).toTensor();
 
-    return output.item<float>() > mClassifierParams.AcceptanceThreshold;
+    return output.item<float>() > mAcceptanceThreshold;
 }
 
 }  // namespace ContainerLoading

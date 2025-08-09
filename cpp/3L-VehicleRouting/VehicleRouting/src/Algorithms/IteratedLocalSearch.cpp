@@ -6,7 +6,6 @@ using namespace Model;
 
 namespace Algorithms
 {
-namespace CLP = ContainerLoading;
 using namespace ContainerLoading;
 using namespace ContainerLoading::Algorithms;
 using namespace Improvement;
@@ -14,7 +13,7 @@ using namespace Helper;
 
 void IteratedLocalSearch::Initialize()
 {
-    mLogFile << "ProblemVariant: " << (int)mInputParameters.ContainerLoading.LoadingProblem.Variant << "\n";
+    mLogFile << "ProblemVariant: " << (int)mInputParameters.ContainerLoading.Variant << "\n";
 
     std::vector<Container> containers;
     containers.reserve(mInstance->Vehicles.size());
@@ -90,9 +89,9 @@ void IteratedLocalSearch::AdaptWeightsVolumesToLoadingProblem()
 {
     mLogFile << "### START PREPROCESSING ###"
              << "\n";
-    switch (mInputParameters.ContainerLoading.LoadingProblem.Variant)
+    switch (mInputParameters.ContainerLoading.Variant)
     {
-        case CLP::LoadingProblemParams::VariantType::Weight:
+        case ContainerLoadingParams::VariantType::Weight:
         {
             for (auto& node: mInstance->Nodes)
             {
@@ -113,7 +112,7 @@ void IteratedLocalSearch::AdaptWeightsVolumesToLoadingProblem()
 
             break;
         }
-        case CLP::LoadingProblemParams::VariantType::Volume:
+        case ContainerLoadingParams::VariantType::Volume:
         {
             for (auto& node: mInstance->Nodes)
             {
@@ -312,7 +311,7 @@ void IteratedLocalSearch::DetermineInfeasiblePaths()
                 continue;
             }
 
-            if (!mInputParameters.ContainerLoading.LoadingProblem.EnableThreeDimensionalLoading)
+            if (!mInputParameters.ContainerLoading.EnableThreeDimensionalLoading)
             {
                 continue;
             }
@@ -370,7 +369,7 @@ bool IteratedLocalSearch::CheckPath(const Collections::IdVector& path, Container
 
 void IteratedLocalSearch::DetermineExtendedInfeasiblePath()
 {
-    if (!mInputParameters.ContainerLoading.LoadingProblem.EnableThreeDimensionalLoading)
+    if (!mInputParameters.ContainerLoading.EnableThreeDimensionalLoading)
     {
         return;
     }
@@ -521,7 +520,7 @@ size_t IteratedLocalSearch::DetermineLowerBoundVehicles()
 
     auto lowerBound1D = static_cast<size_t>(mLoadingChecker->SolveBinPackingApproximation());
 
-    if (!mInputParameters.ContainerLoading.LoadingProblem.EnableThreeDimensionalLoading)
+    if (!mInputParameters.ContainerLoading.EnableThreeDimensionalLoading)
     {
         while (mInstance->Vehicles.size() > lowerBound1D)
         {
@@ -702,7 +701,7 @@ void IteratedLocalSearch::DeterminePackingSolution(OutputSolution& outputSolutio
                  << ": weight util " + std::to_string(totalWeight / container.WeightLimit)
                  << " | volume util " + std::to_string(totalVolume / container.Volume) << " | ";
 
-        if (!mInputParameters.ContainerLoading.LoadingProblem.EnableThreeDimensionalLoading)
+        if (!mInputParameters.ContainerLoading.EnableThreeDimensionalLoading)
         {
             mLogFile << "\n";
             continue;

@@ -25,7 +25,7 @@ using namespace Model;
 class Classifier {
 public:
 
-    Classifier(const ClassifierParams& classifierParams);
+    Classifier(const ContainerLoadingParams& containerLoadingParams);
 
     // Output: classification probability (0–1) - O Infeasible - 1 Feasible
     void saveClassifierResults(const std::vector<Cuboid>& items,
@@ -48,8 +48,9 @@ private:
     
     torch::Tensor mean_tensor;
     torch::Tensor std_tensor;
-    ClassifierParams mClassifierParams;
     torch::jit::script::Module model;
+    float mAcceptanceThreshold;
+    std::string mSaveTensorPath;
 
     void loadStandardScalingFromJson(const std::string& scaler_path);
     

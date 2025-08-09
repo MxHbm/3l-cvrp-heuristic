@@ -31,7 +31,7 @@ void Run(std::string& inputFilePath,
     }
     else
     {
-        inputParameters.ContainerLoading.LoadingProblem.Variant = ContainerLoading::LoadingProblemParams::VariantType::AllConstraints;
+        inputParameters.ContainerLoading.Variant = ContainerLoading::ContainerLoadingParams::VariantType::AllConstraints;
     }
 
     inputParameters.SetLoadingFlags();

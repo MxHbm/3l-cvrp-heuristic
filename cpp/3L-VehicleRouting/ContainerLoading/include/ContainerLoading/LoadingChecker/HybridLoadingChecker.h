@@ -12,7 +12,7 @@ class HybridLoadingChecker : public BaseLoadingChecker
   public:
 
     explicit HybridLoadingChecker(const ContainerLoadingParams& parameters, const double maxruntime)
-    : BaseLoadingChecker(parameters,maxruntime), mClassifier(std::make_unique<Classifier>(Parameters.classifierParams))
+    : BaseLoadingChecker(parameters,maxruntime), mClassifier(std::make_unique<Classifier>(Parameters))
     {}
 
     [[nodiscard]] bool CompleteCheck(const Container& container,

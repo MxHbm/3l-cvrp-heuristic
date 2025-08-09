@@ -1,19 +1,35 @@
 #pragma once
 
-#include "Algorithms/CPSolverParameters.h"
 #include "Algorithms/LoadingStatus.h"
-#include "Algorithms/ClassifierParameters.h"
 
 #include <limits>
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 
+namespace VehicleRouting{
+namespace Improvement{
+
+    enum class ImprovementTypes
+    {
+        Intra,
+        Inter,
+        Perturbation
+    };
+}
+}
+
 namespace ContainerLoading
 {
-using namespace Algorithms;
 
-struct LoadingProblemParams
+struct EnumClassHash {
+    template<class T>
+    std::size_t operator()(T v) const noexcept {
+        return static_cast<std::size_t>(v);
+    }
+};
+
+struct ContainerLoadingParams
 {
     enum class VariantType
     {
@@ -29,36 +45,49 @@ struct LoadingProblemParams
     };
 
     VariantType Variant = VariantType::None;
-    LoadingFlag LoadingFlags = LoadingFlag::NoneSet;
+    Algorithms::LoadingFlag LoadingFlags = Algorithms::LoadingFlag::NoneSet;
     bool EnableThreeDimensionalLoading = false;
     double SupportArea = 0.0;
     bool EnableSupport = false;
     bool EnableLifo = false;
     bool EnableFragility = false;
+    
+    //ClassifierParams
+    std::string TracedModelPath{};
+    std::string SerializeJson_MeanStd{};
+    bool SaveTensorData = false;
+    std::string TensorDataFilePath{};
+    float AcceptanceThreshold{0.5f};
 
-   [[nodiscard]] std::string GetVariantString() const
-    {
-        switch (Variant)
-        {
-            case VariantType::AllConstraints:
-                return "AllConstraints";
-            case VariantType::LoadingOnly:
-                return "LoadingOnly";
-            case VariantType::NoFragility:
-                return "NoFragility";
-            case VariantType::NoLifo:
-                return "NoLifo";
-            case VariantType::NoSupport:
-                return "NoSupport";
-            case VariantType::Volume:
-                return "Volume";
-            case VariantType::VolumeWeightApproximation:
-                return "VolumeWeightApproximation";
-            case VariantType::Weight:
-                return "Weight";
-            default:
-                std::string message = "Variant " + std::to_string((int)Variant) + " is an invalid problem variant.";
-                throw std::runtime_error(message.c_str());
+    //CPSolverParams
+    int Threads = 8;
+    int Seed = 0;
+    bool LogFlag = true;
+    bool Presolve = true;
+    bool EnableCumulativeDimensions = false;
+    bool EnableNoOverlap2DFloor = false;
+
+    using IT = VehicleRouting::Improvement::ImprovementTypes;
+    std::unordered_map<IT, bool, EnumClassHash> UseClassifierLocalSearch{
+        {IT::Intra, true},
+        {IT::Perturbation, true},
+        {IT::Inter, false}
+    };
+    
+    [[nodiscard]] std::string GetVariantString() const {
+        switch (Variant) {
+            case VariantType::AllConstraints:            return "AllConstraints";
+            case VariantType::LoadingOnly:               return "LoadingOnly";
+            case VariantType::NoFragility:               return "NoFragility";
+            case VariantType::NoLifo:                    return "NoLifo";
+            case VariantType::NoSupport:                 return "NoSupport";
+            case VariantType::Volume:                    return "Volume";
+            case VariantType::VolumeWeightApproximation: return "VolumeWeightApproximation";
+            case VariantType::Weight:                    return "Weight";
+            default: {
+                const auto v = static_cast<int>(Variant);
+                throw std::runtime_error(("Variant " + std::to_string(v) + " is an invalid problem variant.").c_str());
+            }
         }
     }
 
@@ -73,7 +102,7 @@ struct LoadingProblemParams
                 EnableSupport = true;
                 EnableLifo = true;
                 EnableFragility = true;
-                LoadingFlags = LoadingFlag::Complete;
+                LoadingFlags = Algorithms::LoadingFlag::Complete;
                 break;
             }
             case VariantType::NoFragility:
@@ -83,7 +112,7 @@ struct LoadingProblemParams
                 EnableSupport = true;
                 EnableLifo = true;
                 EnableFragility = false;
-                LoadingFlags = LoadingFlag::NoFragility;
+                LoadingFlags = Algorithms::LoadingFlag::NoFragility;
                 break;
             }
             case VariantType::NoSupport:
@@ -93,7 +122,7 @@ struct LoadingProblemParams
                 EnableSupport = false;
                 EnableLifo = true;
                 EnableFragility = true;
-                LoadingFlags = LoadingFlag::NoSupport;
+                LoadingFlags = Algorithms::LoadingFlag::NoSupport;
                 break;
             }
             case VariantType::NoLifo:
@@ -103,7 +132,7 @@ struct LoadingProblemParams
                 EnableSupport = true;
                 EnableLifo = false;
                 EnableFragility = true;
-                LoadingFlags = LoadingFlag::NoLifo;
+                LoadingFlags = Algorithms::LoadingFlag::NoLifo;
                 break;
             }
             case VariantType::LoadingOnly:
@@ -113,7 +142,7 @@ struct LoadingProblemParams
                 EnableSupport = false;
                 EnableLifo = false;
                 EnableFragility = false;
-                LoadingFlags = LoadingFlag::LoadingOnly;
+                LoadingFlags = Algorithms::LoadingFlag::LoadingOnly;
                 break;
             }
             case VariantType::VolumeWeightApproximation:
@@ -145,15 +174,8 @@ struct LoadingProblemParams
             }
             default:
                 throw std::runtime_error("Problem variant not implemented.");
-        };
-    };
-};
+        }
+    }
 
-struct ContainerLoadingParams
-{
-    CPSolverParams CPSolver;
-    LoadingProblemParams LoadingProblem;
-    ClassifierParams classifierParams;
 };
-
 }
