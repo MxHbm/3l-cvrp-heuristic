@@ -1,22 +1,5 @@
 #include "Algorithms/IteratedLocalSearch.h"
 
-#include "Algorithms/Evaluation.h"
-#include "CommonBasics/Helper/ModelServices.h"
-#include "ContainerLoading/Algorithms/CPSolverParameters.h"
-#include "ContainerLoading/Algorithms/LoadingStatus.h"
-#include "ContainerLoading/Helper/HelperIO.h"
-
-#include "Algorithms/Constructive.h"
-#include "Improvement/LocalSearch.h"
-//#include "Algorithms/Heuristics/SPHeuristic.h"
-#include "Helper/HelperIO.h"
-#include "Helper/Serialization.h"
-
-#include "Algorithms/LoadingInterfaceServices.h"
-
-#include <cstdint>
-#include <memory>
-
 namespace VehicleRouting
 {
 using namespace Model;
@@ -54,7 +37,17 @@ void IteratedLocalSearch::Initialize()
                                    node.Items);
     }
 
-    mLoadingChecker = std::make_unique<LoadingChecker>(mInputParameters.ContainerLoading, mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit));
+    switch (mInputParameters.IteratedLocalSearch.LoadingCheckerType)
+    {
+        case LoadingCheckerTypes::Filter:          
+            mLoadingChecker = std::make_unique<FilterLoadingChecker>(mInputParameters.ContainerLoading, mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit));
+        case LoadingCheckerTypes::NoClassifier:       
+            mLoadingChecker = std::make_unique<NoClassifierLoadingChecker>(mInputParameters.ContainerLoading, mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit));
+        case LoadingCheckerTypes::SpeedUp:       
+            mLoadingChecker = std::make_unique<SpeedUpLoadingChecker>(mInputParameters.ContainerLoading, mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit));
+        case LoadingCheckerTypes::Hybrid:       
+            mLoadingChecker = std::make_unique<HybridLoadingChecker>(mInputParameters.ContainerLoading, mInputParameters.DetermineMaxRuntime(IteratedLocalSearchParams::CallType::ExactLimit));                    
+    }
     mLoadingChecker->SetBinPackingModel(mEnv, containers, customerNodes, mOutputPath);
 
 
@@ -161,6 +154,7 @@ void IteratedLocalSearch::StartSolutionProcedure()
             break;
         case Savings:
             GenerateStartSolutionSavings();
+            
             if (mCurrentSolution.Routes.size() > mInstance->Vehicles.size()){
                 mLogFile << "Not enough vehicles for start solution, copying existing vehicle(s)...\n";
 

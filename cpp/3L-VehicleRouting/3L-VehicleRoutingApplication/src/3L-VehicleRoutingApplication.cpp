@@ -1,14 +1,8 @@
 // 3L-VehicleRoutingApplication.cpp : This file contains the 'main' function. Program execution begins and ends there.
 
-#include "VehicleRouting/Algorithms/BCRoutingParams.h"
 #include "VehicleRouting/Algorithms/IteratedLocalSearch.h"
-#include "VehicleRouting/Helper/HelperIO.h"
-#include "VehicleRouting/Model/Instance.h"
 
 #include "CLI11/CLI11.hpp"
-
-#include <fstream>
-#include <iostream>
 #include <string>
 #include <chrono>
 
@@ -29,7 +23,7 @@ void Run(std::string& inputFilePath,
          int seedOffset)
 {
 
-    InputParameters inputParameters;
+    VehicleRouting::InputParameters inputParameters;
 
     if (parameterFile != "")
     {
@@ -37,7 +31,7 @@ void Run(std::string& inputFilePath,
     }
     else
     {
-        inputParameters.ContainerLoading.LoadingProblem.Variant = LoadingProblemParams::VariantType::AllConstraints;
+        inputParameters.ContainerLoading.LoadingProblem.Variant = ContainerLoading::LoadingProblemParams::VariantType::AllConstraints;
     }
 
     inputParameters.SetLoadingFlags();

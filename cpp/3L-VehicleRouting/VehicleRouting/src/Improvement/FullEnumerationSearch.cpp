@@ -11,7 +11,7 @@ namespace Improvement
 {
 void FullEnumerationSearch::Run(const Instance* const instance,
                                 const InputParameters& inputParameters,
-                                LoadingChecker* loadingChecker,
+                                BaseLoadingChecker* loadingChecker,
                                 Solution& currentSolution)
 {
     for(auto& route : currentSolution.Routes){

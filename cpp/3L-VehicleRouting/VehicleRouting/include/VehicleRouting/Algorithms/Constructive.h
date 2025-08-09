@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Algorithms/BCRoutingParams.h"
-#include "ContainerLoading/LoadingChecker.h"
-#include "ContainerLoading/Classifier.h"
+#include "ContainerLoading/LoadingChecker/BaseLoadingChecker.h"
+#include "ContainerLoading/LoadingChecker/Classifier.h"
 
 #include "Model/Instance.h"
 
@@ -25,7 +25,7 @@ class Savings
   public:
     Savings(const Instance* const instance,
             const InputParameters* const inputParameters,
-            LoadingChecker* loadingChecker)
+            BaseLoadingChecker* loadingChecker)
 
     : mInstance(instance), mInputParameters(inputParameters), mLoadingChecker(loadingChecker){};
 
@@ -34,7 +34,7 @@ class Savings
   private:
     const Instance* const mInstance;
     const InputParameters* const mInputParameters;
-    LoadingChecker* mLoadingChecker;
+    BaseLoadingChecker* mLoadingChecker;
 
     bool ConcatRoutes(Collections::IdVector& frontSequence,
                       const Collections::IdVector& backSequence,
@@ -48,7 +48,7 @@ class ModifiedSavings
   public:
     ModifiedSavings(const Instance* const instance,
                     const InputParameters* const inputParameters,
-                    LoadingChecker* loadingChecker,
+                    BaseLoadingChecker* loadingChecker,
                     std::mt19937* rng)
 
     : mInstance(instance), mInputParameters(inputParameters), mLoadingChecker(loadingChecker), mRNG(rng){};
@@ -58,7 +58,7 @@ class ModifiedSavings
   private:
     const Instance* const mInstance;
     const InputParameters* const mInputParameters;
-    LoadingChecker* mLoadingChecker;
+    BaseLoadingChecker* mLoadingChecker;
     std::mt19937* mRNG;
 
     void RepairProcedure(std::vector<Route>& solution);

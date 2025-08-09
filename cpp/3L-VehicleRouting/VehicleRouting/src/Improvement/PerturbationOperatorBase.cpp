@@ -5,7 +5,7 @@ namespace Improvement {
 
 void PerturbationOperatorBase::Run(const Model::Instance*            instance,
         const InputParameters&            params,
-        ContainerLoading::LoadingChecker* loadingChecker,
+        ContainerLoading::BaseLoadingChecker* loadingChecker,
         Model::Solution&                  solution,
         std::mt19937&                     rng)
 {
@@ -40,13 +40,6 @@ void PerturbationOperatorBase::Run(const Model::Instance*            instance,
 
         ChangeRoutes(routes, *move);
 
-        if (loadingChecker->Parameters.LoadingProblem.LoadingFlags == LoadingFlag::NoneSet)
-        {
-            UpdateRouteVolumeWeight(routes, *move);
-            ++succesful_moves;
-            continue;
-        }
-
         for(const auto& route_index : {std::get<1>(*move), std::get<2>(*move)})
         {
             auto& route = routes[route_index];
@@ -54,13 +47,7 @@ void PerturbationOperatorBase::Run(const Model::Instance*            instance,
             if(route.Sequence.empty()){
                 continue;
             }
-            // If lifo is disabled, feasibility of route is independent from actual sequence
-            // -> move is always feasible if route is feasible
-            
-            if (!loadingChecker->Parameters.LoadingProblem.EnableLifo && loadingChecker->RouteIsInFeasSequences(route.Sequence))
-            {
-                continue;
-            }
+
             
             auto set = loadingChecker->MakeBitset(instance->Nodes.size(), route.Sequence);
             auto selectedItems = Algorithms::InterfaceConversions::SelectItems(route.Sequence, instance->Nodes, false);

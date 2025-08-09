@@ -12,7 +12,7 @@ using namespace ContainerLoading;
 
 void IntraLocalSearchOperator::Run(const Instance* instance,
                                     const InputParameters& inputParameters,
-                                    LoadingChecker* loadingChecker,
+                                    BaseLoadingChecker* loadingChecker,
                                     Solution& currentSolution)
 {
    for(auto& route : currentSolution.Routes){
@@ -39,7 +39,7 @@ void IntraLocalSearchOperator::Run(const Instance* instance,
 
 std::optional<double> IntraLocalSearchOperator::GetBestMove(const Instance* instance,
                                 const InputParameters& inputParameters,
-                                LoadingChecker* loadingChecker,
+                                BaseLoadingChecker* loadingChecker,
                                 Collections::IdVector& route,
                                 std::vector<IntraMove>& moves){
 
@@ -60,19 +60,6 @@ std::optional<double> IntraLocalSearchOperator::GetBestMove(const Instance* inst
     {
 
         ChangeRoute(route, std::get<1>(move), std::get<2>(move));
-
-        if (loadingChecker->Parameters.LoadingProblem.LoadingFlags == LoadingFlag::NoneSet)
-        {
-            return std::get<0>(move);
-        }
-
-        // If lifo is disabled, feasibility of route is independent from actual sequence
-        // -> move is always feasible if route is feasible
-        
-        if (!loadingChecker->Parameters.LoadingProblem.EnableLifo && loadingChecker->RouteIsInFeasSequences(route))
-        {
-            return std::get<0>(move);
-        }
         
         auto selectedItems = InterfaceConversions::SelectItems(route, instance->Nodes, false);
         if (loadingChecker->CompleteCheck(container, set, route, selectedItems))

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ContainerLoading/LoadingChecker.h"
+#include "ContainerLoading/LoadingChecker/BaseLoadingChecker.h"
 #include "Model/Instance.h"
 #include "Model/Solution.h"
 #include "Algorithms/BCRoutingParams.h"
@@ -18,7 +18,7 @@ class FullEnumerationSearch
   public:
     static void Run(const Instance* instance,
                     const InputParameters& inputParameters,
-                    LoadingChecker* loadingChecker,
+                    BaseLoadingChecker* loadingChecker,
                     Solution& currentSolution);
 };
 

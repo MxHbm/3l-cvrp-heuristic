@@ -17,12 +17,12 @@ namespace ContainerLoading
 {
 using namespace Algorithms;
 
-class LoadingChecker
+class BaseLoadingChecker
 {
   public:
     const ContainerLoadingParams Parameters;
 
-    explicit LoadingChecker(const ContainerLoadingParams& parameters, const double maxruntime) : Parameters(parameters), maxRunTime_CPSolver(maxruntime)
+    explicit BaseLoadingChecker(const ContainerLoadingParams& parameters, const double maxruntime) : Parameters(parameters), maxRunTime_CPSolver(maxruntime)
     {
         using enum LoadingFlag;
 
@@ -39,14 +39,12 @@ class LoadingChecker
             mInfSets[flag & Parameters.LoadingProblem.LoadingFlags].reserve(reservedSize);
             mUnknownSets[flag & Parameters.LoadingProblem.LoadingFlags].reserve(reservedSize);
         }
-
-        mStartTime = std::chrono::high_resolution_clock::now();
-
-         //Initialize Classifier: 
-        if(Parameters.classifierParams.UseClassifier){
-            mClassifier = std::make_unique<Classifier>(Parameters.classifierParams);
-        }
     }
+
+    virtual bool CompleteCheck(const Container& container,
+                                    const boost::dynamic_bitset<>& set,
+                                    const Collections::IdVector& stopIds,
+                                    const std::vector<Cuboid>& items) = 0;
 
     [[nodiscard]] std::vector<Cuboid>
         SelectItems(const Collections::IdVector& nodeIds, std::vector<Group>& nodes, bool reversedDirection) const;
@@ -63,11 +61,6 @@ class LoadingChecker
                                                                       const Collections::IdVector& stopIds,
                                                                       std::vector<Cuboid>& items,
                                                                       double maxRuntime) const;
-
-    [[nodiscard]] bool CompleteCheck(const Container& container,
-                                    const boost::dynamic_bitset<>& set,
-                                    const Collections::IdVector& stopIds,
-                                    const std::vector<Cuboid>& items);
 
     void SetBinPackingModel(GRBEnv* env,
                             std::vector<Container>& containers,

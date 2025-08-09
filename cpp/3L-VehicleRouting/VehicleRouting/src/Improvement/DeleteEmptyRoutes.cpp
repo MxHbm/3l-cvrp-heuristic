@@ -8,7 +8,7 @@ using namespace ContainerLoading;
 
 void DeleteEmptyRoutes::Run(const Instance* instance,
             const InputParameters& inputParameters,
-            LoadingChecker* loadingChecker,
+            BaseLoadingChecker* loadingChecker,
             Solution& currentSolution){
 
     // Remove empty routes

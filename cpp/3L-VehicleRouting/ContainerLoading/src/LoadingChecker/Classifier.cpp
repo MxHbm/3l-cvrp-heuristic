@@ -1,6 +1,6 @@
 // File: Classifier.cpp
 
-#include "Classifier.h"
+#include "LoadingChecker/Classifier.h"
 #include <cmath>
 #include <fstream>
 #include "nlohmann/json.hpp"

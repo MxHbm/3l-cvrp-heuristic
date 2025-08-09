@@ -36,6 +36,13 @@ enum class LocalSearchTypes
     DeleteEmptyRoutes
 };
 
+enum class LoadingCheckerTypes{
+    Filter,
+    NoClassifier,
+    SpeedUp,
+    Hybrid
+};
+
 enum class PerturbationTypes
 {
     None,
@@ -70,7 +77,7 @@ struct IteratedLocalSearchParams
     int K_RandomMoves = 1;
     int MaxIterationsWithoutImprovement = 10000;
     int RoundsWithNoImprovement = 3;
-    bool CPCheck = false;
+    LoadingCheckerTypes LoadingCheckerType = LoadingCheckerTypes::NoClassifier;
     std::unordered_map<Improvement::ImprovementTypes, bool> UseClassifier = {
             {Improvement::ImprovementTypes::Intra, true},
             {Improvement::ImprovementTypes::Perturbation, true},

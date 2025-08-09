@@ -1,9 +1,9 @@
-#include "LoadingChecker.h"
+#include "LoadingChecker/BaseLoadingChecker.h"
 #include "Algorithms/SingleContainer/OPP_CP_3D.h"
 
 namespace ContainerLoading
 {
-std::vector<Cuboid> LoadingChecker::SelectItems(const Collections::IdVector& nodeIds,
+std::vector<Cuboid> BaseLoadingChecker::SelectItems(const Collections::IdVector& nodeIds,
                                                 std::vector<Group>& nodes,
                                                 bool reversedDirection) const
 {
@@ -39,7 +39,7 @@ std::vector<Cuboid> LoadingChecker::SelectItems(const Collections::IdVector& nod
     return selectedItems;
 }
 
-LoadingStatus LoadingChecker::ConstraintProgrammingSolver(PackingType packingType,
+LoadingStatus BaseLoadingChecker::ConstraintProgrammingSolver(PackingType packingType,
                                                           const Container& container,
                                                           const boost::dynamic_bitset<>& set,
                                                           const Collections::IdVector& stopIds,
@@ -80,7 +80,7 @@ LoadingStatus LoadingChecker::ConstraintProgrammingSolver(PackingType packingTyp
     return status;
 }
 
-LoadingStatus LoadingChecker::ConstraintProgrammingSolverGetPacking(PackingType packingType,
+LoadingStatus BaseLoadingChecker::ConstraintProgrammingSolverGetPacking(PackingType packingType,
                                                                     const Container& container,
                                                                     const Collections::IdVector& stopIds,
                                                                     std::vector<Cuboid>& items,
@@ -118,52 +118,7 @@ LoadingStatus LoadingChecker::ConstraintProgrammingSolverGetPacking(PackingType 
     return status;
 }
 
-bool LoadingChecker::CompleteCheck(const Container& container,
-                                    const boost::dynamic_bitset<>& set,
-                                    const Collections::IdVector& stopIds,
-                                    const std::vector<Cuboid>& items
-                                    )
-{
-    if (RouteIsInFeasSequences(stopIds))
-    {
-        return true;
-    }
-
-    if (RouteIsInInfeasSequences(stopIds))
-    {
-        return false;
-    }
-    
-    if(Parameters.classifierParams.UseClassifier){
-        
-         if(mClassifier->classify(items,stopIds,container)){
-
-            auto cpStatus = ConstraintProgrammingSolver(PackingType::Complete,
-                                                    container,
-                                                    set,
-                                                    stopIds,
-                                                    items,
-                                                    false);
-
-            return cpStatus == LoadingStatus::FeasOpt;
-
-        }else{
-            return false;
-        }
-    }else{
-        
-        auto cpStatus = ConstraintProgrammingSolver(PackingType::Complete,
-                                                    container,
-                                                    set,
-                                                    stopIds,
-                                                    items,
-                                                    false);
-
-        return cpStatus == LoadingStatus::FeasOpt;
-    }
-}
-
-void LoadingChecker::SetBinPackingModel(GRBEnv* env,
+void BaseLoadingChecker::SetBinPackingModel(GRBEnv* env,
                                         std::vector<Container>& containers,
                                         std::vector<Group>& nodes,
                                         const std::string& outputPath)
@@ -171,14 +126,14 @@ void LoadingChecker::SetBinPackingModel(GRBEnv* env,
     mBinPacking1D = std::make_unique<BinPacking1D>(env, containers, nodes, outputPath);
 }
 
-int LoadingChecker::SolveBinPackingApproximation() const { return mBinPacking1D->Solve(); }
+int BaseLoadingChecker::SolveBinPackingApproximation() const { return mBinPacking1D->Solve(); }
 
-int LoadingChecker::ReSolveBinPackingApproximation(const boost::dynamic_bitset<>& selectedGroups) const
+int BaseLoadingChecker::ReSolveBinPackingApproximation(const boost::dynamic_bitset<>& selectedGroups) const
 {
     return mBinPacking1D->ReSolve(selectedGroups);
 }
 
-int LoadingChecker::DetermineMinVehicles(bool enableLifting,
+int BaseLoadingChecker::DetermineMinVehicles(bool enableLifting,
                                          double liftingThreshold,
                                          const Container& container,
                                          const boost::dynamic_bitset<>& nodes,
@@ -196,7 +151,7 @@ int LoadingChecker::DetermineMinVehicles(bool enableLifting,
     return minVehicles;
 }
 
-int LoadingChecker::DetermineMinVehiclesBinPacking(bool enableLifting,
+int BaseLoadingChecker::DetermineMinVehiclesBinPacking(bool enableLifting,
                                                    double liftingThreshold,
                                                    const boost::dynamic_bitset<>& nodes,
                                                    int r,
@@ -215,7 +170,7 @@ int LoadingChecker::DetermineMinVehiclesBinPacking(bool enableLifting,
     return minVehicles;
 }
 
-bool LoadingChecker::CustomerCombinationInfeasible(const boost::dynamic_bitset<>& customersInRoute) const
+bool BaseLoadingChecker::CustomerCombinationInfeasible(const boost::dynamic_bitset<>& customersInRoute) const
 {
     for (const auto& customerCombination: mInfeasibleCustomerCombinations)
     {
@@ -233,30 +188,30 @@ bool LoadingChecker::CustomerCombinationInfeasible(const boost::dynamic_bitset<>
 }
 
 
-void LoadingChecker::AddInfeasibleCombination(const boost::dynamic_bitset<>& customersInRoute)
+void BaseLoadingChecker::AddInfeasibleCombination(const boost::dynamic_bitset<>& customersInRoute)
 {
     mInfeasibleCustomerCombinations.emplace_back(customersInRoute);
 }
 
-Collections::SequenceVector LoadingChecker::GetFeasibleRoutes() const { return mCompleteFeasSeq; };
+Collections::SequenceVector BaseLoadingChecker::GetFeasibleRoutes() const { return mCompleteFeasSeq; };
 
-size_t LoadingChecker::GetNumberOfFeasibleRoutes() const { return mCompleteFeasSeq.size(); };
+size_t BaseLoadingChecker::GetNumberOfFeasibleRoutes() const { return mCompleteFeasSeq.size(); };
 
-size_t LoadingChecker::GetSizeInfeasibleCombinations() const { return mInfeasibleCustomerCombinations.size(); };
+size_t BaseLoadingChecker::GetSizeInfeasibleCombinations() const { return mInfeasibleCustomerCombinations.size(); };
 
-void LoadingChecker::AddFeasibleSequenceFromOutside(const Collections::IdVector& route) { AddFeasibleRoute(route); }
+void BaseLoadingChecker::AddFeasibleSequenceFromOutside(const Collections::IdVector& route) { AddFeasibleRoute(route); }
 
-bool LoadingChecker::RouteIsInFeasSequences(const Collections::IdVector& route) const
+bool BaseLoadingChecker::RouteIsInFeasSequences(const Collections::IdVector& route) const
 {
     return mFeasSequences.at(Parameters.LoadingProblem.LoadingFlags).contains(route);
 }
 
-bool LoadingChecker::RouteIsInInfeasSequences(const Collections::IdVector& route) const
+bool BaseLoadingChecker::RouteIsInInfeasSequences(const Collections::IdVector& route) const
 {
     return mInfSequences.at(Parameters.LoadingProblem.LoadingFlags).contains(route);
 }
 
-boost::dynamic_bitset<> LoadingChecker::MakeBitset(size_t size, const Collections::IdVector& sequence) const
+boost::dynamic_bitset<> BaseLoadingChecker::MakeBitset(size_t size, const Collections::IdVector& sequence) const
 {
     boost::dynamic_bitset<> set(size);
     for (const auto i: sequence)
@@ -267,28 +222,28 @@ boost::dynamic_bitset<> LoadingChecker::MakeBitset(size_t size, const Collection
     return set;
 };
 
-void LoadingChecker::AddFeasibleRoute(const Collections::IdVector& route)
+void BaseLoadingChecker::AddFeasibleRoute(const Collections::IdVector& route)
 {
     mFeasSequences[Parameters.LoadingProblem.LoadingFlags].insert(route);
     mCompleteFeasSeq.push_back(route);
 }
 
-bool LoadingChecker::SequenceIsInfeasibleCP(const Collections::IdVector& sequence, const LoadingFlag mask) const
+bool BaseLoadingChecker::SequenceIsInfeasibleCP(const Collections::IdVector& sequence, const LoadingFlag mask) const
 {
     return mInfSequences.at(mask).contains(sequence);
 }
 
-bool LoadingChecker::SequenceIsUnknownCP(const Collections::IdVector& sequence, const LoadingFlag mask) const
+bool BaseLoadingChecker::SequenceIsUnknownCP(const Collections::IdVector& sequence, const LoadingFlag mask) const
 {
     return mUnkSequences.at(mask).contains(sequence);
 }
 
-bool LoadingChecker::SequenceIsFeasible(const Collections::IdVector& sequence, const LoadingFlag mask) const
+bool BaseLoadingChecker::SequenceIsFeasible(const Collections::IdVector& sequence, const LoadingFlag mask) const
 {
     return mFeasSequences.at(mask).contains(sequence);
 }
 
-bool LoadingChecker::SetIsInfeasibleCP(const boost::dynamic_bitset<>& set, const LoadingFlag mask) const
+bool BaseLoadingChecker::SetIsInfeasibleCP(const boost::dynamic_bitset<>& set, const LoadingFlag mask) const
 {
     const auto& sets = mInfSets.at(mask);
     if (!IsSet(mask, LoadingFlag::Support))
@@ -318,7 +273,7 @@ bool LoadingChecker::SetIsInfeasibleCP(const boost::dynamic_bitset<>& set, const
     return false;
 }
 
-bool LoadingChecker::SetIsUnknownCP(const boost::dynamic_bitset<>& set, const LoadingFlag mask) const
+bool BaseLoadingChecker::SetIsUnknownCP(const boost::dynamic_bitset<>& set, const LoadingFlag mask) const
 {
     const auto& sets = mUnknownSets.at(mask);
 
@@ -332,7 +287,7 @@ bool LoadingChecker::SetIsUnknownCP(const boost::dynamic_bitset<>& set, const Lo
     return false;
 }
 
-bool LoadingChecker::SetIsFeasibleCP(const boost::dynamic_bitset<>& set, const LoadingFlag mask) const
+bool BaseLoadingChecker::SetIsFeasibleCP(const boost::dynamic_bitset<>& set, const LoadingFlag mask) const
 {
     const auto& sets = mFeasibleSets.at(mask);
     if (!IsSet(mask, LoadingFlag::Support))
@@ -360,7 +315,7 @@ bool LoadingChecker::SetIsFeasibleCP(const boost::dynamic_bitset<>& set, const L
     return false;
 }
 
-LoadingFlag LoadingChecker::BuildMask(PackingType type) const
+LoadingFlag BaseLoadingChecker::BuildMask(PackingType type) const
 {
     switch (type)
     {
@@ -377,7 +332,7 @@ LoadingFlag LoadingChecker::BuildMask(PackingType type) const
     return LoadingFlag();
 }
 
-LoadingStatus LoadingChecker::GetPrecheckStatusCP(const Collections::IdVector& sequence,
+LoadingStatus BaseLoadingChecker::GetPrecheckStatusCP(const Collections::IdVector& sequence,
                                                   const boost::dynamic_bitset<>& set,
                                                   const LoadingFlag mask,
                                                   const bool isCallTypeExact)
@@ -431,7 +386,7 @@ LoadingStatus LoadingChecker::GetPrecheckStatusCP(const Collections::IdVector& s
     return LoadingStatus::Invalid;
 }
 
-void LoadingChecker::AddStatus(const Collections::IdVector& sequence,
+void BaseLoadingChecker::AddStatus(const Collections::IdVector& sequence,
                                const boost::dynamic_bitset<>& set,
                                const LoadingFlag mask,
                                const LoadingStatus status)

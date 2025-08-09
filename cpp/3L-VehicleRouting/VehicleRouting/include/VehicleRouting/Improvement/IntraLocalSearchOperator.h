@@ -17,7 +17,7 @@ class IntraLocalSearchOperator : public LocalSearchOperatorBase
   public:
     void Run(const Instance* instance,
                     const InputParameters& inputParameters,
-                    LoadingChecker* loadingChecker,
+                    BaseLoadingChecker* loadingChecker,
                     Solution& currentSolution) override;
 
   private:
@@ -26,7 +26,7 @@ class IntraLocalSearchOperator : public LocalSearchOperatorBase
   protected:
     std::optional<double> GetBestMove(const Instance* instance,
                                     const InputParameters& inputParameters,
-                                    LoadingChecker* loadingChecker,
+                                    BaseLoadingChecker* loadingChecker,
                                     Collections::IdVector& route,
                                     std::vector<IntraMove>& moves);
 

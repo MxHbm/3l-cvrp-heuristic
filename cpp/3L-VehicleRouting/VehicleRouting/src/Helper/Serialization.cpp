@@ -38,6 +38,13 @@ NLOHMANN_JSON_SERIALIZE_ENUM(PerturbationTypes,
     {{PerturbationTypes::None, "None"},
     {PerturbationTypes::K_RandomSwaps, "K_RandomSwaps"},
     {PerturbationTypes::K_RandomInsertions, "K_RandomInsertions"}});
+
+NLOHMANN_JSON_SERIALIZE_ENUM(LoadingCheckerTypes,
+    {{LoadingCheckerTypes::Filter, "Filter"},
+    {LoadingCheckerTypes::NoClassifier, "NoClassifier"},
+    {LoadingCheckerTypes::SpeedUp, "SpeedUp"},
+    {LoadingCheckerTypes::Hybrid, "Hybrid"}});
+
 }
 
 namespace Improvement{
@@ -91,7 +98,6 @@ void from_json(const json& j, ClassifierParams& params)
 {
     j.at("TracedModelPath").get_to(params.TracedModelPath);
     j.at("SerializeJson_MeanStd").get_to(params.SerializeJson_MeanStd);
-    j.at("UseClassifier").get_to(params.UseClassifier);
     j.at("SaveTensorData").get_to(params.SaveTensorData);
     j.at("TensorDataFilePath").get_to(params.TensorDataFilePath);
     j.at("AcceptanceThreshold").get_to(params.AcceptanceThreshold);
@@ -101,7 +107,6 @@ void to_json(json& j, const ClassifierParams& params)
 {
     j = json{{"TracedModelPath", params.TracedModelPath},
              {"SerializeJson_MeanStd", params.SerializeJson_MeanStd},
-             {"UseClassifier", params.UseClassifier},
              {"SaveTensorData", params.SaveTensorData},
              {"TensorDataFilePath", params.TensorDataFilePath},
              {"AcceptanceThreshold", params.AcceptanceThreshold}};
@@ -137,7 +142,7 @@ void from_json(const json& j, IteratedLocalSearchParams& params)
     j.at("K_RandomMoves").get_to(params.K_RandomMoves);
     j.at("StartSolution").get_to(params.StartSolution);
     j.at("TimeLimit").get_to(params.TimeLimits);
-    j.at("CPCheck").get_to(params.CPCheck);
+    j.at("LoadingCheckerType").get_to(params.LoadingCheckerType); 
     j.at("UseClassifier").get_to(params.UseClassifier);
     j.at("LocalSearchTypes").get_to(params.localSearchTypes);
     j.at("PerturbationTypes").get_to(params.perturbationTypes);
@@ -153,7 +158,7 @@ void to_json(json& j, const IteratedLocalSearchParams& params)
              {"K_RandomMoves", params.K_RandomMoves},
              {"MaxIterationsWithoutImprovement", params.MaxIterationsWithoutImprovement},
              {"RoundsWithNoImprovement", params.RoundsWithNoImprovement},
-             {"CPCheck", params.CPCheck},
+             {"LoadingCheckerType", params.LoadingCheckerType},
              {"UseClassifier", params.UseClassifier},
              {"LocalSearchTypes",params.localSearchTypes},
              {"PerturbationTypes",params.perturbationTypes},
